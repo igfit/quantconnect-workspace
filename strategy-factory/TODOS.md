@@ -1,6 +1,6 @@
 # Strategy Factory - Progress Tracker
 
-> **Last Updated:** 2025-01-07
+> **Last Updated:** 2026-01-07
 >
 > This file tracks implementation progress. Update after every work session.
 
@@ -196,6 +196,35 @@
 **Notes:**
 - qc-api.sh script uses jq formatting, so implemented direct API calls
 - backtestId is nested inside response["backtest"]["backtestId"]
+
+### Session 3 - 2026-01-07
+**Duration:** ~30 minutes
+**Accomplished:**
+- Fixed critical parser key mismatches:
+  - `Total Trades` → `Total Orders`
+  - `Total Net Profit` → `Net Profit`
+  - `Starting Capital` → `Start Equity`
+  - `Equity Final` → `End Equity`
+- Full pipeline validation with 3 strategies:
+  - 2/3 passed filtering, validation, and ranking
+  - #1: High Breakout (Sharpe 0.90, CAGR 17%, MaxDD 18.5%)
+  - #2: MA Crossover Momentum (Sharpe 0.50, CAGR 10.1%, MaxDD 16.2%)
+- Relaxed thresholds for initial testing phase
+- Updated NOTES.md with QC API learnings
+- Merged to main and pushed
+
+**Results:**
+```
+| Strategy              | Sharpe | CAGR  | MaxDD  | Trades | Score |
+|-----------------------|--------|-------|--------|--------|-------|
+| High Breakout         | 0.90   | 17.0% | 18.5%  | 1100   | 0.426 |
+| MA Crossover Momentum | 0.50   | 10.1% | 16.2%  | 193    | 0.410 |
+```
+
+**Notes:**
+- Crossover-based strategies may have 0 trades if price already above/below trigger at start
+- High turnover strategies get penalized in ranking (244 trades/year)
+- Pipeline takes ~1-1.5 minutes for 3 strategies
 
 ---
 

@@ -82,16 +82,34 @@ Equity Final       → End Equity
 
 ## Strategy Generation Learnings
 
-*(To be updated during AI generation phase)*
-
 ### What Works
-- *(Add successful patterns)*
+
+**High Breakout Strategy:**
+- Simple 20-day high breakout with 10-day low exit
+- Universe: Large cap tech (AAPL, MSFT, GOOGL, AMZN, NVDA)
+- Results: Sharpe 0.90, CAGR 17%, 1100 trades over 5 years
+- Note: High turnover (244/year) gets penalized in ranking
+
+**MA Crossover Momentum:**
+- 50/200 SMA crossover on same universe
+- Results: Sharpe 0.50, CAGR 10.1%, 193 trades
+- More conservative, lower turnover
 
 ### What Doesn't Work
-- *(Add failed approaches)*
+
+**Crossover Strategies with Trend Filter:**
+- Strategy: Price crosses above SMA AND RSI > 50
+- Problem: If price already above SMA at backtest start, no crossover detected
+- Result: 0 trades generated
+- Fix needed: Initialize prev_indicator_values during warmup period
 
 ### Indicator Notes
-- *(Add indicator-specific learnings)*
+
+**Crossover Detection:**
+- Requires previous day's values to detect the "cross"
+- Current implementation stores prev values at end of each day
+- Edge case: Day 1 after warmup has no prev values (defaults to 0)
+- This can cause false positives or no signals depending on condition
 
 ---
 
@@ -121,19 +139,48 @@ Equity Final       → End Equity
 
 ## Performance Notes
 
-*(To be updated during testing)*
-
 ### API Performance
-- *(Add timing observations)*
+- Rate limit: 30 requests/minute (implemented with 2.5s buffer between requests)
+- Backtest polling: 3 second intervals
+- Average backtest completion: 15-20 seconds for 5-year daily strategies
 
 ### Backtest Duration
-- *(Add backtest timing notes)*
+- 3 strategies full pipeline: ~1-1.5 minutes
+- Per strategy (push + compile + backtest + poll): ~20-25 seconds
+- Estimated throughput: ~40-50 backtests per hour
+
+### Pipeline Timing (3 strategies, skip sweep)
+```
+Phase 1 (Generation): <1 second
+Phase 2 (Backtests):  ~60-70 seconds
+Phase 3 (Filtering):  <1 second
+Phase 5 (Validation): <1 second
+Phase 6 (Ranking):    <1 second
+Phase 7 (Report):     <1 second
+Total:                ~1-1.5 minutes
+```
 
 ---
 
 ## Bug Fixes
 
-*(Document bugs and fixes as encountered)*
+### Bug: Parser Key Mismatches
+**Date:** 2026-01-07
+**Symptoms:** All strategies showed `Trades: 0` but had meaningful Sharpe ratios and win rates
+**Root Cause:** QC API uses different key names than expected:
+- `Total Orders` not `Total Trades`
+- `Net Profit` not `Total Net Profit`
+- `Start Equity` not `Starting Capital`
+- `End Equity` not `Equity Final`
+**Fix:** Updated `core/parser.py` to use correct QC API key names
+**Prevention:** Always check raw API response (`raw_statistics` field) when metrics look wrong
+
+### Bug: Report Generation TypeError
+**Date:** 2026-01-07
+**Symptoms:** `TypeError: object of type 'int' has no len()`
+**Root Cause:** Used `len(self.generator.generated_count)` but `generated_count` is an int, not a list
+**Fix:** Changed to `self.generator.generated_count`
+**Prevention:** Check variable types before using len()
 
 ### Bug Template
 ```
