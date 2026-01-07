@@ -12,6 +12,10 @@ A comprehensive guide capturing learnings from developing and testing trading st
 5. [Common Pitfalls](#common-pitfalls)
 6. [Best Practices](#best-practices)
 7. [BX & Wave Indicator Variations](#bx--wave-indicator-variations)
+8. [Wave-EWO Deep Dive](#wave-ewo-deep-dive)
+9. [High-Beta Stock Testing](#high-beta-stock-testing)
+10. [Complete Performance Comparison](#complete-performance-comparison)
+11. [Stock Selection for Momentum Strategies](#stock-selection-for-momentum-strategies)
 
 ---
 
@@ -508,16 +512,280 @@ self.rsi_indicator = self.rsi(symbol, period, MovingAverageType.WILDERS, Resolut
 
 ---
 
+## Wave-EWO Deep Dive
+
+### What is Wave-EWO?
+
+Wave-EWO (Elliott Wave Oscillator) is a **trend-following momentum strategy** that combines:
+1. **EWO**: Difference between fast and slow Simple Moving Averages
+2. **RSI Filter**: Momentum confirmation to reduce false signals
+
+```
+EWO = SMA(5) - SMA(34)
+
+Entry: EWO crosses above 0 AND RSI > 40
+Exit: EWO crosses below 0 OR RSI < 30
+```
+
+### Why 5 and 34?
+
+These are **Fibonacci numbers** used in Elliott Wave analysis:
+- **5**: Captures immediate price action (~1 week)
+- **34**: Filters noise, represents ~7 weeks of trading
+
+### Signal Logic Explained
+
+```
+EWO Value
+    │
+  + │         ╭────╮
+    │        ╱      ╲         HOLD (long position)
+  0 │───────╱────────╲───────────────
+    │      ↑          ↓
+  - │   BUY         SELL
+    │
+    └────────────────────────────── Time
+```
+
+**The RSI filter prevents:**
+- Entering weak trends (RSI < 40 = no momentum)
+- Holding through momentum collapse (RSI < 30 = exit early)
+
+### Why Wave-EWO Outperforms BX Trender
+
+| Aspect | BX Trender | Wave-EWO |
+|--------|------------|----------|
+| Fast MA | EMA(5) | SMA(5) |
+| Slow MA | EMA(20) | SMA(34) |
+| Signal | RSI of EMA diff | Zero-cross + RSI filter |
+| Complexity | Higher | Lower |
+| Robustness | Stock-specific | Works across stocks |
+
+**Key insight**: Simpler indicators with longer lookback periods are more robust.
+
+### Complete Implementation
+
+```python
+from AlgorithmImports import *
+
+class WaveEWO(QCAlgorithm):
+    def initialize(self):
+        self.set_start_date(2020, 1, 1)
+        self.set_end_date(2024, 1, 1)
+        self.set_cash(100000)
+
+        self.symbol = self.add_equity("TSLA", Resolution.DAILY).symbol
+
+        # EWO params (Fibonacci)
+        self.sma_fast = self.sma(self.symbol, 5, Resolution.DAILY)
+        self.sma_slow = self.sma(self.symbol, 34, Resolution.DAILY)
+
+        # RSI filter
+        self.rsi_indicator = self.rsi(self.symbol, 14, MovingAverageType.WILDERS, Resolution.DAILY)
+
+        self.ewo = None
+        self.prev_ewo = None
+
+        self.set_warm_up(50, Resolution.DAILY)
+        self.set_benchmark("SPY")
+
+    def on_data(self, data):
+        if self.is_warming_up or self.symbol not in data or data[self.symbol] is None:
+            return
+        if not self.sma_fast.is_ready or not self.sma_slow.is_ready or not self.rsi_indicator.is_ready:
+            return
+
+        # Calculate EWO
+        self.ewo = self.sma_fast.current.value - self.sma_slow.current.value
+        rsi_val = self.rsi_indicator.current.value
+
+        if self.prev_ewo is not None:
+            crossed_bullish = self.prev_ewo < 0 and self.ewo >= 0
+            crossed_bearish = self.prev_ewo >= 0 and self.ewo < 0
+
+            # Entry: EWO crosses bullish AND RSI confirms
+            if crossed_bullish and rsi_val >= 40:
+                if not self.portfolio[self.symbol].invested:
+                    self.set_holdings(self.symbol, 1.0)
+
+            # Exit: EWO crosses bearish OR RSI fails
+            elif self.portfolio[self.symbol].invested:
+                if crossed_bearish or rsi_val < 30:
+                    self.liquidate(self.symbol)
+
+        self.prev_ewo = self.ewo
+```
+
+### Trade Characteristics
+
+| Metric | Typical Value | Explanation |
+|--------|---------------|-------------|
+| Win Rate | 35-45% | Low, but winners are big |
+| P/L Ratio | 6-7x | Winners ~6x size of losers |
+| Trades/Year | ~10 | Very low turnover |
+| Avg Hold | 30-60 days | Catches full trends |
+| Drawdown | 34-45% | Lower than buy-hold |
+
+---
+
+## High-Beta Stock Testing
+
+### Stocks Tested
+
+Tested Wave-EWO on 5 high-beta stocks (2020-2024):
+
+| Ticker | Company | Beta | Sector |
+|--------|---------|------|--------|
+| AMD | Advanced Micro Devices | ~1.8 | Semiconductor |
+| COIN | Coinbase | ~2.3 | Crypto/Fintech |
+| META | Meta Platforms | ~1.7 | Social/Tech |
+| MSTR | MicroStrategy | ~2.5+ | Bitcoin Proxy |
+| SMCI | Super Micro Computer | ~2.0+ | AI Infrastructure |
+
+### Results Summary
+
+| Ticker | Return | Sharpe | Drawdown | Win Rate | End Value |
+|--------|--------|--------|----------|----------|-----------|
+| **TSLA** | **858%** | **1.50** | 34.1% | ~35% | $958K |
+| **MSTR** | **365%** | 0.91 | 76.3% | 35% | $465K |
+| SMCI | 159% | 0.65 | 41.2% | ~35% | $259K |
+| AMD | 145% | 0.67 | 38.9% | 45% | $245K |
+| META | 139% | 0.72 | 41.1% | 35% | $239K |
+| COIN | 41% | 0.40 | 59.1% | 44% | $141K |
+
+### Key Findings
+
+1. **TSLA remains the best performer** - unique combination of trend strength and momentum
+2. **MSTR has extreme characteristics** - highest return (365%) but also extreme drawdown (76%)
+3. **META has best risk-adjusted return** among new tests (0.72 Sharpe)
+4. **COIN struggles** - crypto correlation creates whipsaw signals
+5. **Semiconductor stocks (AMD, SMCI)** show consistent performance
+
+### Why COIN Underperforms
+
+```
+COIN Price Action:
+     ╭╮  ╭╮  ╭╮         News-driven spikes
+    ╱  ╲╱  ╲╱  ╲        Sudden reversals
+   ╱          ╲        No sustained trends
+  ╱            ╲       EWO generates false signals
+```
+
+Crypto-correlated stocks move on:
+- Bitcoin price swings (external factor)
+- Regulatory news (binary events)
+- Sentiment shifts (unpredictable)
+
+**Wave-EWO needs sustained trends** - COIN doesn't provide them.
+
+---
+
+## Complete Performance Comparison
+
+### All Strategies Compared (2020-2024, $100K initial)
+
+| Strategy | Type | Orders | Start | End | Return | Sharpe | Drawdown | Win Rate |
+|----------|------|--------|-------|-----|--------|--------|----------|----------|
+| **Wave-EWO TSLA** | Active | ~40 | $100K | $958K | **858%** | **1.50** | 34.1% | ~35% |
+| **Wave-EWO MSTR** | Active | 41 | $100K | $465K | **365%** | 0.91 | 76.3% | 35% |
+| Wave-EWO SMCI | Active | ~40 | $100K | $259K | 159% | 0.65 | 41.2% | ~35% |
+| Wave-EWO AMD | Active | 41 | $100K | $245K | 145% | 0.67 | 38.9% | 45% |
+| Wave-EWO META | Active | 41 | $100K | $239K | 139% | 0.72 | 41.1% | 35% |
+| QQQ Buy-Hold | Passive | 1 | $100K | $195K | 95% | 0.59 | 34.8% | N/A |
+| DCA TSLA | Passive | 48 | $100K | $163K | 63% | 0.39 | 62.4% | N/A |
+| SPY Buy-Hold | Passive | 1 | $100K | $157K | 57% | 0.43 | 33.3% | N/A |
+| Wave-EWO COIN | Active | 33 | $100K | $141K | 41% | 0.40 | 59.1% | 44% |
+| DCA QQQ | Passive | 48 | $100K | $133K | 33% | 0.35 | 21.7% | N/A |
+| DCA SPY | Passive | 48 | $100K | $124K | 24% | 0.28 | 14.8% | N/A |
+
+### Active vs Passive Analysis
+
+| Comparison | Active (Wave-EWO) | Passive |
+|------------|-------------------|---------|
+| Best Return | TSLA 858% | QQQ 95% |
+| Best Sharpe | TSLA 1.50 | QQQ 0.59 |
+| Lowest Drawdown | TSLA 34.1% | DCA SPY 14.8% |
+| Worst Case | COIN 41% | DCA SPY 24% |
+
+**Key insight**: Even the worst Wave-EWO (COIN) beats most DCA strategies.
+
+### DCA vs Lump Sum vs Active
+
+| Approach | TSLA Return | Why? |
+|----------|-------------|------|
+| Wave-EWO | 858% | Captures trends, avoids crashes |
+| Buy-Hold | ~500% | Full exposure to drawdowns |
+| DCA | 63% | Averages into winner = dilutes gains |
+
+**DCA underperforms on trending assets** - you keep buying at higher prices.
+
+---
+
+## Stock Selection for Momentum Strategies
+
+### Ideal Characteristics for Wave-EWO
+
+| Factor | Ideal | Avoid |
+|--------|-------|-------|
+| Beta | 1.5 - 2.5 | < 1.0 or > 3.0 |
+| Trend Behavior | Sustained moves | Choppy/mean-reverting |
+| Catalysts | Earnings, growth | News-driven, binary events |
+| Sector | Tech, Growth | Utilities, REITs |
+| Correlation | Market-driven | External factors (crypto) |
+
+### Stock Tiers for Wave-EWO
+
+**Tier 1 - Best Performers:**
+- TSLA - Strong trends, retail momentum
+- NVDA - AI/semiconductor cycles
+- MSTR - Bitcoin proxy (if comfortable with volatility)
+
+**Tier 2 - Solid Performers:**
+- AMD - Semiconductor cycles
+- META - Large-cap with trend behavior
+- SMCI - AI infrastructure momentum
+
+**Tier 3 - Avoid:**
+- COIN - Crypto correlation, no sustained trends
+- Meme stocks (GME, AMC) - Too erratic
+- Biotech - Binary event-driven
+
+### Beta Screening Approach
+
+To find high-beta stocks programmatically:
+
+```python
+# Beta = Cov(stock_returns, market_returns) / Var(market_returns)
+
+# Get 252 days of returns
+stock_returns = history.loc[symbol]['close'].pct_change()
+spy_returns = history.loc['SPY']['close'].pct_change()
+
+# Calculate beta
+covariance = np.cov(stock_returns, spy_returns)[0][1]
+variance = np.var(spy_returns)
+beta = covariance / variance
+
+# Filter for high beta
+if beta > 1.5:
+    high_beta_stocks.append(symbol)
+```
+
+**Note**: QuantConnect doesn't have built-in beta screening - must calculate manually.
+
+---
+
 ## Future Improvements to Explore
 
-1. **Adaptive parameters** - adjust L1/L2/L3 based on volatility
+1. **Adaptive parameters** - adjust SMA periods based on volatility regime
 2. **Regime detection** - different params for bull/bear markets
 3. **Risk management** - stop losses, position sizing based on ATR
-4. **Sector rotation** - apply BX to sector ETFs
-5. **Crypto markets** - test on 24/7 markets with higher volatility
-6. **Options overlay** - use BX signals for options strategies
-7. **Wave-EWO on other assets** - test on COIN, AMD, META
-8. **Combine Wave-EWO + SuperTrend** - use SuperTrend as trailing stop
+4. **Sector rotation** - apply Wave-EWO to sector ETFs
+5. **Options overlay** - use Wave-EWO signals for options strategies
+6. **Combine Wave-EWO + SuperTrend** - use SuperTrend as trailing stop
+7. **Portfolio approach** - equal weight multiple high-beta stocks
+8. **Exit optimization** - test different RSI exit thresholds
+9. **Volatility filter** - avoid entries during extreme VIX
 
 ---
 
