@@ -309,9 +309,9 @@ Rationale: Research shows momentum crashes 1-3 months AFTER market plunge
 ## Next Steps
 
 1. [x] Claude Code to research and propose signal logic ✓ (See Section 9)
-2. [ ] Claude Code to generate initial universe candidates (25-30 stocks)
+2. [x] Claude Code to generate initial universe candidates (28 stocks) ✓
 3. [ ] User to approve/reject universe
-4. [ ] Implement strategy in QuantConnect
+4. [x] Implement strategy in QuantConnect ✓
 5. [ ] Backtest strategy on approved universe
 6. [ ] Compare results vs benchmarks (SPY/QQQ B&H, DCA)
 7. [ ] Iterate based on results
@@ -319,7 +319,18 @@ Rationale: Research shows momentum crashes 1-3 months AFTER market plunge
 ## Related Documentation
 
 - **Research**: `docs/portfolio-strategy-research.md` - Full research compilation with sources
+- **Universe**: `docs/universe-candidates.md` - Proposed 28-stock universe
 - **Learnings**: `docs/LEARNINGS.md` - Platform and strategy learnings
+
+---
+
+## Implementation Files
+
+| File | Description |
+|------|-------------|
+| `algorithms/strategies/accel_dual_momentum_portfolio.py` | QuantConnect implementation |
+| `algorithms/pinescript/accel_dual_momentum.pine` | TradingView verification script |
+| `docs/universe-candidates.md` | Proposed 28-stock universe |
 
 ---
 

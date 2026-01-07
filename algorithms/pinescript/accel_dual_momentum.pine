@@ -1,0 +1,153 @@
+// Accelerating Dual Momentum Strategy
+// Converted from QuantConnect Python implementation
+// Based on research combining multiple momentum approaches
+//
+// Entry Conditions (ALL must be true):
+// 1. Accelerating Momentum > 0 (absolute)
+// 2. Accelerating Momentum > SPY (relative)
+// 3. Price > 50-day SMA (trend confirmation)
+// 4. Price within 25% of 52-week high (near-high filter)
+//
+// Exit Conditions (ANY triggers):
+// 1. Accelerating Momentum < 0
+// 2. Accelerating Momentum < SPY
+// 3. Price < 50-day SMA
+//
+// Rebalance: Weekly
+
+//@version=5
+strategy("Accelerating Dual Momentum", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=100000)
+
+// === INPUTS ===
+lookback_1m = input.int(21, "1-Month Lookback", minval=5, tooltip="~1 month of trading days")
+lookback_3m = input.int(63, "3-Month Lookback", minval=20, tooltip="~3 months of trading days")
+lookback_6m = input.int(126, "6-Month Lookback", minval=60, tooltip="~6 months of trading days")
+lookback_52w = input.int(252, "52-Week Lookback", minval=200, tooltip="~1 year for 52-week high")
+sma_period = input.int(50, "SMA Period", minval=10, tooltip="Trend confirmation SMA")
+near_high_pct = input.float(25.0, "Near High Threshold %", minval=5, maxval=50, tooltip="Max distance from 52-week high")
+rebalance_days = input.int(5, "Rebalance Frequency (days)", minval=1, tooltip="How often to check signals")
+spy_ticker = input.symbol("SPY", "Benchmark Symbol", tooltip="Symbol to compare against")
+
+// === GET SPY DATA ===
+spy_close = request.security(spy_ticker, timeframe.period, close)
+
+// === CALCULATE RETURNS ===
+// Stock returns
+stock_ret_1m = (close - close[lookback_1m]) / close[lookback_1m]
+stock_ret_3m = (close - close[lookback_3m]) / close[lookback_3m]
+stock_ret_6m = (close - close[lookback_6m]) / close[lookback_6m]
+
+// SPY returns
+spy_ret_1m = (spy_close - spy_close[lookback_1m]) / spy_close[lookback_1m]
+spy_ret_3m = (spy_close - spy_close[lookback_3m]) / spy_close[lookback_3m]
+spy_ret_6m = (spy_close - spy_close[lookback_6m]) / spy_close[lookback_6m]
+
+// === ACCELERATING MOMENTUM ===
+// Formula: (1m return + 3m return + 6m return) / 3
+stock_accel_mom = (stock_ret_1m + stock_ret_3m + stock_ret_6m) / 3
+spy_accel_mom = (spy_ret_1m + spy_ret_3m + spy_ret_6m) / 3
+
+// === 52-WEEK HIGH ===
+high_52w = ta.highest(close, lookback_52w)
+distance_from_high = (high_52w - close) / high_52w * 100  // As percentage
+
+// === 50-DAY SMA ===
+sma_50 = ta.sma(close, sma_period)
+
+// === CONDITIONS ===
+// Entry/Hold conditions (ALL must be true)
+abs_momentum = stock_accel_mom > 0
+rel_momentum = stock_accel_mom > spy_accel_mom
+trend_confirm = close > sma_50
+near_high = distance_from_high <= near_high_pct
+
+// Combined signal
+buy_signal = abs_momentum and rel_momentum and trend_confirm and near_high
+
+// Exit conditions (ANY triggers)
+exit_abs = stock_accel_mom < 0
+exit_rel = stock_accel_mom < spy_accel_mom
+exit_trend = close < sma_50
+
+// === REBALANCING LOGIC ===
+bars_since_last = ta.barssince(ta.change(strategy.position_size) != 0)
+can_rebalance = bars_since_last >= rebalance_days or strategy.position_size == 0
+
+// === STRATEGY EXECUTION ===
+if buy_signal and strategy.position_size == 0 and can_rebalance
+    strategy.entry("Long", strategy.long)
+
+if strategy.position_size > 0 and can_rebalance
+    if exit_abs
+        strategy.close("Long", comment="Abs Mom Fail")
+    else if exit_rel
+        strategy.close("Long", comment="Rel Mom Fail")
+    else if exit_trend
+        strategy.close("Long", comment="Trend Fail")
+
+// === PLOTTING ===
+// SMA on main chart
+plot(sma_50, "50 SMA", color=color.orange, linewidth=2)
+
+// 52-week high line
+plot(high_52w, "52W High", color=color.new(color.purple, 50), linewidth=1, style=plot.style_stepline)
+
+// 25% below 52-week high (threshold line)
+threshold_line = high_52w * (1 - near_high_pct / 100)
+plot(threshold_line, "Near-High Threshold", color=color.new(color.purple, 70), linewidth=1, style=plot.style_stepline)
+
+// Fill zone between threshold and 52WH
+fill_color = close >= threshold_line ? color.new(color.green, 90) : color.new(color.red, 90)
+
+// Background when in position
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// Entry/Exit signals
+plotshape(buy_signal and strategy.position_size == 0 and can_rebalance, "Buy", shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(exit_abs and strategy.position_size > 0 and can_rebalance, "Exit Abs", shape.triangledown, location.abovebar, color.red, size=size.small)
+plotshape(exit_rel and not exit_abs and strategy.position_size > 0 and can_rebalance, "Exit Rel", shape.triangledown, location.abovebar, color.orange, size=size.small)
+plotshape(exit_trend and not exit_abs and not exit_rel and strategy.position_size > 0 and can_rebalance, "Exit Trend", shape.triangledown, location.abovebar, color.purple, size=size.small)
+
+// === INFO TABLE ===
+var table info = table.new(position.top_right, 2, 10, bgcolor=color.new(color.gray, 80))
+if barstate.islast
+    // Momentum values
+    table.cell(info, 0, 0, "Accel Momentum", text_color=color.white)
+    table.cell(info, 1, 0, str.tostring(stock_accel_mom * 100, "#.##") + "%", text_color=stock_accel_mom > 0 ? color.green : color.red)
+
+    table.cell(info, 0, 1, "SPY Accel Mom", text_color=color.white)
+    table.cell(info, 1, 1, str.tostring(spy_accel_mom * 100, "#.##") + "%", text_color=spy_accel_mom > 0 ? color.green : color.red)
+
+    table.cell(info, 0, 2, "Outperformance", text_color=color.white)
+    outperf = stock_accel_mom - spy_accel_mom
+    table.cell(info, 1, 2, str.tostring(outperf * 100, "#.##") + "%", text_color=outperf > 0 ? color.green : color.red)
+
+    // Conditions
+    table.cell(info, 0, 3, "Abs Momentum", text_color=color.white)
+    table.cell(info, 1, 3, abs_momentum ? "PASS" : "FAIL", text_color=abs_momentum ? color.green : color.red)
+
+    table.cell(info, 0, 4, "Rel Momentum", text_color=color.white)
+    table.cell(info, 1, 4, rel_momentum ? "PASS" : "FAIL", text_color=rel_momentum ? color.green : color.red)
+
+    table.cell(info, 0, 5, "Trend (>50SMA)", text_color=color.white)
+    table.cell(info, 1, 5, trend_confirm ? "PASS" : "FAIL", text_color=trend_confirm ? color.green : color.red)
+
+    table.cell(info, 0, 6, "Near 52W High", text_color=color.white)
+    near_high_str = str.tostring(distance_from_high, "#.#") + "% away"
+    table.cell(info, 1, 6, near_high ? "PASS (" + near_high_str + ")" : "FAIL (" + near_high_str + ")", text_color=near_high ? color.green : color.red)
+
+    // Overall signal
+    table.cell(info, 0, 7, "===", text_color=color.white)
+    table.cell(info, 1, 7, "===", text_color=color.white)
+
+    table.cell(info, 0, 8, "SIGNAL", text_color=color.white)
+    table.cell(info, 1, 8, buy_signal ? "BUY/HOLD" : "SELL/FLAT", text_color=buy_signal ? color.green : color.red)
+
+    table.cell(info, 0, 9, "Position", text_color=color.white)
+    table.cell(info, 1, 9, strategy.position_size > 0 ? "LONG" : "FLAT", text_color=strategy.position_size > 0 ? color.green : color.gray)
+
+// === MOMENTUM INDICATOR PANE ===
+// Plot accelerating momentum values (uncomment to use in separate indicator)
+// plot(stock_accel_mom * 100, "Stock AccelMom %", color=color.blue, linewidth=2)
+// plot(spy_accel_mom * 100, "SPY AccelMom %", color=color.orange, linewidth=2)
+// hline(0, "Zero Line", color=color.gray, linestyle=hline.style_dashed)
