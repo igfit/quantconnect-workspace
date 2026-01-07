@@ -47,6 +47,9 @@ docs/                 # Documentation and learnings
 **READ FIRST**: `docs/LEARNINGS.md` contains critical knowledge about:
 - QuantConnect API gotchas and authentication
 - BX Trender indicator implementation (including buffer size bug fix)
+- **Wave-EWO strategy** (best performer: 858% return, 1.50 Sharpe on TSLA)
+- High-beta stock testing results (AMD, COIN, META, MSTR, SMCI)
+- Complete performance comparison (active vs passive strategies)
 - Multi-timeframe analysis findings
 - Common pitfalls with code examples
 - Strategy development best practices
@@ -187,6 +190,15 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | **BX Daily HighBeta** | `algorithms/strategies/bx_daily_highbeta.py` | BX on TSLA/NVDA/AMD/COIN portfolio |
 | BX MTF Debug | `algorithms/strategies/bx_mtf_debug.py` | Multi-timeframe BX with fixed buffer |
 | BX MTF EMA | `algorithms/strategies/bx_mtf_ema.py` | BX with weekly EMA crossover filter |
+| **Wave-EWO TSLA** | `algorithms/strategies/wave_ewo.py` | **Best performer**: 858% return, 1.50 Sharpe |
+| Wave-EWO AMD | `algorithms/strategies/wave_ewo_amd.py` | 145% return, 0.67 Sharpe |
+| Wave-EWO META | `algorithms/strategies/wave_ewo_meta.py` | 139% return, 0.72 Sharpe |
+| Wave-EWO MSTR | `algorithms/strategies/wave_ewo_mstr.py` | 365% return, 0.91 Sharpe (high DD) |
+| Wave-EWO SMCI | `algorithms/strategies/wave_ewo_smci.py` | 159% return, 0.65 Sharpe |
+| Wave-EWO COIN | `algorithms/strategies/wave_ewo_coin.py` | 41% return (avoid - crypto correlation) |
+| Beta Screener | `algorithms/strategies/beta_screener.py` | Screens for high-beta stocks (beta > 1.5) |
+| DCA Strategies | `algorithms/strategies/dca_*.py` | Monthly DCA for TSLA, SPY, QQQ |
+| Benchmarks | `algorithms/strategies/benchmark_*_bh.py` | SPY/QQQ buy-hold benchmarks |
 
 ### QC Project IDs
 
@@ -195,6 +207,12 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | MA Crossover Strategy | 27311581 | 50/200 SMA crossover |
 | Benchmark SPY Buy-Hold | 27311779 | SPY buy-and-hold benchmark |
 | Benchmark QQQ Buy-Hold | 27311785 | QQQ buy-and-hold benchmark |
+| Wave-EWO AMD | 27315748 | Wave-EWO on AMD (145% return) |
+| Wave-EWO COIN | 27315752 | Wave-EWO on COIN (41% return) |
+| Wave-EWO META | 27315754 | Wave-EWO on META (139% return) |
+| Wave-EWO MSTR | 27315755 | Wave-EWO on MSTR (365% return) |
+| Wave-EWO SMCI | 27315756 | Wave-EWO on SMCI (159% return) |
+| Beta Screener | 27315463 | High-beta stock screener utility |
 
 ## QuantConnect API Workflow
 
