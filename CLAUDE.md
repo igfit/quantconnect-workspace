@@ -30,6 +30,7 @@ algorithms/           # Trading algorithm source code
   examples/           # Reference implementations
   strategies/         # Your custom strategies
 scripts/              # Helper scripts (qc-api.sh)
+tools/                # CLI tools (context7)
 backtests/            # Backtest results and analysis
 .claude/commands/     # Custom slash commands
 ```
@@ -232,9 +233,58 @@ The `qc-api.sh` script handles this automatically.
 - 30 requests/minute
 - Batch operations when possible
 
+## Context7 Documentation Lookup
+
+Use the `context7` CLI tool to fetch up-to-date documentation for any library or framework. This is especially useful for QuantConnect APIs, Python libraries, and trading frameworks.
+
+### Usage
+
+```bash
+# 1. Find a library's Context7 ID
+./tools/context7 resolve "quantconnect"
+./tools/context7 resolve "pandas"
+
+# 2. Fetch documentation (use ID from resolve)
+./tools/context7 docs "/QuantConnect/Lean" --topic "indicators"
+./tools/context7 docs "/pandas-dev/pandas" --topic "dataframe"
+
+# 3. Get library metadata
+./tools/context7 info "/QuantConnect/Lean"
+```
+
+### Common Library IDs
+
+| Library | Context7 ID | Use For |
+|---------|-------------|---------|
+| QuantConnect LEAN | `/QuantConnect/Lean` | Algorithm framework, indicators, universe selection |
+| Pandas | `/pandas-dev/pandas` | Data manipulation, dataframes |
+| NumPy | `/numpy/numpy` | Numerical computing |
+
+### When to Use Context7
+
+- **Before writing algorithms**: Look up QuantConnect API for indicators, universe filters, etc.
+- **Debugging errors**: Get current documentation for correct method signatures
+- **Learning new features**: Explore available functionality with `--topic` filtering
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--topic`, `-t` | Focus documentation on specific topic |
+| `--tokens`, `-n` | Max tokens to return (default: 10000) |
+| `--json` | Output raw JSON |
+
+### Environment Variables
+
+```bash
+# Optional: For higher rate limits
+export CONTEXT7_API_KEY="your-api-key"
+```
+
 ## Resources
 
 - [QuantConnect Documentation](https://www.quantconnect.com/docs)
 - [LEAN Algorithm Framework](https://www.quantconnect.com/docs/v2/writing-algorithms/algorithm-framework)
 - [API Documentation](https://www.quantconnect.com/docs/v2/cloud-platform/api-reference)
 - [LEAN CLI](https://www.quantconnect.com/docs/v2/lean-cli)
+- [Context7](https://context7.com) - Documentation lookup service
