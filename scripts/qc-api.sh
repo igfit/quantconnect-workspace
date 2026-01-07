@@ -21,18 +21,25 @@ check_auth() {
     fi
 }
 
-# Make authenticated API call
+# Make authenticated API call with SHA-256 timestamped auth
 qc_call() {
     local method="$1"
     local endpoint="$2"
     local data="$3"
 
+    # Generate timestamp and hash (hex digest, then base64 encode with user ID)
+    local timestamp=$(date +%s)
+    local hash=$(echo -n "${QC_API_TOKEN}:${timestamp}" | openssl dgst -sha256 | awk '{print $2}')
+    local auth=$(echo -n "${QC_USER_ID}:${hash}" | base64 -w 0)
+
     if [[ "$method" == "GET" ]]; then
         curl -s -X GET "$QC_BASE$endpoint" \
-            -u "$QC_USER_ID:$QC_API_TOKEN"
+            -H "Authorization: Basic $auth" \
+            -H "Timestamp: $timestamp"
     else
         curl -s -X POST "$QC_BASE$endpoint" \
-            -u "$QC_USER_ID:$QC_API_TOKEN" \
+            -H "Authorization: Basic $auth" \
+            -H "Timestamp: $timestamp" \
             -H "Content-Type: application/json" \
             -d "$data"
     fi
@@ -141,7 +148,7 @@ case "$1" in
         compileId="${4:-}"
 
         echo "Starting backtest '$name' for project $projectId..."
-        qc_call POST "/backtests/create" "{\"projectId\":$projectId,\"name\":\"$name\",\"compileId\":\"$compileId\"}" | pp
+        qc_call POST "/backtests/create" "{\"projectId\":$projectId,\"backtestName\":\"$name\",\"compileId\":\"$compileId\"}" | pp
         ;;
 
     results|backtest-read)
