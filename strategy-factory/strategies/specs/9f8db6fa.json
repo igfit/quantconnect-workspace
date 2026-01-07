@@ -1,0 +1,65 @@
+{
+  "id": "9f8db6fa",
+  "name": "Price Breakout",
+  "description": "Buy when price breaks above resistance (SMA)",
+  "rationale": "Breakouts from consolidation often signal the start of new trends. Using SMA as dynamic support/resistance provides objective entry points. Works well on liquid large-cap stocks.",
+  "parent_id": null,
+  "created_at": "2026-01-07T19:45:42.858950",
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL",
+      "MSFT",
+      "GOOGL",
+      "AMZN",
+      "META",
+      "NVDA"
+    ]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {
+      "name": "sma_20",
+      "type": "SMA",
+      "params": {
+        "period": 20
+      },
+      "source": "close"
+    }
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": "crosses_above",
+        "right": "sma_20"
+      }
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": "crosses_below",
+        "right": "sma_20"
+      }
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.06
+  },
+  "parameters": [
+    {
+      "path": "indicators.0.params.period",
+      "values": [
+        10,
+        20,
+        30,
+        50
+      ]
+    }
+  ]
+}

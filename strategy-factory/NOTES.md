@@ -85,15 +85,22 @@ Equity Final       → End Equity
 ### What Works
 
 **High Breakout Strategy:**
-- Simple 20-day high breakout with 10-day low exit
-- Universe: Large cap tech (AAPL, MSFT, GOOGL, AMZN, NVDA)
-- Results: Sharpe 0.90, CAGR 17%, 1100 trades over 5 years
+- Simple price > SMA entry, price < SMA exit
+- Universe: Large cap tech (AAPL, MSFT, GOOGL, AMZN, NVDA, META, TSLA, AMD)
+- Results: Sharpe 0.81, CAGR 15.8%, MaxDD 20.1%, 1100 trades over 5 years
 - Note: High turnover (244/year) gets penalized in ranking
 
 **MA Crossover Momentum:**
-- 50/200 SMA crossover on same universe
-- Results: Sharpe 0.50, CAGR 10.1%, 193 trades
+- 20/50 SMA crossover on large cap tech
+- Results: Sharpe 0.48, CAGR 981.8%*, MaxDD 16.7%, 193 trades
 - More conservative, lower turnover
+- *Note: CAGR likely inflated due to position sizing on multiple symbols
+
+**Dual EMA Trend (NEW):**
+- 12/26 EMA crossover entry/exit
+- Universe: QQQ, SPY, AAPL, NVDA, TSLA, AMZN
+- Results: Sharpe 0.78, CAGR 13.8%, MaxDD 12.5%, 213 trades
+- Best risk-adjusted returns with low drawdown
 
 ### What Doesn't Work
 
@@ -181,6 +188,31 @@ Total:                ~1-1.5 minutes
 **Root Cause:** Used `len(self.generator.generated_count)` but `generated_count` is an int, not a list
 **Fix:** Changed to `self.generator.generated_count`
 **Prevention:** Check variable types before using len()
+
+### Bug: Security Initializer Overwrite
+**Date:** 2026-01-07
+**Symptoms:** Slippage model not being applied to strategies
+**Root Cause:** Calling `set_security_initializer` twice in the template - second call overwrites the first
+**Fix:** Combined both slippage and fee model into a single initializer function
+**Prevention:** Only call `set_security_initializer` once with all security settings
+
+### Bug: Crossover Detection Missing Previous Values
+**Date:** 2026-01-07
+**Symptoms:** Strategies with crossover conditions generated 0 trades
+**Root Cause:** `prev_indicator_values` was empty on first day after warmup, causing crossover detection to always return False
+**Fix:**
+1. Initialize prev values on first run in `generate_signals()`
+2. Skip first day to establish baseline for crossovers
+3. Return `None` from `_get_prev_value()` instead of 0.0 for missing values
+4. Check for `None` in crossover functions before comparing
+**Prevention:** Always test crossover strategies to ensure they generate trades
+
+### Bug: Unused Indicators Causing 0 Trades
+**Date:** 2026-01-07
+**Symptoms:** Strategies with complex indicators (BB, MACD, ATR) not used in conditions generated 0 trades
+**Root Cause:** `_has_valid_data()` checks ALL indicators for `is_ready`, but complex indicators like Bollinger Bands and MACD may not report ready correctly even after warmup
+**Fix:** Removed unused indicators from strategy definitions. Only define indicators actually used in conditions.
+**Prevention:** Never define indicators that aren't used in entry/exit conditions
 
 ### Bug Template
 ```

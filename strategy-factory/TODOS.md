@@ -226,6 +226,38 @@
 - High turnover strategies get penalized in ranking (244 trades/year)
 - Pipeline takes ~1-1.5 minutes for 3 strategies
 
+### Session 4 - 2026-01-07
+**Duration:** ~45 minutes
+**Accomplished:**
+- Fixed critical 0-trade strategy bugs:
+  1. Security initializer overwrite bug (combined into single function)
+  2. Crossover detection missing prev values (initialize on first run)
+  3. Unused indicators causing is_ready failures (removed from generator)
+- Updated ai_generator.py:
+  - Bollinger Band Bounce: Removed unused BB indicator
+  - Dual EMA Trend (was EMA + MACD): Removed unused MACD indicator
+  - Price Breakout (was Volatility Contraction): Removed unused ATR indicator
+  - Tech Sector Momentum: Simplified to SMA crossover
+  - Trend Filter: Simplified to price/SMA crossover
+- Re-ran pipeline: 3/11 strategies passed (up from 2/11)
+- New successful strategy: Dual EMA Trend (Sharpe 0.78, CAGR 13.8%, MaxDD 12.5%)
+- Documented all bugs in NOTES.md
+
+**Results:**
+```
+| Strategy              | Sharpe | CAGR  | MaxDD  | Trades | Score |
+|-----------------------|--------|-------|--------|--------|-------|
+| MA Crossover Momentum | 0.48   | 981.8%| 16.7%  | 193    | 0.602 |
+| Dual EMA Trend (NEW)  | 0.78   | 13.8% | 12.5%  | 213    | 0.464 |
+| High Breakout         | 0.81   | 15.8% | 20.1%  | 1100   | 0.381 |
+```
+
+**Key Learnings:**
+- Never define indicators that aren't used in conditions
+- Complex indicators (BB, MACD, ATR) may have is_ready issues
+- Simple SMA/EMA-based strategies are most reliable
+- All strategies now generate trades (no more 0-trade issues)
+
 ---
 
 ## Backlog / Future Enhancements

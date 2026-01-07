@@ -1,0 +1,74 @@
+{
+  "id": "ec9dbbb9",
+  "name": "Tech Sector Momentum",
+  "description": "Ride momentum in tech sector ETF",
+  "rationale": "Technology sector often leads bull markets. XLK captures broad tech exposure with good liquidity. Simple trend following works well on sector ETFs.",
+  "parent_id": null,
+  "created_at": "2026-01-07T19:38:50.641997",
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "XLK",
+      "QQQ",
+      "VGT"
+    ]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {
+      "name": "sma_50",
+      "type": "SMA",
+      "params": {
+        "period": 50
+      },
+      "source": "close"
+    },
+    {
+      "name": "rsi_14",
+      "type": "RSI",
+      "params": {
+        "period": 14
+      },
+      "source": "close"
+    }
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": "crosses_above",
+        "right": "sma_50"
+      },
+      {
+        "left": "rsi_14",
+        "operator": ">",
+        "right": 45
+      }
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": "crosses_below",
+        "right": "sma_50"
+      }
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.08
+  },
+  "parameters": [
+    {
+      "path": "indicators.0.params.period",
+      "values": [
+        20,
+        50,
+        100
+      ]
+    }
+  ]
+}

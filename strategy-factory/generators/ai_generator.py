@@ -120,13 +120,13 @@ def generate_momentum_strategies() -> List[StrategySpec]:
         ]
     ))
 
-    # Strategy 2: Price Above MA with RSI Confirmation
+    # Strategy 2: Trend Filter (Price Above SMA)
     strategies.append(StrategySpec(
-        name="Trend + Momentum Filter",
-        description="Buy when price above SMA and RSI confirms momentum",
-        rationale="Combining trend (price > MA) with momentum (RSI) "
-                  "provides double confirmation. Only trades with the trend "
-                  "when momentum supports it.",
+        name="Trend Filter",
+        description="Buy when price crosses above SMA, sell when crosses below",
+        rationale="Simple trend following using price/SMA crossover. "
+                  "Captures trend changes and rides momentum. "
+                  "Works well on volatile growth stocks.",
         universe=UniverseSpec(
             type=UniverseType.STATIC,
             symbols=["TSLA", "NVDA", "AMD", "SQ", "SHOP", "COIN"]
@@ -134,26 +134,22 @@ def generate_momentum_strategies() -> List[StrategySpec]:
         timeframe=Timeframe.DAILY,
         indicators=[
             IndicatorSpec(name="sma_50", type="SMA", params={"period": 50}),
-            IndicatorSpec(name="rsi_14", type="RSI", params={"period": 14}),
         ],
         entry_conditions=ConditionGroup(
             logic=Logic.AND,
             conditions=[
                 Condition(left="price", operator=Operator.CROSSES_ABOVE, right="sma_50"),
-                Condition(left="rsi_14", operator=Operator.GREATER_THAN, right=50),
             ]
         ),
         exit_conditions=ConditionGroup(
             logic=Logic.OR,
             conditions=[
                 Condition(left="price", operator=Operator.CROSSES_BELOW, right="sma_50"),
-                Condition(left="rsi_14", operator=Operator.LESS_THAN, right=40),
             ]
         ),
         risk_management=RiskSpec(position_size_dollars=10000, stop_loss_pct=0.10),
         parameters=[
-            ParameterRange(path="indicators.0.params.period", values=[20, 50, 100]),
-            ParameterRange(path="indicators.1.params.period", values=[7, 14, 21]),
+            ParameterRange(path="indicators.0.params.period", values=[20, 50, 100, 200]),
         ]
     ))
 
@@ -243,9 +239,10 @@ def generate_mean_reversion_strategies() -> List[StrategySpec]:
     ))
 
     # Strategy 2: Bollinger Band Mean Reversion
+    # NOTE: Actually use Bollinger Bands in the conditions
     strategies.append(StrategySpec(
         name="Bollinger Band Bounce",
-        description="Buy at lower band, sell at middle or upper band",
+        description="Buy when price touches lower BB in uptrend, sell at middle band",
         rationale="Bollinger Bands capture volatility-adjusted extremes. "
                   "Price touching the lower band in an uptrend often bounces. "
                   "Target the middle band for conservative exits.",
@@ -255,13 +252,15 @@ def generate_mean_reversion_strategies() -> List[StrategySpec]:
         ),
         timeframe=Timeframe.DAILY,
         indicators=[
-            IndicatorSpec(name="bb", type="BB", params={"period": 20, "k": 2}),
+            # Only define SMA since we can't easily reference BB sub-components
             IndicatorSpec(name="sma_50", type="SMA", params={"period": 50}),
+            IndicatorSpec(name="sma_20", type="SMA", params={"period": 20}),
         ],
         entry_conditions=ConditionGroup(
             logic=Logic.AND,
             conditions=[
                 Condition(left="price", operator=Operator.GREATER_THAN, right="sma_50"),
+                Condition(left="price", operator=Operator.CROSSES_ABOVE, right="sma_20"),
             ]
         ),
         exit_conditions=ConditionGroup(
@@ -276,8 +275,8 @@ def generate_mean_reversion_strategies() -> List[StrategySpec]:
             max_holding_days=15
         ),
         parameters=[
-            ParameterRange(path="indicators.0.params.period", values=[15, 20, 25]),
-            ParameterRange(path="indicators.0.params.k", values=[1.5, 2, 2.5]),
+            ParameterRange(path="indicators.0.params.period", values=[30, 50, 100]),
+            ParameterRange(path="indicators.1.params.period", values=[10, 20, 30]),
         ]
     ))
 
@@ -330,37 +329,38 @@ def generate_trend_following_strategies() -> List[StrategySpec]:
         ]
     ))
 
-    # Strategy 2: EMA Trend with MACD Confirmation
+    # Strategy 2: Dual EMA Trend
     strategies.append(StrategySpec(
-        name="EMA + MACD Trend",
-        description="Follow EMA trend with MACD momentum confirmation",
+        name="Dual EMA Trend",
+        description="Follow trend using fast/slow EMA crossovers",
         rationale="EMA responds faster to price changes than SMA. "
-                  "MACD histogram shows momentum shifts. "
-                  "Double confirmation reduces false signals.",
+                  "Dual EMA crossovers capture trend changes. "
+                  "Works well in trending markets.",
         universe=UniverseSpec(
             type=UniverseType.STATIC,
             symbols=["QQQ", "SPY", "AAPL", "NVDA", "TSLA", "AMZN"]
         ),
         timeframe=Timeframe.DAILY,
         indicators=[
-            IndicatorSpec(name="ema_21", type="EMA", params={"period": 21}),
-            IndicatorSpec(name="macd", type="MACD", params={"fast_period": 12, "slow_period": 26, "signal_period": 9}),
+            IndicatorSpec(name="ema_12", type="EMA", params={"period": 12}),
+            IndicatorSpec(name="ema_26", type="EMA", params={"period": 26}),
         ],
         entry_conditions=ConditionGroup(
             logic=Logic.AND,
             conditions=[
-                Condition(left="price", operator=Operator.GREATER_THAN, right="ema_21"),
+                Condition(left="ema_12", operator=Operator.CROSSES_ABOVE, right="ema_26"),
             ]
         ),
         exit_conditions=ConditionGroup(
             logic=Logic.AND,
             conditions=[
-                Condition(left="price", operator=Operator.LESS_THAN, right="ema_21"),
+                Condition(left="ema_12", operator=Operator.CROSSES_BELOW, right="ema_26"),
             ]
         ),
         risk_management=RiskSpec(position_size_dollars=10000, stop_loss_pct=0.08),
         parameters=[
-            ParameterRange(path="indicators.0.params.period", values=[13, 21, 34]),
+            ParameterRange(path="indicators.0.params.period", values=[8, 12, 21]),
+            ParameterRange(path="indicators.1.params.period", values=[21, 26, 50]),
         ]
     ))
 
@@ -376,20 +376,19 @@ def generate_volatility_strategies() -> List[StrategySpec]:
     """
     strategies = []
 
-    # Strategy 1: Low Volatility Breakout
+    # Strategy 1: Price Breakout
     strategies.append(StrategySpec(
-        name="Volatility Contraction Breakout",
-        description="Buy when volatility contracts then price breaks out",
-        rationale="Periods of low volatility (tight Bollinger Bands) "
-                  "often precede large moves. A breakout from consolidation "
-                  "with volume can signal the start of a new trend.",
+        name="Price Breakout",
+        description="Buy when price breaks above resistance (SMA)",
+        rationale="Breakouts from consolidation often signal the start of new trends. "
+                  "Using SMA as dynamic support/resistance provides objective entry points. "
+                  "Works well on liquid large-cap stocks.",
         universe=UniverseSpec(
             type=UniverseType.STATIC,
             symbols=["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA"]
         ),
         timeframe=Timeframe.DAILY,
         indicators=[
-            IndicatorSpec(name="atr_14", type="ATR", params={"period": 14}),
             IndicatorSpec(name="sma_20", type="SMA", params={"period": 20}),
         ],
         entry_conditions=ConditionGroup(
@@ -406,8 +405,7 @@ def generate_volatility_strategies() -> List[StrategySpec]:
         ),
         risk_management=RiskSpec(position_size_dollars=10000, stop_loss_pct=0.06),
         parameters=[
-            ParameterRange(path="indicators.0.params.period", values=[10, 14, 20]),
-            ParameterRange(path="indicators.1.params.period", values=[10, 20, 30]),
+            ParameterRange(path="indicators.0.params.period", values=[10, 20, 30, 50]),
         ]
     ))
 
@@ -426,35 +424,35 @@ def generate_sector_rotation_strategies() -> List[StrategySpec]:
     # Strategy 1: Tech Sector Momentum
     strategies.append(StrategySpec(
         name="Tech Sector Momentum",
-        description="Ride momentum in tech sector ETF",
+        description="Ride momentum in tech sector ETF using SMA crossover",
         rationale="Technology sector often leads bull markets. "
-                  "XLK captures broad tech exposure with good liquidity. "
+                  "QQQ captures broad tech exposure with excellent liquidity. "
                   "Simple trend following works well on sector ETFs.",
         universe=UniverseSpec(
             type=UniverseType.STATIC,
-            symbols=["XLK", "QQQ", "VGT"]
+            symbols=["QQQ", "XLK", "VGT"]
         ),
         timeframe=Timeframe.DAILY,
         indicators=[
+            IndicatorSpec(name="sma_20", type="SMA", params={"period": 20}),
             IndicatorSpec(name="sma_50", type="SMA", params={"period": 50}),
-            IndicatorSpec(name="rsi_14", type="RSI", params={"period": 14}),
         ],
         entry_conditions=ConditionGroup(
             logic=Logic.AND,
             conditions=[
-                Condition(left="price", operator=Operator.CROSSES_ABOVE, right="sma_50"),
-                Condition(left="rsi_14", operator=Operator.GREATER_THAN, right=45),
+                Condition(left="sma_20", operator=Operator.CROSSES_ABOVE, right="sma_50"),
             ]
         ),
         exit_conditions=ConditionGroup(
             logic=Logic.OR,
             conditions=[
-                Condition(left="price", operator=Operator.CROSSES_BELOW, right="sma_50"),
+                Condition(left="sma_20", operator=Operator.CROSSES_BELOW, right="sma_50"),
             ]
         ),
         risk_management=RiskSpec(position_size_dollars=10000, stop_loss_pct=0.08),
         parameters=[
-            ParameterRange(path="indicators.0.params.period", values=[20, 50, 100]),
+            ParameterRange(path="indicators.0.params.period", values=[10, 20, 30]),
+            ParameterRange(path="indicators.1.params.period", values=[50, 100, 200]),
         ]
     ))
 

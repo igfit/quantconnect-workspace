@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "created_at": "2025-01-07T00:00:00Z",
-  "updated_at": "2026-01-07T19:30:36.690319",
+  "updated_at": "2026-01-07T19:48:28.066567",
   "strategies": [
     {
       "id": "59d34ced",
@@ -272,12 +272,220 @@
       "sharpe_ratio": 0.0,
       "cagr": 0.0,
       "max_drawdown": 0.0
+    },
+    {
+      "id": "ce51a7d3",
+      "name": "MA Crossover Momentum",
+      "created_at": "2026-01-07T19:38:50.641787",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.481,
+      "cagr": 9.818,
+      "max_drawdown": 0.16699999999999998
+    },
+    {
+      "id": "8e2ca9cc",
+      "name": "Trend + Momentum Filter",
+      "created_at": "2026-01-07T19:38:50.641821",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "37015279",
+      "name": "High Breakout",
+      "created_at": "2026-01-07T19:38:50.641846",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.814,
+      "cagr": 0.15838,
+      "max_drawdown": 0.201
+    },
+    {
+      "id": "419d4023",
+      "name": "RSI Oversold Bounce",
+      "created_at": "2026-01-07T19:38:50.641874",
+      "status": "failed",
+      "parent_id": null
+    },
+    {
+      "id": "12b6467e",
+      "name": "Bollinger Band Bounce",
+      "created_at": "2026-01-07T19:38:50.641896",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "69f1b394",
+      "name": "ADX Trend Rider",
+      "created_at": "2026-01-07T19:38:50.641929",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.478,
+      "cagr": 8.359,
+      "max_drawdown": 9.6
+    },
+    {
+      "id": "192935cb",
+      "name": "EMA + MACD Trend",
+      "created_at": "2026-01-07T19:38:50.641943",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "05c153ce",
+      "name": "Volatility Contraction Breakout",
+      "created_at": "2026-01-07T19:38:50.641970",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "ec9dbbb9",
+      "name": "Tech Sector Momentum",
+      "created_at": "2026-01-07T19:38:50.641997",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "16ae0b15",
+      "name": "High Beta Trend",
+      "created_at": "2026-01-07T19:38:50.642014",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.506,
+      "cagr": 0.13211,
+      "max_drawdown": 0.294
+    },
+    {
+      "id": "752ab55a",
+      "name": "High Beta RSI Bounce",
+      "created_at": "2026-01-07T19:38:50.642027",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.0,
+      "cagr": 0.0,
+      "max_drawdown": 0.0
+    },
+    {
+      "id": "c31d073b",
+      "name": "MA Crossover Momentum",
+      "created_at": "2026-01-07T19:45:42.858776",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.481,
+      "cagr": 9.818,
+      "max_drawdown": 0.16699999999999998
+    },
+    {
+      "id": "95bac7d7",
+      "name": "Trend Filter",
+      "created_at": "2026-01-07T19:45:42.858815",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.671,
+      "cagr": 0.14559,
+      "max_drawdown": 0.179
+    },
+    {
+      "id": "39410348",
+      "name": "High Breakout",
+      "created_at": "2026-01-07T19:45:42.858843",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.814,
+      "cagr": 0.15838,
+      "max_drawdown": 0.201
+    },
+    {
+      "id": "d58912da",
+      "name": "RSI Oversold Bounce",
+      "created_at": "2026-01-07T19:45:42.858874",
+      "status": "failed",
+      "parent_id": null
+    },
+    {
+      "id": "4b4c2b07",
+      "name": "Bollinger Band Bounce",
+      "created_at": "2026-01-07T19:45:42.858899",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": -0.176,
+      "cagr": 3.299,
+      "max_drawdown": 5.8
+    },
+    {
+      "id": "9f08372a",
+      "name": "ADX Trend Rider",
+      "created_at": "2026-01-07T19:45:42.858916",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.478,
+      "cagr": 8.359,
+      "max_drawdown": 9.6
+    },
+    {
+      "id": "a4834902",
+      "name": "Dual EMA Trend",
+      "created_at": "2026-01-07T19:45:42.858929",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.779,
+      "cagr": 0.13781000000000002,
+      "max_drawdown": 0.125
+    },
+    {
+      "id": "9f8db6fa",
+      "name": "Price Breakout",
+      "created_at": "2026-01-07T19:45:42.858950",
+      "status": "failed",
+      "parent_id": null
+    },
+    {
+      "id": "eb892e6b",
+      "name": "Tech Sector Momentum",
+      "created_at": "2026-01-07T19:45:42.859024",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": -0.266,
+      "cagr": 2.246,
+      "max_drawdown": 9.6
+    },
+    {
+      "id": "9d74e6a4",
+      "name": "High Beta Trend",
+      "created_at": "2026-01-07T19:45:42.859039",
+      "status": "backtested",
+      "parent_id": null,
+      "sharpe_ratio": 0.506,
+      "cagr": 0.13211,
+      "max_drawdown": 0.294
+    },
+    {
+      "id": "b4eaba47",
+      "name": "High Beta RSI Bounce",
+      "created_at": "2026-01-07T19:45:42.859062",
+      "status": "failed",
+      "parent_id": null
     }
   ],
   "metadata": {
-    "total_generated": 2,
-    "total_backtested": 11,
+    "total_generated": 3,
+    "total_backtested": 8,
     "total_validated": 0,
-    "last_pipeline_run": "2026-01-07T19:30:36.690310"
+    "last_pipeline_run": "2026-01-07T19:48:28.066561"
   }
 }
