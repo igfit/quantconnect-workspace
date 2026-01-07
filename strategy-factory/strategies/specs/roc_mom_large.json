@@ -14,7 +14,7 @@
   "entry_conditions": {
     "logic": "AND",
     "conditions": [
-      {"left": "roc_63", "operator": ">", "right": 5}
+      {"left": "roc_63", "operator": ">", "right": 0}
     ]
   },
   "exit_conditions": {

@@ -57,13 +57,13 @@ class AdxTrendPullback(QCAlgorithm):
         for symbol in self.symbols:
             if symbol not in self.indicators:
                 self.indicators[symbol] = {}
-            self.indicators[symbol]['adx_14'] = self.adx(symbol, 14, Resolution.DAILY)
+            self.indicators[symbol]['adx_14'] = self.adx(symbol, 14)
         
         # Indicator: rsi_14 (RSI)
         for symbol in self.symbols:
             if symbol not in self.indicators:
                 self.indicators[symbol] = {}
-            self.indicators[symbol]['rsi_14'] = self.rsi(symbol, 14, Resolution.DAILY)
+            self.indicators[symbol]['rsi_14'] = self.rsi(symbol, 14, MovingAverageType.WILDERS, Resolution.DAILY)
         
 
         # =================================================================

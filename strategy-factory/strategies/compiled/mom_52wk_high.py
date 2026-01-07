@@ -267,14 +267,14 @@ class Strategy52weekHighMomentum(QCAlgorithm):
         Check if entry conditions are met.
         GENERATED CODE - DO NOT EDIT
         """
-        return (self._get_indicator_value(symbol, "roc_252") > 20) and (self._get_indicator_value(symbol, "price") > self._get_indicator_value(symbol, "sma_50"))
+        return (self._get_indicator_value(symbol, "roc_252") > 0)
 
     def _check_exit_conditions(self, symbol) -> bool:
         """
         Check if exit conditions are met.
         GENERATED CODE - DO NOT EDIT
         """
-        return (self._get_indicator_value(symbol, "roc_252") < 0) or (self._get_indicator_value(symbol, "price") < self._get_indicator_value(symbol, "sma_50"))
+        return (self._get_indicator_value(symbol, "roc_252") < -5)
 
     def _update_prev_values(self):
         """Store previous indicator values for crossover detection"""

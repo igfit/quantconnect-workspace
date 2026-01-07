@@ -15,15 +15,13 @@
   "entry_conditions": {
     "logic": "AND",
     "conditions": [
-      {"left": "roc_252", "operator": ">", "right": 20},
-      {"left": "price", "operator": ">", "right": "sma_50"}
+      {"left": "roc_252", "operator": ">", "right": 0}
     ]
   },
   "exit_conditions": {
-    "logic": "OR",
+    "logic": "AND",
     "conditions": [
-      {"left": "roc_252", "operator": "<", "right": 0},
-      {"left": "price", "operator": "<", "right": "sma_50"}
+      {"left": "roc_252", "operator": "<", "right": -5}
     ]
   },
   "risk_management": {

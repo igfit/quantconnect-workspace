@@ -57,7 +57,7 @@ class Rsi2MeanReversion(QCAlgorithm):
         for symbol in self.symbols:
             if symbol not in self.indicators:
                 self.indicators[symbol] = {}
-            self.indicators[symbol]['rsi_2'] = self.rsi(symbol, 2, Resolution.DAILY)
+            self.indicators[symbol]['rsi_2'] = self.rsi(symbol, 2, MovingAverageType.WILDERS, Resolution.DAILY)
         
         # Indicator: ema_200 (EMA)
         for symbol in self.symbols:

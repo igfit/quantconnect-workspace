@@ -261,7 +261,7 @@ class RocMomentumLargeCap(QCAlgorithm):
         Check if entry conditions are met.
         GENERATED CODE - DO NOT EDIT
         """
-        return (self._get_indicator_value(symbol, "roc_63") > 5)
+        return (self._get_indicator_value(symbol, "roc_63") > 0)
 
     def _check_exit_conditions(self, symbol) -> bool:
         """
