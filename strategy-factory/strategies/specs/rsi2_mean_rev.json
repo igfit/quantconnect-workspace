@@ -1,0 +1,34 @@
+{
+  "id": "rsi2_mean_rev",
+  "name": "RSI-2 Mean Reversion",
+  "description": "Buy oversold conditions (RSI-2 < 25) in stocks above 200 EMA, exit when overbought",
+  "rationale": "Short-term panic creates buying opportunities in quality uptrends. 2-period RSI is extremely sensitive to short-term oversold conditions. The 200 EMA filter ensures we only buy dips in uptrends, not falling knives. Edge exists because buying when everyone is selling is psychologically difficult. Threshold relaxed from < 10 to < 25 for more signals.",
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "NVDA", "AMZN", "META"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "rsi_2", "type": "RSI", "params": {"period": 2}, "source": "close"},
+    {"name": "ema_200", "type": "EMA", "params": {"period": 200}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "rsi_2", "operator": "<", "right": 25},
+      {"left": "price", "operator": ">", "right": "ema_200"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "rsi_2", "operator": ">", "right": 65}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.08,
+    "max_holding_days": 10
+  },
+  "parameters": []
+}

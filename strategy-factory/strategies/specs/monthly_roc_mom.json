@@ -1,0 +1,34 @@
+{
+  "id": "monthly_roc_mom",
+  "name": "Monthly ROC Momentum",
+  "description": "Buy stocks with positive 6-month momentum (ROC > 5%), exit when momentum turns negative",
+  "rationale": "Institutional flows take weeks to complete, creating persistent momentum at monthly timeframes. Winners attract more attention, more buying, more winning. Using ROC(126) for 6-month momentum. Universe of high-quality large caps ensures liquidity. Lower threshold (5%) for more signals.",
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "roc_126", "type": "ROC", "params": {"period": 126}, "source": "close"},
+    {"name": "sma_50", "type": "SMA", "params": {"period": 50}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_126", "operator": ">", "right": 5},
+      {"left": "price", "operator": ">", "right": "sma_50"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "roc_126", "operator": "<", "right": -5},
+      {"left": "price", "operator": "<", "right": "sma_50"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.12
+  },
+  "parameters": []
+}

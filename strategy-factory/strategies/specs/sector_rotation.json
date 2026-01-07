@@ -1,0 +1,32 @@
+{
+  "id": "sector_rotation",
+  "name": "Sector ETF Rotation",
+  "description": "Buy sector ETFs with positive 3-month momentum, exit when momentum turns negative",
+  "rationale": "Sectors rotate predictably with economic cycles. ETFs provide diversification within sectors, high liquidity, and lower volatility than individual stocks. 3-month ROC captures sector leadership changes. Simplified to single condition for more signals.",
+  "universe": {
+    "type": "static",
+    "symbols": ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "roc_63", "type": "ROC", "params": {"period": 63}, "source": "close"},
+    {"name": "sma_50", "type": "SMA", "params": {"period": 50}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_63", "operator": ">", "right": 0}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_63", "operator": "<", "right": -5}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.10
+  },
+  "parameters": []
+}

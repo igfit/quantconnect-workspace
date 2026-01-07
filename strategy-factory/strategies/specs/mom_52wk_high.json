@@ -1,0 +1,38 @@
+{
+  "id": "mom_52wk_high",
+  "name": "52-Week High Momentum",
+  "description": "Buy stocks showing strong 12-month momentum (proxy for near 52-week high), exit when momentum turns negative",
+  "rationale": "Academic research by George & Hwang (2004) shows stocks near 52-week highs yield 0.65%/month - nearly double other momentum strategies. Edge exists due to anchoring bias: traders underreact when stocks approach highs. Using ROC(252) as proxy for 12-month momentum to identify stocks with strong year-long performance.",
+  "universe": {
+    "type": "static",
+    "symbols": ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "AMD", "GOOGL", "AMZN"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "roc_252", "type": "ROC", "params": {"period": 252}, "source": "close"},
+    {"name": "sma_50", "type": "SMA", "params": {"period": 50}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_252", "operator": ">", "right": 20},
+      {"left": "price", "operator": ">", "right": "sma_50"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "roc_252", "operator": "<", "right": 0},
+      {"left": "price", "operator": "<", "right": "sma_50"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.15,
+    "max_holding_days": 126
+  },
+  "parameters": [
+    {"path": "entry_conditions.conditions.0.right", "values": [10, 20, 30]},
+    {"path": "indicators.0.params.period", "values": [126, 252]}
+  ]
+}

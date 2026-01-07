@@ -1,0 +1,34 @@
+{
+  "id": "golden_cross",
+  "name": "Golden Cross 50/200",
+  "description": "Buy when 50 SMA crosses above 200 SMA (golden cross), sell on death cross",
+  "rationale": "One of the most studied technical signals. Captures major trend regime changes. Self-fulfilling prophecy: so many traders watch this signal that it creates buying/selling pressure. More about risk management than alpha - protects capital in bear markets while participating in bull markets. Very few trades (2-4/year) means low transaction costs.",
+  "universe": {
+    "type": "static",
+    "symbols": ["SPY", "QQQ", "DIA"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "sma_50", "type": "SMA", "params": {"period": 50}, "source": "close"},
+    {"name": "sma_200", "type": "SMA", "params": {"period": 200}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "sma_50", "operator": "crosses_above", "right": "sma_200"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "sma_50", "operator": "crosses_below", "right": "sma_200"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000
+  },
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [20, 50, 100]},
+    {"path": "indicators.1.params.period", "values": [100, 200]}
+  ]
+}

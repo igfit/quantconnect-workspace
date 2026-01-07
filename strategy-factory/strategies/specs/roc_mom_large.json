@@ -1,0 +1,31 @@
+{
+  "id": "roc_mom_large",
+  "name": "ROC Momentum Large Cap",
+  "description": "Buy large cap stocks with positive 3-month momentum, exit when momentum turns negative",
+  "rationale": "Based on successful Sector ETF Rotation pattern. 3-month ROC captures intermediate momentum that persists. Large cap stocks have institutional following that creates momentum persistence. Simple entry/exit without compound conditions for reliable signal generation.",
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "roc_63", "type": "ROC", "params": {"period": 63}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_63", "operator": ">", "right": 5}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_63", "operator": "<", "right": -5}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.12
+  },
+  "parameters": []
+}

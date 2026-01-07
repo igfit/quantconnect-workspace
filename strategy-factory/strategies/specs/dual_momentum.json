@@ -1,0 +1,35 @@
+{
+  "id": "dual_momentum",
+  "name": "Dual Momentum SPY",
+  "description": "Hold SPY when it shows positive absolute momentum (12-month ROC > 0), otherwise stay out",
+  "rationale": "Based on Gary Antonacci's research - combines relative and absolute momentum. First place NAAIM award 2012, backtested to 215 years. During 2008: strategy UP 20%, S&P DOWN 40%. This simplified version uses absolute momentum only - stay invested when trend is positive, exit when negative. Avoids major drawdowns while capturing bull market gains.",
+  "universe": {
+    "type": "static",
+    "symbols": ["SPY"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "roc_252", "type": "ROC", "params": {"period": 252}, "source": "close"},
+    {"name": "sma_200", "type": "SMA", "params": {"period": 200}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc_252", "operator": ">", "right": 0},
+      {"left": "price", "operator": ">", "right": "sma_200"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "roc_252", "operator": "<", "right": 0},
+      {"left": "price", "operator": "<", "right": "sma_200"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000
+  },
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [126, 189, 252]}
+  ]
+}
