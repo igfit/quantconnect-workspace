@@ -11,6 +11,7 @@ A comprehensive guide capturing learnings from developing and testing trading st
 4. [Strategy Development Insights](#strategy-development-insights)
 5. [Common Pitfalls](#common-pitfalls)
 6. [Best Practices](#best-practices)
+7. [BX & Wave Indicator Variations](#bx--wave-indicator-variations)
 
 ---
 
@@ -406,6 +407,107 @@ class MyStrategy(QCAlgorithm):
 
 ---
 
+## BX & Wave Indicator Variations
+
+### Overview
+
+Tested multiple variations of the BX Trender and new Wave-based indicators on high-beta stocks (TSLA, NVDA) from 2020-2024.
+
+### Variation Strategies Tested
+
+| Strategy | Description | File |
+|----------|-------------|------|
+| BX-ATR | EMA diff normalized by ATR before RSI | `bx_atr_normalized.py` |
+| BX-Stochastic | Stochastic applied to BX values (80/20 levels) | `bx_stochastic.py` |
+| BX-Connors | Multi-factor: BX_short + BX_medium + StreakRSI + ROC% | `bx_connors.py` |
+| BX-Divergence | Price vs BX divergence detection | `bx_divergence.py` |
+| Wave-EWO | Elliott Wave Oscillator (5/34 SMA) + RSI filter | `wave_ewo.py` |
+| Wave-Adaptive | ATR-normalized wave with dynamic thresholds | `wave_adaptive.py` |
+| Wave-Supertrend | Wave + SuperTrend trailing stop | `wave_supertrend.py` |
+
+### TSLA Results (2020-2024)
+
+| Strategy | Return | Sharpe | Drawdown | Win Rate |
+|----------|--------|--------|----------|----------|
+| **Baseline (BX Daily)** | 293% | 0.90 | 45.9% | ~40% |
+| BX-ATR | 331% | 0.96 | 48.7% | 48% |
+| BX-Stochastic | 552% | 1.18 | 59.9% | 59% |
+| BX-Connors | 730% | 1.34 | 37.4% | 40% |
+| BX-Divergence | 192% | 0.72 | 59.7% | 42% |
+| Wave-Adaptive | 499% | 1.17 | 36.8% | 46% |
+| Wave-Supertrend | 392% | 1.06 | 40.2% | 42% |
+| **Wave-EWO** | **858%** | **1.50** | **34.1%** | 47% |
+
+### NVDA Results (2020-2024) - Robustness Test
+
+| Strategy | Return | Sharpe | Drawdown | Win Rate |
+|----------|--------|--------|----------|----------|
+| Wave-EWO | 294% | 0.97 | 45.1% | 32% |
+| BX-Connors | 62% | 0.38 | 58.3% | 40% |
+
+### Key Findings
+
+1. **Wave-EWO is the best overall performer**
+   - Highest return (858% TSLA), highest Sharpe (1.50)
+   - Lowest drawdown (34.1%)
+   - Most robust across different stocks (294% NVDA vs 62% for BX-Connors)
+
+2. **Simpler indicators often outperform complex ones**
+   - EWO uses simple SMA difference (5/34)
+   - BX uses EMA + RSI combination
+   - Less complexity = more robustness
+
+3. **BX-Connors is stock-specific**
+   - Excellent on TSLA (730%)
+   - Poor on NVDA (62%)
+   - May be overfitted to TSLA's characteristics
+
+4. **ATR normalization helps with drawdowns**
+   - Wave-Adaptive: 36.8% DD
+   - BX-ATR: 48.7% DD (vs 45.9% baseline)
+
+5. **Divergence detection didn't improve results**
+   - BX-Divergence underperformed baseline
+   - Complexity without benefit
+
+### Wave-EWO Implementation
+
+```python
+# Elliott Wave Oscillator (5/34 SMA diff) with RSI filter
+self.sma_fast = self.sma(symbol, 5, Resolution.DAILY)
+self.sma_slow = self.sma(symbol, 34, Resolution.DAILY)
+self.rsi_indicator = self.rsi(symbol, 14, MovingAverageType.WILDERS, Resolution.DAILY)
+
+# Entry: EWO crosses above 0 AND RSI > 40
+if prev_ewo < 0 and ewo >= 0 and rsi >= 40:
+    buy()
+
+# Exit: EWO crosses below 0 OR RSI < 30
+if ewo < 0 or rsi < 30:
+    sell()
+```
+
+### API Gotcha: Indicator Signatures
+
+```python
+# WRONG - missing MovingAverageType
+self.atr_indicator = self.atr(symbol, period, Resolution.DAILY)
+self.rsi_indicator = self.rsi(symbol, period, Resolution.DAILY)
+
+# CORRECT - include MovingAverageType
+self.atr_indicator = self.atr(symbol, period, MovingAverageType.SIMPLE, Resolution.DAILY)
+self.rsi_indicator = self.rsi(symbol, period, MovingAverageType.WILDERS, Resolution.DAILY)
+```
+
+### Recommendations
+
+1. **Use Wave-EWO for high-beta stocks** - Best risk-adjusted returns
+2. **Test on multiple stocks** before deploying - BX-Connors showed poor robustness
+3. **Keep indicators simple** - Complexity doesn't guarantee better performance
+4. **Add RSI filter** - Improves entry timing significantly
+
+---
+
 ## Future Improvements to Explore
 
 1. **Adaptive parameters** - adjust L1/L2/L3 based on volatility
@@ -414,6 +516,8 @@ class MyStrategy(QCAlgorithm):
 4. **Sector rotation** - apply BX to sector ETFs
 5. **Crypto markets** - test on 24/7 markets with higher volatility
 6. **Options overlay** - use BX signals for options strategies
+7. **Wave-EWO on other assets** - test on COIN, AMD, META
+8. **Combine Wave-EWO + SuperTrend** - use SuperTrend as trailing stop
 
 ---
 
