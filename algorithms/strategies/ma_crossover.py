@@ -52,6 +52,9 @@ class MACrossoverStrategy(QCAlgorithm):
             # Warm up indicators with historical data
             self.set_warm_up(self.slow_period, Resolution.DAILY)
 
+        # Set SPY as benchmark for performance comparison
+        self.set_benchmark("SPY")
+
     def on_data(self, data):
         """Check for crossover signals on each bar"""
         # Skip during warm-up
