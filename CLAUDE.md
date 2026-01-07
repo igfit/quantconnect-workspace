@@ -32,8 +32,19 @@ algorithms/           # Trading algorithm source code
 scripts/              # Helper scripts (qc-api.sh)
 tools/                # CLI tools (context7)
 backtests/            # Backtest results and analysis
+docs/                 # Documentation and learnings
+  LEARNINGS.md        # Comprehensive strategy & platform learnings
 .claude/commands/     # Custom slash commands
 ```
+
+### Key Documentation
+
+**READ FIRST**: `docs/LEARNINGS.md` contains critical knowledge about:
+- QuantConnect API gotchas and authentication
+- BX Trender indicator implementation (including buffer size bug fix)
+- Multi-timeframe analysis findings
+- Common pitfalls with code examples
+- Strategy development best practices
 
 ### Existing Strategies
 
@@ -42,6 +53,10 @@ backtests/            # Backtest results and analysis
 | Momentum | `algorithms/examples/momentum_strategy.py` | Top N momentum stocks, monthly rebalance |
 | MA Crossover | `algorithms/strategies/ma_crossover.py` | 50/200 SMA crossover on SPY, QQQ, AAPL, MSFT, GOOGL |
 | Buy & Hold Benchmark | `algorithms/strategies/benchmark_buyhold.py` | Simple buy-and-hold for benchmarking |
+| **BX Daily TSLA** | `algorithms/strategies/bx_daily_tsla.py` | BX Trender on TSLA (293% return, 0.90 Sharpe) |
+| **BX Daily HighBeta** | `algorithms/strategies/bx_daily_highbeta.py` | BX on TSLA/NVDA/AMD/COIN portfolio |
+| BX MTF Debug | `algorithms/strategies/bx_mtf_debug.py` | Multi-timeframe BX with fixed buffer |
+| BX MTF EMA | `algorithms/strategies/bx_mtf_ema.py` | BX with weekly EMA crossover filter |
 
 ### QC Project IDs
 
