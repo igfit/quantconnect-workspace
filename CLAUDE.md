@@ -29,6 +29,11 @@ lean init
 algorithms/           # Trading algorithm source code
   examples/           # Reference implementations
   strategies/         # Your custom strategies
+strategy-factory/     # AI-driven strategy generation system
+  PLAN.md             # Implementation plan
+  TODOS.md            # Progress tracker
+  NOTES.md            # Implementation learnings
+  strategies/         # Generated strategies (version controlled)
 scripts/              # Helper scripts (qc-api.sh)
 tools/                # CLI tools (context7)
 backtests/            # Backtest results and analysis
@@ -45,6 +50,62 @@ docs/                 # Documentation and learnings
 - Multi-timeframe analysis findings
 - Common pitfalls with code examples
 - Strategy development best practices
+
+## Strategy Factory
+
+An AI-driven strategy generation and backtesting system. See `strategy-factory/` directory.
+
+### Quick Reference
+
+| File | Purpose |
+|------|---------|
+| `strategy-factory/PLAN.md` | Full implementation plan |
+| `strategy-factory/TODOS.md` | Progress tracker (always update) |
+| `strategy-factory/NOTES.md` | Learnings during implementation |
+
+### Architecture Overview
+
+```
+AI Generator → Compiler → QC Runner → Parser → Validator → Ranker
+     ↓            ↓           ↓          ↓          ↓         ↓
+  Specs      QC Code    Backtests   Metrics   Validated   Top 5
+```
+
+### Key Constraints
+
+- **Long-only** (initial phase)
+- **Daily or slower** timeframe
+- **KISS**: Max 3 indicators, max 2 entry/exit conditions
+- **Fixed dollar** position sizing
+- **IBKR** as target broker
+
+### Safety Guards (Every Strategy)
+
+1. Trade on next-day open (no look-ahead)
+2. 0.1% slippage model
+3. IBKR commission model
+4. Min $5 price, 500k daily dollar volume
+5. Indicator warmup period
+6. Data existence checks
+
+### Running the Pipeline
+
+```bash
+# Full pipeline (when implemented)
+python strategy-factory/run_pipeline.py --date-range 5_year
+
+# Options
+--date-range   5_year | 10_year
+--batch-size   Number of strategies to generate (default: 15)
+--skip-sweep   Skip parameter sweep phase
+```
+
+### Strategy Version Control
+
+All strategies are saved and git-tracked:
+- Specs: `strategy-factory/strategies/specs/{id}.json`
+- Code: `strategy-factory/strategies/compiled/{id}.py`
+- Registry: `strategy-factory/strategies/registry.json`
 
 ## Knowledge Capture Workflow
 
