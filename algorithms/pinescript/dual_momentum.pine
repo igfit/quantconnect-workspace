@@ -1,0 +1,86 @@
+// Dual Momentum Strategy
+// Converted from QuantConnect Python implementation
+// Based on Gary Antonacci's Dual Momentum research
+//
+// Logic:
+// - Absolute Momentum: Stock return > 0 over lookback period
+// - Relative Momentum: Stock return > SPY return over lookback
+// - Entry: Both conditions true
+// - Exit: Either condition fails
+// - Rebalance: Weekly
+
+//@version=5
+strategy("Dual Momentum Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=100000)
+
+// === INPUTS ===
+lookback_period = input.int(63, "Lookback Period (days)", minval=5, tooltip="~3 months of trading days")
+rebalance_days = input.int(5, "Rebalance Frequency (days)", minval=1, tooltip="How often to check signals")
+spy_ticker = input.symbol("SPY", "Benchmark Symbol", tooltip="Symbol to compare against")
+
+// === GET SPY DATA ===
+spy_close = request.security(spy_ticker, timeframe.period, close)
+
+// === CALCULATE RETURNS ===
+// Stock return over lookback period
+stock_return = (close - close[lookback_period]) / close[lookback_period]
+
+// SPY return over lookback period
+spy_return = (spy_close - spy_close[lookback_period]) / spy_close[lookback_period]
+
+// === MOMENTUM CONDITIONS ===
+absolute_momentum = stock_return > 0
+relative_momentum = stock_return > spy_return
+
+// === REBALANCING LOGIC ===
+// Only check signals every N bars
+bars_since_last = ta.barssince(ta.change(strategy.position_size) != 0)
+can_rebalance = bars_since_last >= rebalance_days or strategy.position_size == 0
+
+// === SIGNALS ===
+long_entry = absolute_momentum and relative_momentum and can_rebalance
+long_exit_abs = not absolute_momentum
+long_exit_rel = not relative_momentum
+
+// === STRATEGY EXECUTION ===
+if long_entry and strategy.position_size == 0
+    strategy.entry("Long", strategy.long)
+
+if strategy.position_size > 0 and can_rebalance
+    if long_exit_abs
+        strategy.close("Long", comment="Abs Mom Fail")
+    else if long_exit_rel
+        strategy.close("Long", comment="Rel Mom Fail")
+
+// === PLOTTING ===
+// Plot momentum values in separate pane
+plot(stock_return * 100, "Stock Return %", color=color.blue, linewidth=2)
+plot(spy_return * 100, "SPY Return %", color=color.orange, linewidth=2)
+hline(0, "Zero Line", color=color.gray, linestyle=hline.style_dashed)
+
+// Fill between stock and SPY returns
+fill_color = stock_return > spy_return ? color.new(color.green, 80) : color.new(color.red, 80)
+// Note: fill between plots requires same pane
+
+// Plot entry/exit signals on chart
+plotshape(long_entry and strategy.position_size == 0, "Buy Signal", shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(long_exit_abs and strategy.position_size > 0 and can_rebalance, "Sell (Abs)", shape.triangledown, location.abovebar, color.red, size=size.small)
+plotshape(long_exit_rel and not long_exit_abs and strategy.position_size > 0 and can_rebalance, "Sell (Rel)", shape.triangledown, location.abovebar, color.orange, size=size.small)
+
+// Background color when in position
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === INFO TABLE ===
+var table info = table.new(position.top_right, 2, 6, bgcolor=color.new(color.gray, 80))
+if barstate.islast
+    table.cell(info, 0, 0, "Stock Return", text_color=color.white)
+    table.cell(info, 1, 0, str.tostring(stock_return * 100, "#.##") + "%", text_color=stock_return > 0 ? color.green : color.red)
+    table.cell(info, 0, 1, "SPY Return", text_color=color.white)
+    table.cell(info, 1, 1, str.tostring(spy_return * 100, "#.##") + "%", text_color=spy_return > 0 ? color.green : color.red)
+    table.cell(info, 0, 2, "Abs Momentum", text_color=color.white)
+    table.cell(info, 1, 2, absolute_momentum ? "✓ PASS" : "✗ FAIL", text_color=absolute_momentum ? color.green : color.red)
+    table.cell(info, 0, 3, "Rel Momentum", text_color=color.white)
+    table.cell(info, 1, 3, relative_momentum ? "✓ PASS" : "✗ FAIL", text_color=relative_momentum ? color.green : color.red)
+    table.cell(info, 0, 4, "Position", text_color=color.white)
+    table.cell(info, 1, 4, strategy.position_size > 0 ? "LONG" : "FLAT", text_color=strategy.position_size > 0 ? color.green : color.gray)
+    table.cell(info, 0, 5, "Outperformance", text_color=color.white)
+    table.cell(info, 1, 5, str.tostring((stock_return - spy_return) * 100, "#.##") + "%", text_color=stock_return > spy_return ? color.green : color.red)
