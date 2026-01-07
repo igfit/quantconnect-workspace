@@ -1,0 +1,87 @@
+{
+  "id": "a26e4144",
+  "name": "RSI Oversold Bounce",
+  "description": "Buy when RSI indicates oversold, sell when overbought",
+  "rationale": "RSI extremes often mark short-term reversals. The 200-day SMA filter ensures we only buy dips in uptrends, avoiding falling knives.",
+  "parent_id": null,
+  "created_at": "2026-01-07T19:54:35.379748",
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "TSLA",
+      "NVDA",
+      "AMD",
+      "SQ",
+      "COIN",
+      "MARA"
+    ]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {
+      "name": "rsi_7",
+      "type": "RSI",
+      "params": {
+        "period": 7
+      },
+      "source": "close"
+    },
+    {
+      "name": "sma_200",
+      "type": "SMA",
+      "params": {
+        "period": 200
+      },
+      "source": "close"
+    }
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {
+        "left": "rsi_7",
+        "operator": "<",
+        "right": 25
+      },
+      {
+        "left": "price",
+        "operator": ">",
+        "right": "sma_200"
+      }
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {
+        "left": "rsi_7",
+        "operator": ">",
+        "right": 70
+      }
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.05,
+    "max_holding_days": 10
+  },
+  "parameters": [
+    {
+      "path": "indicators.0.params.period",
+      "values": [
+        5,
+        7,
+        10,
+        14
+      ]
+    },
+    {
+      "path": "entry_conditions.conditions.0.right",
+      "values": [
+        20,
+        25,
+        30
+      ]
+    }
+  ]
+}

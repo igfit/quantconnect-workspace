@@ -136,12 +136,18 @@ class ResultsParser:
 
         def get_pct(key: str, default: float = 0.0) -> float:
             """Get percentage value and convert to decimal"""
-            value = get_float(key, default * 100)
-            # QC returns percentages as whole numbers (e.g., 25 for 25%)
-            # But some might already be decimals, so check magnitude
-            if abs(value) > 10:  # Likely a percentage like 25%
+            raw_str = stats.get(key, "")
+            if isinstance(raw_str, str) and '%' in raw_str:
+                # QC returns percentages like "10.088%" - always divide by 100
+                value = get_float(key, default * 100)
                 return value / 100
-            return value
+            else:
+                # Already a decimal or no % sign
+                value = get_float(key, default)
+                # If it looks like a percentage (> 1), convert it
+                if abs(value) > 1:
+                    return value / 100
+                return value
 
         # Extract metrics
         # Note: QC API uses "Total Orders" not "Total Trades", "Net Profit" not "Total Net Profit"
