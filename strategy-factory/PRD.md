@@ -4,10 +4,10 @@
 
 An **AI + Programmatic** system for generating, testing, and refining trading strategies at scale.
 
-- **AI (Claude)**: Generates strategy ideas through first-principles thinking, research, and reasoning
+- **AI (Claude Code)**: Generates strategy ideas through first-principles thinking, research, and reasoning
 - **Programmatic**: Infrastructure to compile, backtest, parse, validate, and rank strategies automatically
 
-The key insight: **Claude IS the strategy generator.** Not templates. Not hardcoded rules. Claude reasons through each strategy proposal, explains why it might work, and designs the implementation.
+The key insight: **Claude Code IS the strategy generator.** Not templates. Not hardcoded rules. Claude Code reasons through each strategy proposal, explains why it might work, and designs the implementation.
 
 ---
 
@@ -19,7 +19,7 @@ Manual strategy development is slow and limited by human bandwidth:
 - Backtesting is manual and error-prone
 - Iterating on parameters is labor-intensive
 
-**Solution**: Claude proposes strategies through reasoning. Infrastructure handles the execution. Results feed back into the next iteration.
+**Solution**: Claude Code proposes strategies through reasoning. Infrastructure handles the execution. Results feed back into the next iteration.
 
 ---
 
@@ -27,7 +27,7 @@ Manual strategy development is slow and limited by human bandwidth:
 
 ### Phase 1: Strategy Generation (AI)
 
-Claude generates strategies by:
+Claude Code generates strategies by:
 
 1. **Research**: What market inefficiencies exist? What edges have been documented?
 2. **First Principles**: WHY would this strategy work? What behavioral or structural factor creates the edge?
@@ -59,15 +59,15 @@ Infrastructure automatically:
 For winning strategies:
 
 1. **Parameter Sweep**: Test variations programmatically
-2. **Analysis**: Claude reviews results, identifies patterns
-3. **Iteration**: Claude proposes improvements based on data
+2. **Analysis**: Claude Code reviews results, identifies patterns
+3. **Iteration**: Claude Code proposes improvements based on data
 4. **Combination**: Mix signals from different strategies
 
 ---
 
 ## Strategy Generation Guidelines
 
-When Claude generates strategies, follow these principles:
+When Claude Code generates strategies, follow these principles:
 
 ### 1. Start with the Edge
 
@@ -200,7 +200,7 @@ Every strategy must have a clear rationale:
 - Bollinger Bands (use with caution - complex)
 
 ### Custom
-Claude can propose custom indicators if they serve the thesis. The infrastructure can be extended to support them.
+Claude Code can propose custom indicators if they serve the thesis. The infrastructure can be extended to support them.
 
 ---
 
@@ -209,19 +209,19 @@ Claude can propose custom indicators if they serve the thesis. The infrastructur
 ### Daily/Weekly Strategy Development
 
 ```
-1. Claude researches edges and proposes 5-10 new strategies
+1. Claude Code researches edges and proposes 5-10 new strategies
    └── Each with clear rationale and thesis
 
 2. Infrastructure backtests all strategies
    └── Automatic: compile → run → parse → validate
 
-3. Claude reviews results
+3. Claude Code reviews results
    └── What worked? What didn't? Why?
 
 4. Winners go to parameter sweep
    └── Automatic: generate variations → backtest all
 
-5. Claude analyzes sweep results
+5. Claude Code analyzes sweep results
    └── Optimal parameters? Overfitting concerns?
 
 6. Top strategies ranked and documented
@@ -235,7 +235,7 @@ Claude can propose custom indicators if they serve the thesis. The infrastructur
 python strategy-factory/run_pipeline.py --batch-size 10
 
 # The pipeline will:
-# 1. Ask Claude to generate strategies (or use existing specs)
+# 1. Ask Claude Code to generate strategies (or use existing specs)
 # 2. Backtest all of them
 # 3. Filter, validate, rank
 # 4. Output report
@@ -289,7 +289,7 @@ python strategy-factory/run_pipeline.py --batch-size 10
 
 ## Key Principle
 
-**The AI doesn't just execute templates. The AI thinks.**
+**Claude Code doesn't just execute templates. Claude Code thinks.**
 
 Every strategy should reflect genuine reasoning about:
 - What edge exists

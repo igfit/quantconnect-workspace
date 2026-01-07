@@ -61,11 +61,11 @@ An **AI + Programmatic** strategy generation and backtesting system.
 
 **Read `strategy-factory/PRD.md` for full product requirements.**
 
-### Key Principle: Claude IS the Strategy Generator
+### Key Principle: Claude Code IS the Strategy Generator
 
-**Claude generates strategies through reasoning, not templates.**
+**Claude Code generates strategies through reasoning, not templates.**
 
-When asked to generate strategies, Claude must:
+When asked to generate strategies, Claude Code must:
 1. **Research**: What market inefficiency exists?
 2. **First Principles**: WHY would this work? What creates the edge?
 3. **Design**: Choose indicators & universe that match the thesis
@@ -85,7 +85,7 @@ The infrastructure (compiler, runner, parser) handles execution automatically.
 ### Architecture Overview
 
 ```
-Claude (AI)  → Compiler → QC Runner → Parser → Validator → Ranker
+Claude Code  → Compiler → QC Runner → Parser → Validator → Ranker
     ↓             ↓           ↓          ↓          ↓         ↓
 Reasoning    QC Code    Backtests   Metrics   Validated   Top 5
  + Specs
@@ -93,11 +93,11 @@ Reasoning    QC Code    Backtests   Metrics   Validated   Top 5
 
 ### Strategy Generation Process
 
-1. **Claude proposes** strategies with clear rationale (the WHY)
+1. **Claude Code proposes** strategies with clear rationale (the WHY)
 2. **Infrastructure compiles** spec → QuantConnect code
 3. **Infrastructure backtests** via QC cloud API
 4. **Infrastructure parses** results (Sharpe, CAGR, drawdown)
-5. **Claude reviews** results and proposes refinements
+5. **Claude Code reviews** results and proposes refinements
 6. **Iterate** until strategies beat benchmarks
 
 ### Key Constraints
