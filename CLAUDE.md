@@ -35,9 +35,12 @@ strategy-factory/     # AI + Programmatic strategy generation system
   TODOS.md            # Progress tracker
   NOTES.md            # Implementation learnings
   strategies/         # Generated strategies (version controlled)
-scripts/              # Helper scripts (qc-api.sh)
+scripts/              # Helper scripts
+  qc-api.sh           # QuantConnect API wrapper
+  backtest_pnl.py     # P&L calculator (orders + per-ticker breakdown)
+  get-orders.sh       # Fetch backtest orders from QC API
 tools/                # CLI tools (context7)
-backtests/            # Backtest results and analysis
+backtests/            # Backtest results, orders CSVs, P&L summaries
 docs/                 # Documentation and learnings
   LEARNINGS.md        # Comprehensive strategy & platform learnings
 .claude/commands/     # Custom slash commands
@@ -299,6 +302,7 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | `./scripts/qc-api.sh backtest <projectId> <name>` | Run backtest |
 | `./scripts/qc-api.sh results <projectId> <backtestId>` | Get backtest results |
 | `./scripts/qc-api.sh live-list` | List live deployments |
+| `python scripts/backtest_pnl.py <projectId> <backtestId>` | Calculate P&L per ticker, save orders & summary |
 
 ## Algorithm Conventions
 
@@ -377,6 +381,63 @@ When running backtests, document results in `backtests/results.md`:
 ### Notes
 [Observations and next steps]
 ```
+
+## Backtest P&L Analysis
+
+**IMPORTANT**: When reporting strategy results, ALWAYS:
+1. Save the full list of orders to CSV
+2. Calculate and show P&L per ticker (realized and unrealized separately)
+3. Verify the reconciliation matches the backtest equity
+
+### Using the P&L Script
+
+```bash
+# Calculate P&L and save orders/summary to CSV
+python scripts/backtest_pnl.py <project_id> <backtest_id> --name <strategy_name>
+
+# Example
+python scripts/backtest_pnl.py 27320717 "1621985cb8a866271907cb33d8d675f2" --name quality_megacap
+```
+
+### What the Script Does
+
+1. **Fetches all orders** from the QC API (handles pagination)
+2. **Saves orders to CSV**: `backtests/<name>_orders_<date>.csv`
+3. **Calculates P&L per ticker** using position-based accounting:
+   - **Realized P&L**: Profits from fully closed positions (no shares remaining)
+   - **Unrealized P&L**: Gains on positions still held at end of backtest
+4. **Saves P&L summary to CSV**: `backtests/<name>_pnl_<date>.csv`
+5. **Reconciles** calculated equity vs backtest equity (must match!)
+
+### P&L Accounting Method
+
+The script uses **position-based accounting**:
+- A position is "closed" only when ALL shares are sold
+- A position is "open" if ANY shares remain
+- Unrealized P&L uses actual holdings value from backtest stats
+
+**Example**: NVDA with multiple trades
+- If you bought/sold multiple times but still hold shares → "Open" position
+- Realized = $0, Unrealized = Total gains including past profitable trades
+
+### Output Files
+
+| File | Contents |
+|------|----------|
+| `backtests/<name>_orders_<date>.csv` | All trades: Date, Ticker, Direction, Qty, Price, Value |
+| `backtests/<name>_pnl_<date>.csv` | P&L summary: Ticker, Shares, Cost, Value, Realized, Unrealized, Total |
+
+### Reconciliation Check
+
+The script verifies:
+```
+Starting Capital + Realized P&L + Unrealized P&L - Fees = Final Equity
+```
+
+If difference > $100, investigate! Common causes:
+- Dividends not captured in orders
+- Interest/margin costs
+- Data timing differences
 
 ## Git Workflow
 
