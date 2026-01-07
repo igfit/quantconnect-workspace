@@ -1,0 +1,67 @@
+// Wave-EWO Strategy
+// Converted from QuantConnect Python implementation
+//
+// Logic:
+// - EWO = SMA(5) - SMA(34)
+// - Entry: EWO crosses above 0 AND RSI >= 40
+// - Exit: EWO crosses below 0 OR RSI < 30
+
+//@version=5
+strategy("Wave-EWO Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=100000)
+
+// === INPUTS ===
+fast_period = input.int(5, "Fast SMA Period", minval=1)
+slow_period = input.int(34, "Slow SMA Period", minval=1)
+rsi_period = input.int(14, "RSI Period", minval=1)
+rsi_entry_threshold = input.int(40, "RSI Entry Threshold", minval=0, maxval=100)
+rsi_exit_threshold = input.int(30, "RSI Exit Threshold", minval=0, maxval=100)
+
+// === INDICATORS ===
+sma_fast = ta.sma(close, fast_period)
+sma_slow = ta.sma(close, slow_period)
+ewo = sma_fast - sma_slow
+rsi_val = ta.rsi(close, rsi_period)
+
+// === SIGNALS ===
+crossed_bullish = ta.crossover(ewo, 0)
+crossed_bearish = ta.crossunder(ewo, 0)
+
+// Entry condition: EWO crosses above 0 AND RSI >= entry threshold
+long_entry = crossed_bullish and rsi_val >= rsi_entry_threshold
+
+// Exit conditions: EWO crosses below 0 OR RSI < exit threshold
+long_exit_ewo = crossed_bearish
+long_exit_rsi = rsi_val < rsi_exit_threshold
+
+// === STRATEGY EXECUTION ===
+if long_entry
+    strategy.entry("Long", strategy.long)
+
+if strategy.position_size > 0
+    if long_exit_ewo
+        strategy.close("Long", comment="EWO Cross")
+    else if long_exit_rsi
+        strategy.close("Long", comment="RSI Fail")
+
+// === PLOTTING ===
+// Plot EWO in separate pane
+plot(ewo, "EWO", color=ewo >= 0 ? color.green : color.red, linewidth=2)
+hline(0, "Zero Line", color=color.gray, linestyle=hline.style_dashed)
+
+// Plot entry/exit signals on chart
+plotshape(long_entry, "Buy Signal", shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(long_exit_ewo and strategy.position_size > 0, "Sell (EWO)", shape.triangledown, location.abovebar, color.red, size=size.small)
+plotshape(long_exit_rsi and strategy.position_size > 0 and not long_exit_ewo, "Sell (RSI)", shape.triangledown, location.abovebar, color.orange, size=size.small)
+
+// Background color when in position
+bgcolor(strategy.position_size > 0 ? color.new(color.green, 90) : na)
+
+// === INFO TABLE ===
+var table info = table.new(position.top_right, 2, 4, bgcolor=color.new(color.gray, 80))
+if barstate.islast
+    table.cell(info, 0, 0, "EWO", text_color=color.white)
+    table.cell(info, 1, 0, str.tostring(ewo, "#.##"), text_color=ewo >= 0 ? color.green : color.red)
+    table.cell(info, 0, 1, "RSI", text_color=color.white)
+    table.cell(info, 1, 1, str.tostring(rsi_val, "#.#"), text_color=rsi_val >= rsi_entry_threshold ? color.green : color.red)
+    table.cell(info, 0, 2, "Position", text_color=color.white)
+    table.cell(info, 1, 2, strategy.position_size > 0 ? "LONG" : "FLAT", text_color=strategy.position_size > 0 ? color.green : color.gray)
