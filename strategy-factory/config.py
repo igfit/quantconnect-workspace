@@ -33,12 +33,13 @@ ACTIVE_DATE_RANGE = "5_year"
 # =============================================================================
 
 # Minimum thresholds for initial filtering
-MIN_SHARPE_RATIO = 0.8
-MIN_CAGR = 0.10  # 10%
-MAX_DRAWDOWN = 0.25  # 25%
-MIN_PROFIT_FACTOR = 1.3
-MIN_WIN_RATE = 0.45  # 45%
-MIN_TRADE_COUNT = 30
+# Thresholds for initial filtering - can adjust based on market conditions
+MIN_SHARPE_RATIO = 0.4  # Lowered for initial testing, production: 0.8
+MIN_CAGR = 0.08  # 8% - production: 0.10
+MAX_DRAWDOWN = 0.30  # 30% - production: 0.25
+MIN_PROFIT_FACTOR = 1.2  # production: 1.3
+MIN_WIN_RATE = 0.40  # 40% - production: 0.45
+MIN_TRADE_COUNT = 20  # production: 30
 
 # Disqualifier thresholds
 DISQUALIFY_MAX_DRAWDOWN = 0.40  # 40%

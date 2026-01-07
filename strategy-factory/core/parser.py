@@ -144,13 +144,14 @@ class ResultsParser:
             return value
 
         # Extract metrics
+        # Note: QC API uses "Total Orders" not "Total Trades", "Net Profit" not "Total Net Profit"
         return ParsedMetrics(
             strategy_id=strategy_id,
             backtest_id=backtest_id,
             name=name or backtest.get("name", "Unknown"),
 
             # Performance
-            total_return=get_pct("Total Net Profit", 0),
+            total_return=get_pct("Net Profit", 0),
             cagr=get_pct("Compounding Annual Return", 0),
             sharpe_ratio=get_float("Sharpe Ratio", 0),
             sortino_ratio=get_float("Sortino Ratio", 0),
@@ -159,8 +160,8 @@ class ResultsParser:
             max_drawdown=abs(get_pct("Drawdown", 0)),
             volatility=get_pct("Annual Standard Deviation", 0),
 
-            # Trading
-            total_trades=int(get_float("Total Trades", 0)),
+            # Trading - QC uses "Total Orders" not "Total Trades"
+            total_trades=int(get_float("Total Orders", 0)),
             win_rate=get_pct("Win Rate", 0),
             profit_factor=get_float("Profit-Loss Ratio", 1),
             avg_win=get_float("Average Win", 0),
@@ -172,11 +173,11 @@ class ResultsParser:
             information_ratio=get_float("Information Ratio", 0),
             treynor_ratio=get_float("Treynor Ratio", 0),
 
-            # Metadata
+            # Metadata - QC uses "Start Equity" and "End Equity"
             start_date=backtest.get("created", ""),
             end_date=backtest.get("ended", ""),
-            initial_capital=get_float("Starting Capital", config.DEFAULT_INITIAL_CAPITAL),
-            final_equity=get_float("Equity Final", 0),
+            initial_capital=get_float("Start Equity", config.DEFAULT_INITIAL_CAPITAL),
+            final_equity=get_float("End Equity", 0),
 
             raw_statistics=stats
         )
@@ -271,26 +272,28 @@ def parse_backtest_result(
 # =============================================================================
 
 if __name__ == "__main__":
-    # Test with sample data
+    # Test with sample data matching actual QC API response format
     sample_response = {
         "success": True,
         "backtest": {
             "backtestId": "test-123",
             "name": "Test Strategy",
             "statistics": {
-                "Total Net Profit": "25.5%",
+                "Net Profit": "25.5%",  # QC uses "Net Profit" not "Total Net Profit"
                 "Compounding Annual Return": "15.2%",
                 "Sharpe Ratio": "1.25",
                 "Sortino Ratio": "1.8",
                 "Drawdown": "12.5%",
-                "Annual Standard Deviation": "18.0%",
-                "Total Trades": "45",
+                "Annual Standard Deviation": "0.18",  # Can be decimal
+                "Total Orders": "45",  # QC uses "Total Orders" not "Total Trades"
                 "Win Rate": "55%",
                 "Profit-Loss Ratio": "1.65",
-                "Average Win": "$250",
-                "Average Loss": "$150",
+                "Average Win": "2.50%",
+                "Average Loss": "-1.50%",
                 "Alpha": "0.05",
                 "Beta": "0.85",
+                "Start Equity": "100000",  # QC uses "Start Equity"
+                "End Equity": "125500",  # QC uses "End Equity"
             }
         }
     }
