@@ -6,11 +6,11 @@
 
 ---
 
-## Current Status: PIPELINE VALIDATED
+## Current Status: ARCHITECTURE REVISED
 
-**Phase:** Production Ready (with relaxed thresholds for testing)
+**Phase:** Claude Code-driven strategy generation (templates removed)
 **Blockers:** None
-**Next Action:** First production run with 15-20 strategies
+**Next Action:** Claude Code generates strategies through reasoning, then run pipeline
 
 ---
 
@@ -92,16 +92,18 @@
 
 ## Phase 3: Generators
 
-### generators/ai_generator.py
-- [x] Define strategy templates based on research
-- [x] Implement momentum strategies
-- [x] Implement mean reversion strategies
-- [x] Implement trend following strategies
-- [x] Implement volatility strategies
-- [x] Implement sector rotation strategies
-- [x] Implement high beta strategies
-- [x] Output valid StrategySpecs
-- [x] Save specs to strategies/specs/
+### generators/ai_generator.py (DEPRECATED)
+Template generation has been removed. Claude Code now generates strategies through reasoning.
+
+- [x] ~~Define strategy templates based on research~~ → DEPRECATED
+- [x] ~~Implement momentum strategies~~ → DEPRECATED
+- [x] ~~Implement mean reversion strategies~~ → DEPRECATED
+- [x] ~~Implement trend following strategies~~ → DEPRECATED
+- [x] ~~Implement volatility strategies~~ → DEPRECATED
+- [x] ~~Implement sector rotation strategies~~ → DEPRECATED
+- [x] ~~Implement high beta strategies~~ → DEPRECATED
+- [x] Converted to StrategySpecManager (load/save specs from files)
+- [x] Claude Code generates specs through reasoning (see GENERATE.md)
 
 ### generators/param_sweeper.py
 - [x] Parse parameter ranges from spec
@@ -131,8 +133,8 @@
 ## Phase 5: Orchestration
 
 ### run_pipeline.py
-- [x] Argument parsing (date range, batch size, etc.)
-- [x] Phase 1: Call AI generator
+- [x] Argument parsing (date range, specs-dir, spec-ids, etc.)
+- [x] Phase 1: Load specs from files (Claude Code generates them)
 - [x] Phase 2: Run initial backtests
 - [x] Phase 3: Filter by thresholds
 - [x] Phase 4: Parameter sweep on winners
@@ -141,6 +143,8 @@
 - [x] Phase 7: Report generation
 - [x] Logging throughout
 - [x] Error handling
+- [x] Added --specs-dir option
+- [x] Added --spec-ids option
 
 ---
 
@@ -257,6 +261,45 @@
 - Complex indicators (BB, MACD, ATR) may have is_ready issues
 - Simple SMA/EMA-based strategies are most reliable
 - All strategies now generate trades (no more 0-trade issues)
+
+### Session 5 - 2026-01-07
+**Duration:** ~30 minutes
+**Accomplished:**
+- Major architecture revision: Claude Code IS the strategy generator
+- Removed all hardcoded templates from ai_generator.py
+- Created StrategySpecManager class for loading/saving specs
+- Updated run_pipeline.py:
+  - Phase 1 now loads specs from files instead of generating
+  - Added --specs-dir option for custom spec directories
+  - Added --spec-ids option to backtest specific strategies
+  - Removed batch-size (no longer generating)
+- Created GENERATE.md with meta-reasoning protocol for Claude Code
+- Updated PRD.md with full autonomous loop documentation
+- Updated PLAN.md with revised architecture
+- Updated CLAUDE.md to clarify Claude Code as strategy generator
+
+**Key Changes:**
+```
+ai_generator.py:
+- BEFORE: 11 hardcoded strategy templates
+- AFTER: StrategySpecManager (load/save/list specs from files)
+
+run_pipeline.py:
+- BEFORE: phase1_generate() calls generator.generate_all()
+- AFTER: phase1_load_specs() loads from strategies/specs/
+
+New CLI Options:
+- --specs-dir /path/to/specs  (custom directory)
+- --spec-ids abc123,def456    (specific specs)
+```
+
+**Workflow Now:**
+1. User asks: "Generate trading strategies"
+2. Claude Code does meta-reasoning (reads existing results, identifies gaps)
+3. Claude Code designs strategies with rationale and saves JSON specs
+4. User runs: `python run_pipeline.py`
+5. Pipeline loads specs, backtests, validates, ranks
+6. Claude Code reviews results, proposes next iteration
 
 ---
 
