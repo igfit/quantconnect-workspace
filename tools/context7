@@ -1,0 +1,281 @@
+#!/usr/bin/env python3
+"""
+Context7 MCP CLI Tool
+
+A command-line interface for Context7 documentation lookup.
+Designed for use with Claude Code web or any CLI environment.
+
+Usage:
+    context7 resolve <library_name>        Search for a library and get its ID
+    context7 docs <library_id> [--topic]   Fetch documentation for a library
+
+Examples:
+    context7 resolve "react"
+    context7 resolve "fastapi"
+    context7 docs "/vercel/next.js" --topic "app router"
+    context7 docs "/tiangolo/fastapi" --tokens 8000
+"""
+
+import argparse
+import json
+import os
+import sys
+from urllib.request import urlopen, Request
+from urllib.error import URLError, HTTPError
+from urllib.parse import urlencode, quote
+
+CONTEXT7_BASE_URL = "https://context7.com/api/v2"
+DEFAULT_MAX_TOKENS = 10000
+
+
+def make_get_request(url: str, api_key: str = None) -> dict:
+    """Make a GET request to Context7 API."""
+    headers = {
+        "Accept": "application/json",
+    }
+
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    request = Request(url, headers=headers, method="GET")
+
+    try:
+        with urlopen(request, timeout=60) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as e:
+        error_body = e.read().decode("utf-8") if e.fp else ""
+        return {"error": f"HTTP {e.code}: {e.reason}", "details": error_body}
+    except URLError as e:
+        return {"error": f"Connection failed: {e.reason}"}
+    except json.JSONDecodeError as e:
+        return {"error": f"Invalid JSON response: {e}"}
+
+
+def make_request_raw(url: str, api_key: str = None) -> str:
+    """Make a GET request and return raw text."""
+    headers = {
+        "Accept": "text/plain, application/json",
+    }
+
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
+    request = Request(url, headers=headers, method="GET")
+
+    try:
+        with urlopen(request, timeout=60) as response:
+            return response.read().decode("utf-8")
+    except HTTPError as e:
+        error_body = e.read().decode("utf-8") if e.fp else ""
+        return json.dumps({"error": f"HTTP {e.code}: {e.reason}", "details": error_body})
+    except URLError as e:
+        return json.dumps({"error": f"Connection failed: {e.reason}"})
+
+
+def resolve_library(query: str, api_key: str = None) -> dict:
+    """
+    Search for a library and return matching results with IDs.
+
+    Args:
+        query: Library name to search for (e.g., "react", "fastapi")
+        api_key: Optional Context7 API key
+
+    Returns:
+        Dict with library matches including IDs to use with docs command
+    """
+    encoded_query = quote(query)
+    url = f"{CONTEXT7_BASE_URL}/libs/search?query={encoded_query}"
+    result = make_get_request(url, api_key)
+    return result
+
+
+def get_library_docs(
+    library_id: str,
+    topic: str = None,
+    max_tokens: int = DEFAULT_MAX_TOKENS,
+    api_key: str = None
+) -> str:
+    """
+    Fetch documentation for a specific library.
+
+    Args:
+        library_id: Library ID from resolve command (e.g., "/vercel/next.js")
+        topic: Optional topic to focus documentation on
+        max_tokens: Maximum tokens to return (default 10000)
+        api_key: Optional Context7 API key
+
+    Returns:
+        Documentation content as string
+    """
+    # Build query parameters
+    params = {"tokens": str(max_tokens)}
+    if topic:
+        params["query"] = topic  # Context7 uses 'query' for topic filtering
+
+    query_string = urlencode(params)
+    url = f"{CONTEXT7_BASE_URL}/context?libraryId={library_id}&{query_string}"
+
+    result = make_request_raw(url, api_key)
+    return result
+
+
+def get_library_info(library_id: str, api_key: str = None) -> dict:
+    """
+    Get metadata about a library.
+
+    Args:
+        library_id: Library ID (e.g., "/vercel/next.js")
+        api_key: Optional Context7 API key
+
+    Returns:
+        Dict with library metadata
+    """
+    # Remove leading slash for path construction
+    lib_path = library_id.lstrip("/")
+    url = f"{CONTEXT7_BASE_URL}/docs/info/{lib_path}"
+    result = make_get_request(url, api_key)
+    return result
+
+
+def format_resolve_output(result: dict) -> str:
+    """Format resolve results for human-readable output."""
+    if "error" in result:
+        return f"Error: {result['error']}\n{result.get('details', '')}"
+
+    # Handle different response formats
+    libraries = result if isinstance(result, list) else result.get("libraries", result.get("results", []))
+
+    if not libraries:
+        return "No libraries found matching your query."
+
+    lines = ["Found libraries:", ""]
+    items = libraries[:10] if isinstance(libraries, list) else []
+
+    for lib in items:
+        lib_id = lib.get("id", lib.get("libraryId", "unknown"))
+        name = lib.get("name", lib.get("title", lib_id))
+        description = lib.get("description", "")
+        if description and len(description) > 100:
+            description = description[:100] + "..."
+
+        lines.append(f"  ID: {lib_id}")
+        lines.append(f"  Name: {name}")
+        if description:
+            lines.append(f"  Description: {description}")
+        lines.append("")
+
+    lines.append("Use: context7 docs <ID> --topic <topic> to fetch documentation")
+    return "\n".join(lines)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Context7 MCP CLI - Documentation lookup for libraries and frameworks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s resolve "react"
+  %(prog)s resolve "next.js app router"
+  %(prog)s docs "/vercel/next.js"
+  %(prog)s docs "/vercel/next.js" --topic "server components"
+  %(prog)s docs "/tiangolo/fastapi" --tokens 5000 --json
+  %(prog)s info "/vercel/next.js"
+
+Environment Variables:
+  CONTEXT7_API_KEY    Optional API key for higher rate limits
+        """
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Resolve command
+    resolve_parser = subparsers.add_parser(
+        "resolve",
+        help="Search for a library and get its Context7 ID"
+    )
+    resolve_parser.add_argument(
+        "query",
+        help="Library name to search for (e.g., 'react', 'fastapi', 'langchain')"
+    )
+    resolve_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output raw JSON instead of formatted text"
+    )
+
+    # Docs command
+    docs_parser = subparsers.add_parser(
+        "docs",
+        help="Fetch documentation for a library"
+    )
+    docs_parser.add_argument(
+        "library_id",
+        help="Library ID from resolve command (e.g., '/vercel/next.js')"
+    )
+    docs_parser.add_argument(
+        "--topic", "-t",
+        help="Focus documentation on a specific topic (e.g., 'routing', 'hooks')"
+    )
+    docs_parser.add_argument(
+        "--tokens", "-n",
+        type=int,
+        default=DEFAULT_MAX_TOKENS,
+        help=f"Maximum tokens to return (default: {DEFAULT_MAX_TOKENS})"
+    )
+    docs_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output raw JSON instead of formatted text"
+    )
+
+    # Info command
+    info_parser = subparsers.add_parser(
+        "info",
+        help="Get metadata about a library"
+    )
+    info_parser.add_argument(
+        "library_id",
+        help="Library ID (e.g., '/vercel/next.js')"
+    )
+
+    args = parser.parse_args()
+
+    # Get API key from environment if available
+    api_key = os.environ.get("CONTEXT7_API_KEY")
+
+    result = None
+
+    if args.command == "resolve":
+        result = resolve_library(args.query, api_key)
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(format_resolve_output(result))
+        if isinstance(result, dict) and "error" in result:
+            sys.exit(1)
+
+    elif args.command == "docs":
+        result = get_library_docs(
+            library_id=args.library_id,
+            topic=args.topic,
+            max_tokens=args.tokens,
+            api_key=api_key
+        )
+        print(result)
+        # Check if result is error JSON
+        try:
+            parsed = json.loads(result)
+            if isinstance(parsed, dict) and "error" in parsed:
+                sys.exit(1)
+        except json.JSONDecodeError:
+            pass  # Not JSON, probably documentation text
+
+    elif args.command == "info":
+        result = get_library_info(args.library_id, api_key)
+        print(json.dumps(result, indent=2))
+        if isinstance(result, dict) and "error" in result:
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
