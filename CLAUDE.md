@@ -213,6 +213,8 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | Wave-EWO MSTR | 27315755 | Wave-EWO on MSTR (365% return) |
 | Wave-EWO SMCI | 27315756 | Wave-EWO on SMCI (159% return) |
 | Beta Screener | 27315463 | High-beta stock screener utility |
+| Benchmark Buy-Hold SPY/QQQ | 27316754 | 50/50 buy-hold (17.07% CAGR, 0.57 Sharpe) |
+| Benchmark DCA SPY/QQQ | 27316758 | Monthly DCA $1667 (7.45% CAGR, 0.37 Sharpe) |
 
 ## QuantConnect API Workflow
 
