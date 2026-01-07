@@ -40,14 +40,25 @@ Testing the BX Trender indicator across various configurations on high-beta stoc
 | Profit/Loss Ratio | 2.60 |
 | Beta | 1.09 |
 
-### 3. BX Multi-Timeframe Strict (Too Restrictive)
-**File**: `algorithms/strategies/bx_mtf_tsla.py`
+### 3. Weekly BX Filter Analysis (Bug Fixed)
 
-| Metric | Value |
-|--------|-------|
-| Total Trades | 0 |
+**Original Issue**: The original MTF strategy had 0 trades due to a **buffer size bug**:
+- Code used `RollingWindow(25)` for weekly closes
+- BX calculation requires: L2 + L3 + 1 = 20 + 15 + 1 = **36 bars minimum**
+- With only 25 bars, the weekly BX always returned `None`
 
-**Issue**: Weekly BX requires 25 weekly bars (~6 months) to calculate. By the time weekly BX is ready, alignment with daily never occurs.
+**Fixed versions tested:**
+
+| Configuration | Return | Sharpe | Max DD | Trades |
+|--------------|--------|--------|--------|--------|
+| Weekly BX (5,20,15) fixed | 52.5% | 0.36 | 36.8% | 32 |
+| Weekly BX (3,10,8) short | -7.9% | -0.03 | 46.0% | 33 |
+| Weekly EMA (5>20) filter | 86.8% | 0.48 | 45.0% | 41 |
+
+**Files**:
+- `bx_mtf_debug.py` - Fixed buffer size (36+ bars)
+- `bx_mtf_optimized.py` - Shorter weekly params (worse performance)
+- `bx_mtf_ema.py` - Simple EMA crossover filter (best of MTF variants)
 
 ### 4. BX Daily + Weekly SMA Filter (Over-filtered)
 **File**: `algorithms/strategies/bx_daily_smafilter_tsla.py`
@@ -64,9 +75,27 @@ Testing the BX Trender indicator across various configurations on high-beta stoc
 
 ## Key Findings
 
-### 1. Daily Timeframe Works Best
-- Weekly BX filter is impractical due to long warm-up period (25 weeks)
-- Weekly SMA filter reduces returns without improving drawdown
+### 1. Weekly BX Bug & Fix
+The original MTF implementation had a critical bug:
+```python
+# BUG: Only stored 25 weekly closes
+self.weekly_bars = RollingWindow[TradeBar](25)
+
+# But BX calculation needs:
+# - L2 (20) closes to start slow EMA
+# - L3+1 (16) more for RSI calculation
+# - Total: 36+ closes minimum
+
+# FIX:
+min_bars = L2 + L3 + 1  # = 36
+self.weekly_bars = RollingWindow[TradeBar](min_bars + 5)
+```
+
+### 2. Daily Timeframe Works Best
+- Even with the bug fixed, weekly filters hurt TSLA performance
+- Weekly BX with standard params: 52.5% return (vs 293% daily-only)
+- Shorter weekly params (3,10,8): -7.9% return (too noisy)
+- Simple EMA crossover: 86.8% return (best MTF variant, but still worse than daily-only)
 - Daily BX captures momentum shifts effectively on high-beta stocks
 
 ### 2. Optimal Stock Universe
