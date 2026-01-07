@@ -46,6 +46,75 @@ docs/                 # Documentation and learnings
 - Common pitfalls with code examples
 - Strategy development best practices
 
+## Knowledge Capture Workflow
+
+**IMPORTANT**: As you develop strategies, continuously update `docs/LEARNINGS.md` with new insights.
+
+### When to Update LEARNINGS.md
+
+1. **Bug discoveries** - Document the bug, why it happened, and the fix
+2. **API gotchas** - Any QuantConnect quirks or unexpected behavior
+3. **Performance findings** - Strategy results that inform future development
+4. **Code patterns** - Reusable patterns that work well (or don't)
+5. **Parameter insights** - What parameter ranges work for different scenarios
+
+### How to Update
+
+```markdown
+# In docs/LEARNINGS.md, add to the appropriate section:
+
+## [Section Name]
+
+### [New Finding Title]
+
+**Problem**: [What went wrong or was discovered]
+
+**Solution**: [How to fix or handle it]
+
+```python
+# Code example if applicable
+```
+
+**Result**: [Outcome or performance impact]
+```
+
+### Update Checklist
+
+Before finishing a session that involved strategy development:
+
+- [ ] Did you encounter any bugs? → Add to "Common Pitfalls"
+- [ ] Did you learn something about QuantConnect API? → Add to "QuantConnect Platform"
+- [ ] Did you test a new indicator or strategy? → Add results to relevant section
+- [ ] Did you find optimal parameters? → Document in strategy-specific section
+- [ ] Did you discover a useful code pattern? → Add to "Best Practices"
+
+### Example Updates
+
+**After finding a bug:**
+```markdown
+### 6. Consolidator Calendar Type
+```python
+# WRONG
+self.consolidate(symbol, CalendarType.WEEK, handler)
+
+# RIGHT
+self.consolidate(symbol, Calendar.Weekly, handler)
+```
+```
+
+**After testing a strategy:**
+```markdown
+### BX on Crypto Assets
+
+Tested BX Trender on BTC/ETH (2021-2024):
+| Asset | Return | Sharpe | Notes |
+|-------|--------|--------|-------|
+| BTC   | 45%    | 0.65   | Works in trending periods |
+| ETH   | 38%    | 0.55   | Higher volatility hurts |
+
+**Conclusion**: BX works but needs volatility adjustment for crypto.
+```
+
 ### Existing Strategies
 
 | Strategy | File | Description |
