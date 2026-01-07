@@ -34,6 +34,19 @@ backtests/            # Backtest results and analysis
 .claude/commands/     # Custom slash commands
 ```
 
+### Existing Strategies
+
+| Strategy | File | Description |
+|----------|------|-------------|
+| Momentum | `algorithms/examples/momentum_strategy.py` | Top N momentum stocks, monthly rebalance |
+| MA Crossover | `algorithms/strategies/ma_crossover.py` | 50/200 SMA crossover on SPY, QQQ, AAPL, MSFT, GOOGL |
+
+### QC Project IDs
+
+| Project | ID | Description |
+|---------|-----|-------------|
+| MA Crossover Strategy | 27311581 | 50/200 SMA crossover |
+
 ## QuantConnect API Workflow
 
 ### Authentication Test
@@ -47,6 +60,28 @@ backtests/            # Backtest results and analysis
 2. **Push to QC**: `./scripts/qc-api.sh push <projectId> <filename>`
 3. **Run backtest**: `./scripts/qc-api.sh backtest <projectId> "test-name"`
 4. **Get results**: `./scripts/qc-api.sh results <projectId> <backtestId>`
+
+### Full Deployment Example
+
+```bash
+# 1. Create project (returns projectId)
+./scripts/qc-api.sh project-create "My Strategy" Py
+
+# 2. Upload algorithm as main.py
+./scripts/qc-api.sh push 27311581 algorithms/strategies/ma_crossover.py main.py
+
+# 3. Compile (returns compileId)
+./scripts/qc-api.sh compile 27311581
+
+# 4. Run backtest with compileId
+./scripts/qc-api.sh backtest 27311581 "Test Run" "compile-id-here"
+
+# 5. Get results (wait ~15-30s for completion)
+./scripts/qc-api.sh results 27311581 "backtest-id-here"
+
+# 6. Parse key metrics
+./scripts/qc-api.sh results 27311581 "backtest-id" | jq '.backtest.statistics'
+```
 
 ### Common Commands
 
@@ -139,19 +174,36 @@ git push origin main
 
 ## API Reference
 
+### Authentication
+
+The QC API uses **SHA-256 timestamped authentication** (not simple basic auth):
+
+1. Combine `{API_TOKEN}:{unix_timestamp}`
+2. SHA-256 hash → hex digest
+3. Base64 encode `{USER_ID}:{hash}`
+4. Send as `Authorization: Basic {encoded}` header with `Timestamp: {unix_timestamp}` header
+
+The `qc-api.sh` script handles this automatically.
+
 ### QuantConnect REST API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/authenticate` | GET | Test credentials |
 | `/projects/read` | GET | List projects |
-| `/projects/create` | POST | Create project |
+| `/projects/create` | POST | Create project (language: "Py" or "C#") |
 | `/files/read` | POST | Get project files |
 | `/files/update` | POST | Update/create file |
 | `/compile/create` | POST | Compile project |
-| `/backtests/create` | POST | Start backtest |
+| `/backtests/create` | POST | Start backtest (uses `backtestName` param) |
 | `/backtests/read` | POST | Get backtest results |
 | `/live/read` | POST | Get live algo status |
+
+### API Gotchas
+
+- **Project language**: Use `"Py"` not `"Python"` when creating projects
+- **Backtest name**: API parameter is `backtestName`, not `name`
+- **Compile first**: Get `compileId` from compile before running backtest
 
 ### Rate Limits
 - 30 requests/minute
