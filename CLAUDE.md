@@ -29,8 +29,9 @@ lean init
 algorithms/           # Trading algorithm source code
   examples/           # Reference implementations
   strategies/         # Your custom strategies
-strategy-factory/     # AI-driven strategy generation system
-  PLAN.md             # Implementation plan
+strategy-factory/     # AI + Programmatic strategy generation system
+  PRD.md              # Product requirements (read first)
+  PLAN.md             # Technical implementation plan
   TODOS.md            # Progress tracker
   NOTES.md            # Implementation learnings
   strategies/         # Generated strategies (version controlled)
@@ -56,23 +57,48 @@ docs/                 # Documentation and learnings
 
 ## Strategy Factory
 
-An AI-driven strategy generation and backtesting system. See `strategy-factory/` directory.
+An **AI + Programmatic** strategy generation and backtesting system.
+
+**Read `strategy-factory/PRD.md` for full product requirements.**
+
+### Key Principle: Claude IS the Strategy Generator
+
+**Claude generates strategies through reasoning, not templates.**
+
+When asked to generate strategies, Claude must:
+1. **Research**: What market inefficiency exists?
+2. **First Principles**: WHY would this work? What creates the edge?
+3. **Design**: Choose indicators & universe that match the thesis
+4. **KISS**: Keep it simple (max 3 indicators, clear logic)
+
+The infrastructure (compiler, runner, parser) handles execution automatically.
 
 ### Quick Reference
 
 | File | Purpose |
 |------|---------|
-| `strategy-factory/PLAN.md` | Full implementation plan |
-| `strategy-factory/TODOS.md` | Progress tracker (always update) |
+| `strategy-factory/PRD.md` | **Product requirements (read first)** |
+| `strategy-factory/PLAN.md` | Technical implementation plan |
+| `strategy-factory/TODOS.md` | Progress tracker |
 | `strategy-factory/NOTES.md` | Learnings during implementation |
 
 ### Architecture Overview
 
 ```
-AI Generator → Compiler → QC Runner → Parser → Validator → Ranker
-     ↓            ↓           ↓          ↓          ↓         ↓
-  Specs      QC Code    Backtests   Metrics   Validated   Top 5
+Claude (AI)  → Compiler → QC Runner → Parser → Validator → Ranker
+    ↓             ↓           ↓          ↓          ↓         ↓
+Reasoning    QC Code    Backtests   Metrics   Validated   Top 5
+ + Specs
 ```
+
+### Strategy Generation Process
+
+1. **Claude proposes** strategies with clear rationale (the WHY)
+2. **Infrastructure compiles** spec → QuantConnect code
+3. **Infrastructure backtests** via QC cloud API
+4. **Infrastructure parses** results (Sharpe, CAGR, drawdown)
+5. **Claude reviews** results and proposes refinements
+6. **Iterate** until strategies beat benchmarks
 
 ### Key Constraints
 
@@ -91,10 +117,19 @@ AI Generator → Compiler → QC Runner → Parser → Validator → Ranker
 5. Indicator warmup period
 6. Data existence checks
 
+### Benchmarks to Beat
+
+| Benchmark | CAGR | Sharpe | Max DD |
+|-----------|------|--------|--------|
+| Buy & Hold SPY/QQQ | 17.07% | 0.57 | 30.2% |
+| Monthly DCA SPY/QQQ | 7.45% | 0.37 | 13.4% |
+
+**Target**: Sharpe > 0.8, CAGR > 15%, Max DD < 25%
+
 ### Running the Pipeline
 
 ```bash
-# Full pipeline (when implemented)
+# Full pipeline
 python strategy-factory/run_pipeline.py --date-range 5_year
 
 # Options
