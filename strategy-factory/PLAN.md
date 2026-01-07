@@ -2,7 +2,12 @@
 
 ## Overview
 
-An AI-driven strategy generation and backtesting system for US equities. The system generates trading strategies using first principles thinking, backtests them via QuantConnect API, and refines winners through parameter sweeps and combinatorial optimization.
+An **AI + Programmatic** strategy generation and backtesting system for US equities.
+
+- **Claude Code** generates strategies through reasoning (not templates)
+- **Infrastructure** handles compilation, backtesting, parsing, and ranking automatically
+
+**Key Insight**: Claude Code IS the strategy generator. The Python infrastructure just executes what Claude Code designs.
 
 **Goal:** Generate strategies suitable for paper trading and eventual live deployment on IBKR.
 
@@ -24,16 +29,63 @@ An AI-driven strategy generation and backtesting system for US equities. The sys
 
 ## Architecture
 
+### Conceptual Flow
+
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  AI Generator   │────▶│    Compiler     │────▶│   QC Runner     │
-│  (strategies)   │     │  (spec→code)    │     │  (backtest)     │
-└─────────────────┘     └─────────────────┘     └────────┬────────┘
-                                                         │
-┌─────────────────┐     ┌─────────────────┐     ┌────────▼────────┐
-│     Ranker      │◀────│    Validator    │◀────│     Parser      │
-│   (scoring)     │     │ (walk-forward)  │     │   (metrics)     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLAUDE CODE                               │
+│  • Decides what to explore (meta-reasoning)                      │
+│  • Designs strategies with rationale                             │
+│  • Analyzes results and proposes next steps                      │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ JSON Specs
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    INFRASTRUCTURE (Python)                       │
+│                                                                  │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐     │
+│  │ Compiler │──▶│  Runner  │──▶│  Parser  │──▶│  Ranker  │     │
+│  │(spec→QC) │   │ (QC API) │   │(metrics) │   │(scoring) │     │
+│  └──────────┘   └──────────┘   └──────────┘   └──────────┘     │
+│                                                                  │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ Results
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLAUDE CODE                               │
+│  • Reviews results                                               │
+│  • Updates learnings in NOTES.md                                 │
+│  • Proposes next iteration                                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### The Loop
+
+```
+User: "Generate strategies"
+         │
+         ▼
+┌─────────────────┐
+│ Claude Code:    │
+│ Meta-reasoning  │──▶ What should I explore?
+│ Strategy design │──▶ JSON specs to strategies/specs/
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Infrastructure: │
+│ run_pipeline.py │──▶ Compile, backtest, parse, rank
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Claude Code:    │
+│ Analysis        │──▶ What worked? What next?
+│ Learning        │──▶ Update NOTES.md
+└────────┬────────┘
+         │
+         ▼
+    [Repeat]
 ```
 
 ---
@@ -42,9 +94,10 @@ An AI-driven strategy generation and backtesting system for US equities. The sys
 
 ```
 strategy-factory/
+├── PRD.md                    # Product requirements (read first!)
 ├── PLAN.md                   # This file - implementation plan
 ├── TODOS.md                  # Progress tracking (always updated)
-├── NOTES.md                  # Learnings during implementation
+├── NOTES.md                  # Learnings during implementation (Claude Code writes here)
 ├── config.py                 # Constants, thresholds, API settings
 ├── models/
 │   └── strategy_spec.py      # Strategy dataclass/schema
@@ -55,13 +108,14 @@ strategy-factory/
 │   ├── validator.py          # Walk-forward, regime analysis
 │   └── ranker.py             # Score and rank strategies
 ├── generators/
-│   ├── ai_generator.py       # AI-driven strategy proposals
 │   ├── param_sweeper.py      # Parameter grid search
 │   └── combiner.py           # Combinatorial signal mixing
+│   # NOTE: ai_generator.py is DEPRECATED
+│   # Claude Code generates strategies directly, not via Python code
 ├── templates/
 │   └── base_algorithm.py     # QC template with safety guards
 ├── strategies/               # VERSION CONTROLLED STRATEGIES
-│   ├── specs/                # Strategy specs (JSON)
+│   ├── specs/                # Strategy specs (JSON) - Claude Code writes here
 │   │   └── {id}.json
 │   ├── compiled/             # Generated QC code
 │   │   └── {id}.py
@@ -71,10 +125,19 @@ strategy-factory/
 │   │   ├── metrics.json
 │   │   ├── trades.csv
 │   │   └── equity_curve.csv
-│   └── summary.csv           # All strategies comparison
+│   └── summary.csv           # All strategies comparison (Claude Code reads this)
 ├── run_pipeline.py           # Main orchestration script
 └── README.md                 # Usage instructions
 ```
+
+### Key Files for Claude Code
+
+| File | Claude Code Action |
+|------|-------------------|
+| `strategies/specs/*.json` | **Write** new strategy specs |
+| `results/summary.csv` | **Read** to see past performance |
+| `NOTES.md` | **Read/Write** to track learnings |
+| `strategies/registry.json` | **Read** to see all strategies |
 
 ---
 
@@ -252,45 +315,56 @@ if not profitable_in_bear_market:
 
 ## Pipeline Phases
 
-### Phase 1: AI Generation
-- Research market edges and known strategies
-- Apply first principles thinking
-- Generate 15-20 StrategySpecs
-- Save all specs to `strategies/specs/`
-- Git commit: "Generate batch {n} strategies"
+### Phase 0: Meta-Reasoning (Claude Code)
+- **Read** existing specs: `ls strategies/specs/`
+- **Read** past results: `cat results/summary.csv`
+- **Read** learnings: `cat NOTES.md`
+- **Identify** gaps and opportunities
+- **Form thesis** for this generation round
+- **Document** reasoning in NOTES.md
 
-### Phase 2: Initial Backtest
+### Phase 1: Strategy Generation (Claude Code)
+- Apply first principles thinking to chosen direction
+- Design 5-10 strategies with clear rationale
+- **Write** specs to `strategies/specs/{id}.json`
+- Ensure universe matches thesis
+- Keep it simple (KISS)
+
+### Phase 2: Initial Backtest (Infrastructure)
+- Run: `python run_pipeline.py`
 - Compile each spec to QC code
 - Save code to `strategies/compiled/`
 - Run backtests via QC API (sandbox project)
 - Parse and save results
 - Filter to strategies meeting thresholds
-- Expected output: ~5-8 passing strategies
 
-### Phase 3: Parameter Sweep
+### Phase 3: Parameter Sweep (Infrastructure)
 - For each passing strategy, generate parameter variations
 - Run all variations
 - Save all results
-- Expected output: ~50-100 variants
 
-### Phase 4: Validation
+### Phase 4: Validation (Infrastructure)
 - Walk-forward testing on all variants
 - Regime analysis (bull/bear/sideways)
 - Filter to consistent performers
-- Expected output: ~10-15 validated strategies
 
-### Phase 5: Ranking
+### Phase 5: Ranking (Infrastructure)
 - Calculate composite scores
 - Apply penalties
 - Rank strategies
-- Select top 5 for paper trading
+- Output to `results/summary.csv`
 
-### Phase 6: Report
-- Generate summary report
-- Strategy descriptions with rationale
-- Performance metrics and charts
-- Paper trading recommendations
+### Phase 6: Analysis (Claude Code)
+- **Read** results from `results/summary.csv`
+- Analyze what worked and what didn't
+- Validate or refute thesis
+- **Write** learnings to NOTES.md
+- Propose next direction
 - Git commit: "Complete pipeline run {date}"
+
+### Phase 7: Iteration
+- Return to Phase 0 with new knowledge
+- Repeat until strategies beat benchmarks
 
 ---
 
@@ -356,33 +430,41 @@ if not profitable_in_bear_market:
 
 ---
 
-## Implementation Order
+## Implementation Plan (Revision)
 
-### Week 1: Foundation
-- [ ] `config.py` - Constants, settings, date ranges
-- [ ] `models/strategy_spec.py` - Data structures
-- [ ] `templates/base_algorithm.py` - QC template with safety guards
-- [ ] `strategies/registry.json` - Initialize registry
+### Current State
+The infrastructure is mostly built. The key change needed is:
+- **Remove** hardcoded templates from `ai_generator.py`
+- **Update** `run_pipeline.py` to load specs from files (not generate them)
+- **Document** how Claude Code should generate strategies
 
-### Week 2: Core Pipeline
-- [ ] `core/compiler.py` - Spec to QC code
-- [ ] `core/runner.py` - API orchestration with rate limiting
-- [ ] `core/parser.py` - Results extraction
+### Changes Required
 
-### Week 3: Generators
-- [ ] `generators/ai_generator.py` - Strategy proposals
-- [ ] `generators/param_sweeper.py` - Parameter variations
+#### 1. Deprecate ai_generator.py Templates
+- Remove all hardcoded strategy templates
+- Keep only helper functions (save/load specs)
+- Or remove entirely and use models/strategy_spec.py directly
 
-### Week 4: Validation & Orchestration
-- [ ] `core/validator.py` - Walk-forward testing
-- [ ] `core/ranker.py` - Scoring system
-- [ ] `run_pipeline.py` - Main script
+#### 2. Update run_pipeline.py
+- Change Phase 1 from "generate" to "load existing specs"
+- Add `--specs-dir` option to specify which specs to backtest
+- Add `--spec-ids` option to backtest specific strategies
+- Remove dependency on `AIStrategyGenerator.generate_all()`
 
-### Week 5: Testing & Refinement
-- [ ] End-to-end testing
-- [ ] Bug fixes
-- [ ] Documentation
-- [ ] First production run
+#### 3. Documentation
+- [x] PRD.md - Full product requirements with autonomous loop
+- [x] PLAN.md - Updated architecture and phases
+- [ ] Remove or update ai_generator.py
+- [ ] Update run_pipeline.py
+
+### Files to Modify
+
+| File | Action |
+|------|--------|
+| `generators/ai_generator.py` | Remove templates OR delete entirely |
+| `run_pipeline.py` | Load specs from files, not generate |
+| `PRD.md` | ✅ Updated with full autonomous loop |
+| `PLAN.md` | ✅ Updated with revised architecture |
 
 ---
 

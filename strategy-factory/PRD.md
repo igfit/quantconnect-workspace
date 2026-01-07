@@ -9,6 +9,8 @@ An **AI + Programmatic** system for generating, testing, and refining trading st
 
 The key insight: **Claude Code IS the strategy generator.** Not templates. Not hardcoded rules. Claude Code reasons through each strategy proposal, explains why it might work, and designs the implementation.
 
+**Claude Code owns the entire ideation loop** - from deciding what to explore, to designing strategies, to analyzing results, to proposing next steps.
+
 ---
 
 ## Problem Statement
@@ -19,11 +21,37 @@ Manual strategy development is slow and limited by human bandwidth:
 - Backtesting is manual and error-prone
 - Iterating on parameters is labor-intensive
 
-**Solution**: Claude Code proposes strategies through reasoning. Infrastructure handles the execution. Results feed back into the next iteration.
+**Solution**: Claude Code proposes strategies through reasoning. Infrastructure handles the execution. Results feed back into the next iteration. The user just says "generate strategies" and reviews the output.
 
 ---
 
 ## How It Works
+
+### Phase 0: Meta-Reasoning (AI Decides What to Explore)
+
+Before generating any strategies, Claude Code must decide what to explore:
+
+1. **Survey existing work**:
+   - Read `strategies/specs/` - what strategies exist?
+   - Read `results/summary.csv` - what performed well/poorly?
+   - Read `NOTES.md` - what learnings have accumulated?
+
+2. **Identify gaps and opportunities**:
+   - What strategy types are underrepresented?
+   - What worked that we should explore more?
+   - What failed that we should avoid?
+   - What edges haven't we tested yet?
+
+3. **Form a thesis for this round**:
+   - "Momentum on high-beta stocks looks promising because..."
+   - "Mean reversion failed last round, but oversold bounces in uptrends might work..."
+   - "We haven't tested sector rotation yet..."
+
+4. **Document the decision**:
+   - Log reasoning in NOTES.md
+   - Explain why this direction was chosen
+
+**Output**: A clear direction for strategy generation this round.
 
 ### Phase 1: Strategy Generation (AI)
 
@@ -54,14 +82,73 @@ Infrastructure automatically:
 4. **Validates** across market regimes
 5. **Ranks** strategies by composite score
 
-### Phase 3: Refinement (AI + Programmatic)
+### Phase 3: Analysis & Iteration (AI)
 
-For winning strategies:
+Claude Code analyzes results and decides next steps:
 
-1. **Parameter Sweep**: Test variations programmatically
-2. **Analysis**: Claude Code reviews results, identifies patterns
-3. **Iteration**: Claude Code proposes improvements based on data
-4. **Combination**: Mix signals from different strategies
+1. **Review results**: What worked? What didn't? Why?
+2. **Validate thesis**: Did the hypothesis hold?
+3. **Identify patterns**: What do winning strategies have in common?
+4. **Propose refinements**: Parameter tweaks, universe changes, new variations
+5. **Decide next direction**: Double down on winners or explore new areas?
+
+**Output**: Updated NOTES.md with learnings, new strategy specs for next round.
+
+### Phase 4: Parameter Sweep (Programmatic)
+
+For promising strategies:
+
+1. **Generate variations**: Test parameter combinations programmatically
+2. **Backtest all**: Run through infrastructure
+3. **Analyze**: Claude Code reviews sweep results for optimal parameters
+
+---
+
+## The Full Autonomous Loop
+
+```
+User: "Generate strategies" (or scheduled trigger)
+                ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 0: META-REASONING                                     │
+│  Claude Code asks: "What should I explore?"                  │
+│  - Reads existing specs and results                          │
+│  - Identifies gaps and opportunities                         │
+│  - Forms thesis: "I'll explore X because Y"                  │
+│  - Documents decision in NOTES.md                            │
+└─────────────────────────────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 1: STRATEGY GENERATION                                │
+│  Claude Code designs 5-10 strategies:                        │
+│  - Each with clear rationale (the WHY)                       │
+│  - Universe matched to thesis                                │
+│  - Simple indicators and conditions                          │
+│  - Outputs JSON specs to strategies/specs/                   │
+└─────────────────────────────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 2: BACKTESTING (Automatic)                            │
+│  Infrastructure runs:                                        │
+│  - Compile specs → QC code                                   │
+│  - Run backtests via API                                     │
+│  - Parse results                                             │
+│  - Validate and rank                                         │
+└─────────────────────────────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 3: ANALYSIS & ITERATION                               │
+│  Claude Code reviews:                                        │
+│  - What worked? What failed? Why?                            │
+│  - Did the thesis hold?                                      │
+│  - What to try next?                                         │
+│  - Updates NOTES.md with learnings                           │
+└─────────────────────────────────────────────────────────────┘
+                ↓
+         [Repeat loop]
+```
+
+**The user doesn't need to provide direction.** Claude Code decides what to explore based on accumulated knowledge and results.
 
 ---
 
@@ -206,40 +293,85 @@ Claude Code can propose custom indicators if they serve the thesis. The infrastr
 
 ## Workflow
 
-### Daily/Weekly Strategy Development
+### How to Trigger Strategy Generation
+
+The user simply asks Claude Code to generate strategies:
 
 ```
-1. Claude Code researches edges and proposes 5-10 new strategies
-   └── Each with clear rationale and thesis
-
-2. Infrastructure backtests all strategies
-   └── Automatic: compile → run → parse → validate
-
-3. Claude Code reviews results
-   └── What worked? What didn't? Why?
-
-4. Winners go to parameter sweep
-   └── Automatic: generate variations → backtest all
-
-5. Claude Code analyzes sweep results
-   └── Optimal parameters? Overfitting concerns?
-
-6. Top strategies ranked and documented
-   └── Ready for paper trading
+User: "Generate new strategies"
+User: "Find winning trading strategies"
+User: "Run the strategy factory"
 ```
 
-### Command to Run
+Claude Code then autonomously:
+1. Decides what to explore (meta-reasoning)
+2. Generates strategy specs
+3. Runs backtests via infrastructure
+4. Analyzes results
+5. Proposes next steps
+
+### Example Session
+
+```
+User: "Generate new strategies"
+
+Claude Code:
+1. [Meta-reasoning] Let me check what we've tried so far...
+   - Reading existing specs... found 15 strategies
+   - Reading results... momentum strategies performed best (Sharpe 0.8)
+   - Gap identified: Haven't tested mean reversion on large caps
+
+2. [Thesis] I'll explore oversold bounces on liquid large caps because:
+   - Fear-driven selling often overshoots fair value
+   - Large caps mean-revert faster due to institutional buying
+   - RSI + uptrend filter should catch quality dips
+
+3. [Generation] Creating 5 strategies:
+   - RSI Oversold Bounce (SPY, QQQ)
+   - RSI + Volume Spike (AAPL, MSFT, GOOGL)
+   - Oversold in Uptrend (large cap tech)
+   - ...
+
+4. [Backtest] Running infrastructure...
+   - Strategy 1: Sharpe 0.65, CAGR 12%
+   - Strategy 2: Sharpe 0.45, CAGR 8%
+   - ...
+
+5. [Analysis] Results show:
+   - RSI works better with shorter periods (5 vs 14)
+   - Volume confirmation helps avoid false signals
+   - Thesis partially validated - works in uptrends only
+
+6. [Next steps] Recommend:
+   - Parameter sweep on Strategy 1 (promising)
+   - Try combining with momentum filter
+   - Document learnings in NOTES.md
+```
+
+### Running Backtests
+
+After Claude Code generates specs, run the infrastructure:
 
 ```bash
-# Generate and test strategies
-python strategy-factory/run_pipeline.py --batch-size 10
+# Backtest all specs in the directory
+python strategy-factory/run_pipeline.py
 
-# The pipeline will:
-# 1. Ask Claude Code to generate strategies (or use existing specs)
-# 2. Backtest all of them
-# 3. Filter, validate, rank
-# 4. Output report
+# Backtest specific specs
+python strategy-factory/run_pipeline.py --spec-ids abc123,def456
+
+# Skip parameter sweep
+python strategy-factory/run_pipeline.py --skip-sweep
 ```
+
+### Files Claude Code Should Read/Write
+
+| Action | Files |
+|--------|-------|
+| Check existing strategies | `strategies/specs/*.json` |
+| Check past results | `results/summary.csv` |
+| Check learnings | `NOTES.md` |
+| Write new specs | `strategies/specs/{id}.json` |
+| Document learnings | `NOTES.md` |
 
 ---
 
