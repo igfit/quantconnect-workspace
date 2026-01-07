@@ -1,0 +1,83 @@
+{
+  "version": "1.0.0",
+  "created_at": "2025-01-07T00:00:00Z",
+  "updated_at": "2026-01-07T18:49:27.837697",
+  "strategies": [
+    {
+      "id": "59d34ced",
+      "name": "MA Crossover Momentum",
+      "created_at": "2026-01-07T18:49:00.175652",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "1f11adea",
+      "name": "Trend + Momentum Filter",
+      "created_at": "2026-01-07T18:49:00.175695",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "adfc3c56",
+      "name": "High Breakout",
+      "created_at": "2026-01-07T18:49:00.175716",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "54c8790a",
+      "name": "RSI Oversold Bounce",
+      "created_at": "2026-01-07T18:49:00.175745",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "9b041415",
+      "name": "Bollinger Band Bounce",
+      "created_at": "2026-01-07T18:49:00.175775",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "a70f1f53",
+      "name": "MA Crossover Momentum",
+      "created_at": "2026-01-07T18:49:27.833080",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "4685a616",
+      "name": "Trend + Momentum Filter",
+      "created_at": "2026-01-07T18:49:27.833131",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "0a497bf6",
+      "name": "High Breakout",
+      "created_at": "2026-01-07T18:49:27.833146",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "cbf81255",
+      "name": "RSI Oversold Bounce",
+      "created_at": "2026-01-07T18:49:27.833183",
+      "status": "generated",
+      "parent_id": null
+    },
+    {
+      "id": "4504498b",
+      "name": "Bollinger Band Bounce",
+      "created_at": "2026-01-07T18:49:27.833214",
+      "status": "generated",
+      "parent_id": null
+    }
+  ],
+  "metadata": {
+    "total_generated": 0,
+    "total_backtested": 0,
+    "total_validated": 0,
+    "last_pipeline_run": "2026-01-07T18:49:27.837694"
+  }
+}

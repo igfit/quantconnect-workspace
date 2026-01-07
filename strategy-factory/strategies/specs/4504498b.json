@@ -1,0 +1,81 @@
+{
+  "id": "4504498b",
+  "name": "Bollinger Band Bounce",
+  "description": "Buy at lower band, sell at middle or upper band",
+  "rationale": "Bollinger Bands capture volatility-adjusted extremes. Price touching the lower band in an uptrend often bounces. Target the middle band for conservative exits.",
+  "parent_id": null,
+  "created_at": "2026-01-07T18:49:27.833214",
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "SPY",
+      "QQQ",
+      "AAPL",
+      "MSFT",
+      "GOOGL"
+    ]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {
+      "name": "bb",
+      "type": "BB",
+      "params": {
+        "period": 20,
+        "k": 2
+      },
+      "source": "close"
+    },
+    {
+      "name": "sma_50",
+      "type": "SMA",
+      "params": {
+        "period": 50
+      },
+      "source": "close"
+    }
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": ">",
+        "right": "sma_50"
+      }
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {
+        "left": "price",
+        "operator": "<",
+        "right": "sma_50"
+      }
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.05,
+    "max_holding_days": 15
+  },
+  "parameters": [
+    {
+      "path": "indicators.0.params.period",
+      "values": [
+        15,
+        20,
+        25
+      ]
+    },
+    {
+      "path": "indicators.0.params.k",
+      "values": [
+        1.5,
+        2,
+        2.5
+      ]
+    }
+  ]
+}
