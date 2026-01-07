@@ -162,6 +162,22 @@ case "$1" in
         qc_call POST "/backtests/read" "{\"projectId\":$2,\"backtestId\":\"$3\"}" | pp
         ;;
 
+    orders)
+        # Get backtest orders (detailed trade history)
+        # Usage: qc-api.sh orders <projectId> <backtestId> [start] [end]
+        # Note: end - start must be < 100
+        check_auth
+        if [[ -z "$2" || -z "$3" ]]; then
+            echo "Usage: $0 orders <projectId> <backtestId> [start] [end]"
+            echo "  start: Starting index (default: 0)"
+            echo "  end: Ending index (default: 100, max 100 per request)"
+            exit 1
+        fi
+        start="${4:-0}"
+        end="${5:-100}"
+        qc_call POST "/backtests/orders/read" "{\"projectId\":$2,\"backtestId\":\"$3\",\"start\":$start,\"end\":$end}" | pp
+        ;;
+
     backtests-list)
         # List all backtests for a project
         # Usage: qc-api.sh backtests-list <projectId>
@@ -205,6 +221,7 @@ case "$1" in
         echo "  compile <projectId>           Compile project"
         echo "  backtest <projId> <name>      Run backtest"
         echo "  results <projId> <btId>       Get backtest results"
+        echo "  orders <projId> <btId>        Get backtest orders (trade details)"
         echo "  backtests-list <projectId>    List all backtests"
         echo "  live-list                     List live algorithms"
         echo "  delete-backtest <pId> <btId>  Delete a backtest"

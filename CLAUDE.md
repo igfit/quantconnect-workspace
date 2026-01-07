@@ -301,6 +301,7 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | `./scripts/qc-api.sh compile <projectId>` | Compile project |
 | `./scripts/qc-api.sh backtest <projectId> <name>` | Run backtest |
 | `./scripts/qc-api.sh results <projectId> <backtestId>` | Get backtest results |
+| `./scripts/qc-api.sh orders <projectId> <backtestId>` | Get backtest orders (trade details) |
 | `./scripts/qc-api.sh live-list` | List live deployments |
 | `python scripts/backtest_pnl.py <projectId> <backtestId>` | Calculate P&L per ticker, save orders & summary |
 
@@ -482,6 +483,7 @@ The `qc-api.sh` script handles this automatically.
 | `/compile/create` | POST | Compile project |
 | `/backtests/create` | POST | Start backtest (uses `backtestName` param) |
 | `/backtests/read` | POST | Get backtest results |
+| `/backtests/orders/read` | POST | Get backtest orders (trade details) |
 | `/live/read` | POST | Get live algo status |
 
 ### API Gotchas
@@ -489,6 +491,23 @@ The `qc-api.sh` script handles this automatically.
 - **Project language**: Use `"Py"` not `"Python"` when creating projects
 - **Backtest name**: API parameter is `backtestName`, not `name`
 - **Compile first**: Get `compileId` from compile before running backtest
+- **Orders endpoint**: Requires `start` and `end` params; `end - start` must be < 100
+
+### Fetching Trade Details
+
+```bash
+# Get backtest orders (detailed trade history)
+./scripts/qc-api.sh orders <projectId> <backtestId>
+
+# Example: Parse orders with jq
+./scripts/qc-api.sh orders 27319541 "abc123" | jq '.orders[] | {
+  date: .createdTime[:10],
+  symbol: .symbol.value,
+  qty: .quantity,
+  price: .price,
+  status: .status
+}'
+```
 
 ### Rate Limits
 - 30 requests/minute

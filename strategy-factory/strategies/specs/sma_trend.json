@@ -1,0 +1,31 @@
+{
+  "id": "sma_trend",
+  "name": "SMA Trend Following",
+  "description": "Buy when price is above 50 SMA, sell when below. Simple trend following.",
+  "rationale": "Simplest possible trend following. When price is above moving average, trend is up. Captures major trends without trying to time perfect entries. Works because trends persist due to institutional flows and behavioral momentum.",
+  "universe": {
+    "type": "static",
+    "symbols": ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "GOOGL"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "sma_50", "type": "SMA", "params": {"period": 50}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_above", "right": "sma_50"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_below", "right": "sma_50"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.10
+  },
+  "parameters": []
+}

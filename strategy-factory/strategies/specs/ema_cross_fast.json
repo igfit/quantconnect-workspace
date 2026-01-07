@@ -1,0 +1,32 @@
+{
+  "id": "ema_cross_fast",
+  "name": "EMA Crossover Fast",
+  "description": "Fast EMA crossover strategy (12/26) for capturing shorter-term trends",
+  "rationale": "EMA responds faster to price changes than SMA. 12/26 is the classic MACD EMA combination, proven to capture trend changes. Faster signals than Golden Cross but more whipsaws. Works because trends at all timeframes tend to persist.",
+  "universe": {
+    "type": "static",
+    "symbols": ["QQQ", "SPY", "NVDA", "AAPL", "TSLA", "AMD"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "ema_12", "type": "EMA", "params": {"period": 12}, "source": "close"},
+    {"name": "ema_26", "type": "EMA", "params": {"period": 26}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_12", "operator": "crosses_above", "right": "ema_26"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_12", "operator": "crosses_below", "right": "ema_26"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.08
+  },
+  "parameters": []
+}

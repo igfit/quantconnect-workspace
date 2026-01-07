@@ -451,20 +451,23 @@ The infrastructure is mostly built. The key change needed is:
 - Add `--spec-ids` option to backtest specific strategies
 - Remove dependency on `AIStrategyGenerator.generate_all()`
 
-#### 3. Documentation
+#### 3. Documentation & Implementation
 - [x] PRD.md - Full product requirements with autonomous loop
 - [x] PLAN.md - Updated architecture and phases
-- [ ] Remove or update ai_generator.py
-- [ ] Update run_pipeline.py
+- [x] GENERATE.md - Meta-reasoning protocol for Claude Code
+- [x] Remove templates from ai_generator.py (replaced with StrategySpecManager)
+- [x] Update run_pipeline.py (load from files, add CLI options)
 
-### Files to Modify
+### Files Modified
 
-| File | Action |
-|------|--------|
-| `generators/ai_generator.py` | Remove templates OR delete entirely |
-| `run_pipeline.py` | Load specs from files, not generate |
-| `PRD.md` | ✅ Updated with full autonomous loop |
-| `PLAN.md` | ✅ Updated with revised architecture |
+| File | Action | Status |
+|------|--------|--------|
+| `generators/ai_generator.py` | Removed templates, added StrategySpecManager | ✅ Done |
+| `run_pipeline.py` | Load specs from files, added --specs-dir, --spec-ids | ✅ Done |
+| `PRD.md` | Updated with full autonomous loop | ✅ Done |
+| `PLAN.md` | Updated with revised architecture | ✅ Done |
+| `GENERATE.md` | Created meta-reasoning protocol | ✅ Done |
+| `CLAUDE.md` | Updated with Claude Code as generator | ✅ Done |
 
 ---
 

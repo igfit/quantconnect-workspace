@@ -8,7 +8,7 @@ Handles all interactions with the QuantConnect API:
 - Poll for completion
 - Fetch results
 
-Includes rate limiting and retry logic.
+Includes rate limiting, retry logic, and verbose output.
 """
 
 import os
@@ -19,9 +19,9 @@ import base64
 import subprocess
 import urllib.request
 import urllib.error
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -40,23 +40,51 @@ class BacktestResult:
     error: Optional[str]
     statistics: Dict[str, Any]
     raw_response: Dict[str, Any]
+    logs: List[str] = field(default_factory=list)
+    runtime_errors: List[str] = field(default_factory=list)
 
 
 class RateLimiter:
-    """Simple rate limiter for API calls"""
+    """
+    Adaptive rate limiter for API calls.
 
-    def __init__(self, requests_per_minute: int):
+    Handles QC rate limits (30 req/min) with intelligent backoff
+    when rate limit errors are detected.
+    """
+
+    def __init__(self, requests_per_minute: int = 20):
         self.requests_per_minute = requests_per_minute
         self.min_interval = 60.0 / requests_per_minute
         self.last_request_time = 0
+        self.consecutive_rate_limits = 0
+        self.base_wait = self.min_interval
 
     def wait(self):
         """Wait if necessary to respect rate limit"""
         elapsed = time.time() - self.last_request_time
-        if elapsed < self.min_interval:
-            sleep_time = self.min_interval - elapsed
+
+        # Calculate wait time with backoff if we've hit rate limits
+        wait_time = self.base_wait * (1.5 ** self.consecutive_rate_limits)
+
+        if elapsed < wait_time:
+            sleep_time = wait_time - elapsed
+            if sleep_time > 1:
+                print(f"    [Rate limit] Waiting {sleep_time:.1f}s...")
             time.sleep(sleep_time)
+
         self.last_request_time = time.time()
+
+    def report_rate_limit(self):
+        """Called when a rate limit error is encountered"""
+        self.consecutive_rate_limits += 1
+        wait_time = 10 * (2 ** min(self.consecutive_rate_limits, 4))  # Cap at ~160s
+        print(f"    [Rate limit HIT] Backing off for {wait_time}s (attempt {self.consecutive_rate_limits})")
+        time.sleep(wait_time)
+
+    def report_success(self):
+        """Called when a request succeeds"""
+        if self.consecutive_rate_limits > 0:
+            self.consecutive_rate_limits = max(0, self.consecutive_rate_limits - 1)
 
 
 class QCRunner:
@@ -64,16 +92,19 @@ class QCRunner:
     QuantConnect API Runner
 
     Uses direct API calls with proper authentication.
+    Includes verbose output and better error handling.
     """
 
-    def __init__(self, project_id: int = None):
+    def __init__(self, project_id: int = None, verbose: bool = True):
         """
         Initialize the runner.
 
         Args:
             project_id: QuantConnect project ID to use (sandbox project)
+            verbose: Whether to print detailed output
         """
         self.project_id = project_id or config.SANDBOX_PROJECT_ID
+        self.verbose = verbose
         self.rate_limiter = RateLimiter(config.QC_RATE_LIMIT - config.QC_RATE_LIMIT_BUFFER)
         self.script_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -87,6 +118,11 @@ class QCRunner:
 
         if not self.user_id or not self.api_token:
             raise ValueError("QC_USER_ID and QC_API_TOKEN must be set")
+
+    def _log(self, msg: str, indent: int = 2):
+        """Print message if verbose mode is on"""
+        if self.verbose:
+            print(" " * indent + msg)
 
     def _get_auth_headers(self) -> Dict[str, str]:
         """Generate authentication headers for QC API"""
@@ -102,12 +138,24 @@ class QCRunner:
             "Content-Type": "application/json"
         }
 
+    def _is_rate_limit_error(self, error_msg: str) -> bool:
+        """Check if error is a rate limit error"""
+        rate_limit_phrases = [
+            "too many",
+            "rate limit",
+            "slow down",
+            "throttl",
+            "429"
+        ]
+        error_lower = str(error_msg).lower()
+        return any(phrase in error_lower for phrase in rate_limit_phrases)
+
     def _api_call_direct(
         self,
         method: str,
         endpoint: str,
         data: Dict[str, Any] = None,
-        retries: int = 3
+        retries: int = 5
     ) -> Dict[str, Any]:
         """
         Make a direct API call to QuantConnect.
@@ -135,76 +183,37 @@ class QCRunner:
                     req = urllib.request.Request(url, data=body, headers=headers, method="POST")
 
                 with urllib.request.urlopen(req, timeout=60) as response:
-                    return json.loads(response.read().decode())
+                    result = json.loads(response.read().decode())
+                    self.rate_limiter.report_success()
+                    return result
 
             except urllib.error.HTTPError as e:
                 error_body = e.read().decode() if e.fp else str(e)
+
+                # Check for rate limit
+                if self._is_rate_limit_error(error_body) or e.code == 429:
+                    self.rate_limiter.report_rate_limit()
+                    continue
+
                 if attempt < retries - 1:
-                    time.sleep(2 ** attempt)
+                    wait = 2 ** (attempt + 1)
+                    self._log(f"HTTP error {e.code}, retrying in {wait}s...")
+                    time.sleep(wait)
                     continue
                 raise RuntimeError(f"API call failed: {e.code} - {error_body}")
 
             except urllib.error.URLError as e:
                 if attempt < retries - 1:
-                    time.sleep(2 ** attempt)
+                    wait = 2 ** (attempt + 1)
+                    self._log(f"Network error, retrying in {wait}s...")
+                    time.sleep(wait)
                     continue
                 raise RuntimeError(f"Network error: {e.reason}")
 
             except Exception as e:
                 if attempt < retries - 1:
-                    time.sleep(2 ** attempt)
-                    continue
-                raise
-
-        raise RuntimeError("API call failed after all retries")
-
-    def _call_api(self, *args, retries: int = 3) -> Dict[str, Any]:
-        """
-        Call the QC API via qc-api.sh script.
-
-        Args:
-            args: Arguments to pass to qc-api.sh
-            retries: Number of retries on failure
-
-        Returns:
-            Parsed JSON response
-        """
-        self.rate_limiter.wait()
-
-        cmd = [self.script_path] + list(args)
-
-        for attempt in range(retries):
-            try:
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    text=True,
-                    timeout=60
-                )
-
-                if result.returncode != 0:
-                    if attempt < retries - 1:
-                        time.sleep(2 ** attempt)  # Exponential backoff
-                        continue
-                    raise RuntimeError(f"API call failed: {result.stderr}")
-
-                # Parse JSON response
-                try:
-                    return json.loads(result.stdout)
-                except json.JSONDecodeError:
-                    # Try to find JSON in output (script may print extra text)
-                    output = result.stdout.strip()
-                    # Find first { and last } to extract JSON
-                    start_idx = output.find('{')
-                    end_idx = output.rfind('}')
-                    if start_idx != -1 and end_idx != -1:
-                        json_str = output[start_idx:end_idx + 1]
-                        return json.loads(json_str)
-                    raise ValueError(f"Invalid JSON response: {output[:200]}")
-
-            except subprocess.TimeoutExpired:
-                if attempt < retries - 1:
-                    time.sleep(2 ** attempt)
+                    wait = 2 ** (attempt + 1)
+                    time.sleep(wait)
                     continue
                 raise
 
@@ -288,12 +297,12 @@ class QCRunner:
             "content": code
         })
 
-    def compile_project(self) -> Tuple[bool, Optional[str]]:
+    def compile_project(self) -> Tuple[bool, Optional[str], List[str]]:
         """
         Compile the project.
 
         Returns:
-            (success, compile_id or error message)
+            (success, compile_id or error message, list of errors/warnings)
         """
         if not self.project_id:
             raise ValueError("No project ID set.")
@@ -302,19 +311,27 @@ class QCRunner:
             "projectId": self.project_id
         })
 
+        errors = response.get("errors", [])
+        logs = response.get("logs", [])
+
         if response.get("success"):
             compile_id = response.get("compileId")
-            return True, compile_id
+            state = response.get("state", "Unknown")
+            self._log(f"Compile state: {state}")
+            if logs:
+                for log in logs[:3]:
+                    self._log(f"  {log}", indent=4)
+            return True, compile_id, errors + logs
         else:
-            errors = response.get("errors", [])
             error_msg = "; ".join(errors) if errors else "Unknown compilation error"
-            return False, error_msg
+            self._log(f"Compile FAILED: {error_msg}")
+            return False, error_msg, errors
 
     def run_backtest(
         self,
         name: str,
         compile_id: str = None
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> Tuple[bool, Optional[str], List[str]]:
         """
         Start a backtest.
 
@@ -323,16 +340,16 @@ class QCRunner:
             compile_id: Compile ID (if None, will compile first)
 
         Returns:
-            (success, backtest_id or error message)
+            (success, backtest_id or error message, errors list)
         """
         if not self.project_id:
             raise ValueError("No project ID set.")
 
         # Compile if no compile_id provided
         if compile_id is None:
-            success, result = self.compile_project()
+            success, result, compile_errors = self.compile_project()
             if not success:
-                return False, f"Compilation failed: {result}"
+                return False, f"Compilation failed: {result}", compile_errors
             compile_id = result
 
         # Run backtest
@@ -342,15 +359,21 @@ class QCRunner:
             "compileId": compile_id
         })
 
+        errors = response.get("errors", [])
+
         if response.get("success"):
             # backtestId is inside the backtest object
             backtest = response.get("backtest", {})
             backtest_id = backtest.get("backtestId")
-            return True, backtest_id
+            return True, backtest_id, errors
         else:
-            errors = response.get("errors", [])
             error_msg = "; ".join(errors) if errors else "Unknown backtest error"
-            return False, error_msg
+
+            # Check for rate limit
+            if self._is_rate_limit_error(error_msg):
+                self.rate_limiter.report_rate_limit()
+
+            return False, error_msg, errors
 
     def get_backtest_status(self, backtest_id: str) -> Dict[str, Any]:
         """Get backtest status and results"""
@@ -369,7 +392,7 @@ class QCRunner:
         poll_interval: int = None
     ) -> Dict[str, Any]:
         """
-        Wait for backtest to complete.
+        Wait for backtest to complete with progress output.
 
         Args:
             backtest_id: Backtest ID to wait for
@@ -385,6 +408,7 @@ class QCRunner:
             poll_interval = config.BACKTEST_POLL_INTERVAL
 
         start_time = time.time()
+        last_progress = ""
 
         while True:
             elapsed = time.time() - start_time
@@ -396,8 +420,25 @@ class QCRunner:
             # Check if complete
             if response.get("success"):
                 backtest = response.get("backtest", {})
+                progress = backtest.get("progress", 0)
+
+                # Show progress updates
+                progress_str = f"{progress:.0%}" if isinstance(progress, float) else str(progress)
+                if progress_str != last_progress:
+                    self._log(f"Progress: {progress_str}", indent=4)
+                    last_progress = progress_str
+
                 # QuantConnect uses "completed" field or we check for statistics
-                if backtest.get("completed") or backtest.get("statistics"):
+                if backtest.get("completed") or (progress == 1 and backtest.get("statistics")):
+                    return response
+
+                # Check for errors in the backtest
+                if backtest.get("error"):
+                    self._log(f"Backtest error: {backtest.get('error')}", indent=4)
+                    return response
+
+                if backtest.get("stacktrace"):
+                    self._log(f"Stack trace detected", indent=4)
                     return response
 
             # Wait before next poll
@@ -412,35 +453,45 @@ class QCRunner:
         """
         Run a complete backtest: push, compile, run, wait, return results.
 
+        Includes verbose output and better error handling.
+
         Args:
             code: Python code to backtest
             strategy_id: Strategy ID for tracking
             backtest_name: Name for the backtest
 
         Returns:
-            BacktestResult with all data
+            BacktestResult with all data including logs
         """
         if backtest_name is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backtest_name = f"{strategy_id}_{timestamp}"
 
-        print(f"  Pushing code...")
+        # Step 1: Push code
+        self._log("Pushing code...")
         push_response = self.push_code(code)
         if not push_response.get("success"):
+            error_msg = str(push_response.get("errors", "Push failed"))
+            self._log(f"Push FAILED: {error_msg}")
             return BacktestResult(
                 backtest_id="",
                 strategy_id=strategy_id,
                 name=backtest_name,
                 status="push_failed",
                 success=False,
-                error=str(push_response.get("errors", "Push failed")),
+                error=error_msg,
                 statistics={},
-                raw_response=push_response
+                raw_response=push_response,
+                runtime_errors=[error_msg]
             )
 
-        print(f"  Compiling...")
-        success, compile_result = self.compile_project()
+        # Step 2: Compile
+        self._log("Compiling...")
+        success, compile_result, compile_logs = self.compile_project()
         if not success:
+            self._log(f"Compile FAILED: {compile_result}")
+            for log in compile_logs[:5]:  # Show first 5 errors
+                self._log(f"  - {log}", indent=4)
             return BacktestResult(
                 backtest_id="",
                 strategy_id=strategy_id,
@@ -449,24 +500,52 @@ class QCRunner:
                 success=False,
                 error=compile_result,
                 statistics={},
-                raw_response={"compile_error": compile_result}
+                raw_response={"compile_error": compile_result},
+                logs=compile_logs,
+                runtime_errors=compile_logs
             )
 
-        print(f"  Starting backtest...")
-        success, backtest_id = self.run_backtest(backtest_name, compile_result)
+        # Step 3: Start backtest (with retry for rate limits)
+        self._log("Starting backtest...")
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            success, backtest_id, bt_errors = self.run_backtest(backtest_name, compile_result)
+
+            if success:
+                break
+            elif self._is_rate_limit_error(str(backtest_id)):
+                if attempt < max_attempts - 1:
+                    self._log(f"Rate limited, attempt {attempt + 2}/{max_attempts}...")
+                    continue
+            else:
+                self._log(f"Backtest start FAILED: {backtest_id}")
+                return BacktestResult(
+                    backtest_id="",
+                    strategy_id=strategy_id,
+                    name=backtest_name,
+                    status="backtest_start_failed",
+                    success=False,
+                    error=str(backtest_id),
+                    statistics={},
+                    raw_response={"backtest_error": backtest_id},
+                    runtime_errors=bt_errors
+                )
+
         if not success:
             return BacktestResult(
                 backtest_id="",
                 strategy_id=strategy_id,
                 name=backtest_name,
-                status="backtest_start_failed",
+                status="rate_limited",
                 success=False,
-                error=backtest_id,
+                error="Rate limited after multiple attempts",
                 statistics={},
-                raw_response={"backtest_error": backtest_id}
+                raw_response={},
+                runtime_errors=["Rate limited"]
             )
 
-        print(f"  Waiting for completion (backtest_id: {backtest_id})...")
+        # Step 4: Wait for completion
+        self._log(f"Waiting for completion (backtest_id: {backtest_id})...")
         try:
             response = self.wait_for_backtest(backtest_id)
         except TimeoutError as e:
@@ -481,9 +560,34 @@ class QCRunner:
                 raw_response={}
             )
 
-        # Extract statistics
+        # Step 5: Extract results and logs
         backtest_data = response.get("backtest", {})
         statistics = backtest_data.get("statistics", {})
+        logs = backtest_data.get("logs", [])
+        runtime_errors = []
+
+        # Check for runtime errors
+        if backtest_data.get("error"):
+            runtime_errors.append(backtest_data.get("error"))
+            self._log(f"Runtime error: {backtest_data.get('error')}", indent=4)
+        if backtest_data.get("stacktrace"):
+            trace = backtest_data.get('stacktrace')[:500]
+            runtime_errors.append(f"Stack trace: {trace}")
+            self._log(f"Stack trace: {trace[:200]}...", indent=4)
+
+        # Check for 0 trades and report
+        total_orders = statistics.get("Total Orders", "0")
+        if str(total_orders) == "0":
+            self._log("WARNING: 0 trades generated!", indent=4)
+            # Try to get more info
+            runtime_stats = backtest_data.get("runtimeStatistics", {})
+            if runtime_stats:
+                self._log(f"Runtime stats: {json.dumps(runtime_stats, indent=2)[:200]}", indent=4)
+
+        # Show key statistics
+        self._log(f"Results: Sharpe={statistics.get('Sharpe Ratio', 'N/A')}, "
+                  f"CAGR={statistics.get('Compounding Annual Return', 'N/A')}, "
+                  f"Trades={total_orders}", indent=4)
 
         return BacktestResult(
             backtest_id=backtest_id,
@@ -493,13 +597,77 @@ class QCRunner:
             success=True,
             error=None,
             statistics=statistics,
-            raw_response=response
+            raw_response=response,
+            logs=logs,
+            runtime_errors=runtime_errors
         )
 
+    def validate_strategy_execution(self, result: BacktestResult) -> Dict[str, Any]:
+        """
+        Validate that a strategy actually executed properly.
 
-def get_runner(project_id: int = None) -> QCRunner:
+        Returns:
+            Dict with validation results and diagnostics
+        """
+        validation = {
+            "valid": True,
+            "issues": [],
+            "warnings": [],
+            "diagnostics": {}
+        }
+
+        # Check for compile/runtime errors
+        if not result.success:
+            validation["valid"] = False
+            validation["issues"].append(f"Backtest failed: {result.error}")
+            return validation
+
+        # Check for 0 trades
+        total_trades = result.statistics.get("Total Orders", "0")
+        try:
+            trade_count = int(str(total_trades).replace(",", ""))
+        except:
+            trade_count = 0
+
+        if trade_count == 0:
+            validation["valid"] = False
+            validation["issues"].append("Strategy generated 0 trades")
+            validation["diagnostics"]["possible_causes"] = [
+                "Entry conditions never met (thresholds too restrictive)",
+                "Indicators not ready during backtest period",
+                "AND conditions requiring multiple signals simultaneously",
+                "Universe symbols may not have data for the period",
+                "Price/volume filters excluding all candidates"
+            ]
+
+        # Check for runtime errors
+        if result.runtime_errors:
+            validation["warnings"].extend(result.runtime_errors)
+
+        # Check for negative Sharpe
+        sharpe = result.statistics.get("Sharpe Ratio", "0")
+        try:
+            sharpe_val = float(sharpe)
+            if sharpe_val < -1:
+                validation["warnings"].append(f"Very negative Sharpe ratio: {sharpe_val}")
+        except:
+            pass
+
+        # Check drawdown
+        drawdown = result.statistics.get("Drawdown", "0%")
+        try:
+            dd_val = float(str(drawdown).replace("%", ""))
+            if dd_val > 50:
+                validation["warnings"].append(f"High drawdown: {dd_val}%")
+        except:
+            pass
+
+        return validation
+
+
+def get_runner(project_id: int = None, verbose: bool = True) -> QCRunner:
     """Get a configured QCRunner instance"""
-    return QCRunner(project_id)
+    return QCRunner(project_id, verbose)
 
 
 # =============================================================================
@@ -509,7 +677,7 @@ def get_runner(project_id: int = None) -> QCRunner:
 if __name__ == "__main__":
     print("Testing QC API Runner...")
 
-    runner = QCRunner()
+    runner = QCRunner(verbose=True)
 
     # Test auth
     print("\n1. Testing authentication...")

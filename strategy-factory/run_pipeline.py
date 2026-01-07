@@ -2,13 +2,25 @@
 """
 Strategy Factory Pipeline
 
-Main orchestration script that runs the full strategy generation,
-backtesting, validation, and ranking pipeline.
+Main orchestration script that runs backtesting, validation, and ranking
+on strategy specs created by Claude Code.
+
+IMPORTANT: This pipeline does NOT generate strategies.
+Claude Code generates strategies through first-principles reasoning.
+See GENERATE.md for the strategy generation protocol.
 
 Usage:
-    python run_pipeline.py --help
-    python run_pipeline.py --date-range 5_year --batch-size 15
-    python run_pipeline.py --skip-sweep --dry-run
+    # Backtest all specs in the directory
+    python run_pipeline.py
+
+    # Backtest specific specs
+    python run_pipeline.py --spec-ids abc123,def456
+
+    # Use custom specs directory
+    python run_pipeline.py --specs-dir /path/to/specs
+
+    # Other options
+    python run_pipeline.py --date-range 10_year --skip-sweep
 """
 
 import argparse
@@ -16,14 +28,14 @@ import json
 import os
 import sys
 from datetime import datetime
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import config
 from models.strategy_spec import StrategySpec
-from generators.ai_generator import AIStrategyGenerator
+from generators.ai_generator import StrategySpecManager, load_specs
 from generators.param_sweeper import ParameterSweeper
 from core.compiler import StrategyCompiler, save_compiled_strategy
 from core.runner import QCRunner, BacktestResult
@@ -38,29 +50,32 @@ class Pipeline:
     def __init__(
         self,
         date_range: str = None,
-        batch_size: int = None,
         skip_sweep: bool = False,
-        dry_run: bool = False
+        dry_run: bool = False,
+        specs_dir: str = None,
+        spec_ids: List[str] = None
     ):
         """
         Initialize the pipeline.
 
         Args:
             date_range: "5_year" or "10_year"
-            batch_size: Max strategies to generate
             skip_sweep: Skip parameter sweep phase
-            dry_run: Generate but don't run backtests
+            dry_run: Load specs but don't run backtests
+            specs_dir: Custom directory to load specs from
+            spec_ids: Specific spec IDs to backtest (None = all)
         """
         self.date_range = date_range or config.ACTIVE_DATE_RANGE
-        self.batch_size = batch_size or config.DEFAULT_BATCH_SIZE
         self.skip_sweep = skip_sweep
         self.dry_run = dry_run
+        self.specs_dir = specs_dir or config.SPECS_DIR
+        self.spec_ids = spec_ids
 
         # Update config
         config.ACTIVE_DATE_RANGE = self.date_range
 
         # Components
-        self.generator = AIStrategyGenerator()
+        self.spec_manager = StrategySpecManager(self.specs_dir)
         self.sweeper = ParameterSweeper()
         self.compiler = StrategyCompiler()
         self.parser = ResultsParser()
@@ -121,30 +136,43 @@ class Pipeline:
                 self.runner.get_or_create_sandbox_project()
         return self.runner
 
-    def phase1_generate(self) -> List[StrategySpec]:
+    def phase1_load_specs(self) -> List[StrategySpec]:
         """
-        Phase 1: Generate strategies using AI.
+        Phase 1: Load strategy specs from files.
+
+        Claude Code generates the specs through reasoning.
+        This phase just loads them for backtesting.
 
         Returns:
-            List of generated StrategySpecs
+            List of loaded StrategySpecs
         """
         print("\n" + "="*60)
-        print("PHASE 1: STRATEGY GENERATION")
+        print("PHASE 1: LOAD STRATEGY SPECS")
         print("="*60)
 
-        self.specs = self.generator.generate_all(self.batch_size)
-        print(f"\nGenerated {len(self.specs)} strategies")
+        print(f"\nSpecs directory: {self.specs_dir}")
 
-        # Save specs
+        if self.spec_ids:
+            print(f"Loading specific specs: {self.spec_ids}")
+            self.specs = self.spec_manager.load_by_ids(self.spec_ids)
+        else:
+            print("Loading all specs...")
+            self.specs = self.spec_manager.load_all()
+
+        if not self.specs:
+            print("\nNo specs found!")
+            print("\nClaude Code should generate strategies first.")
+            print("See: strategy-factory/GENERATE.md for the protocol.")
+            print("\nTo generate strategies, ask Claude Code:")
+            print('  "Generate trading strategies"')
+            return []
+
+        print(f"\nLoaded {len(self.specs)} strategies:")
         for spec in self.specs:
-            filepath = os.path.join(config.SPECS_DIR, f"{spec.id}.json")
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            spec.save(filepath)
-            self._update_registry(spec, "generated")
+            print(f"  - {spec.name} ({spec.id[:8]})")
+            self._update_registry(spec, "loaded")
 
         self._save_registry()
-        print(f"Saved specs to {config.SPECS_DIR}")
-
         return self.specs
 
     def phase2_initial_backtest(self) -> Dict[str, ParsedMetrics]:
@@ -157,6 +185,10 @@ class Pipeline:
         print("\n" + "="*60)
         print("PHASE 2: INITIAL BACKTESTS")
         print("="*60)
+
+        if not self.specs:
+            print("\nNo specs to backtest. Run Phase 1 first.")
+            return {}
 
         dates = config.DATE_RANGES[self.date_range]["full"]
         print(f"Period: {dates[0]} to {dates[1]}")
@@ -396,7 +428,7 @@ class Pipeline:
             f"Date Range: {self.date_range}",
             "="*70,
             "",
-            f"Strategies Generated: {self.generator.generated_count if hasattr(self.generator, 'generated_count') else 'N/A'}",
+            f"Strategies Loaded: {len(self.specs) if self.specs else 0}",
             f"Backtests Completed: {len(self.parsed_metrics)}",
             f"Strategies Validated: {sum(1 for v in self.validation_results.values() if v.is_valid)}",
             f"Final Ranked: {len(self.ranked_strategies)}",
@@ -459,13 +491,21 @@ class Pipeline:
         print("STRATEGY FACTORY PIPELINE")
         print(f"Started: {start_time.isoformat()}")
         print(f"Date Range: {self.date_range}")
-        print(f"Batch Size: {self.batch_size}")
+        print(f"Specs Directory: {self.specs_dir}")
+        print(f"Spec IDs: {self.spec_ids or 'all'}")
         print(f"Skip Sweep: {self.skip_sweep}")
         print(f"Dry Run: {self.dry_run}")
         print("="*70)
 
         # Run phases
-        self.phase1_generate()
+        self.phase1_load_specs()
+
+        if not self.specs:
+            print("\n" + "="*70)
+            print("Pipeline stopped: No specs to process")
+            print("="*70)
+            return []
+
         self.phase2_initial_backtest()
         self.phase3_filter()
         self.phase4_parameter_sweep()
@@ -479,7 +519,7 @@ class Pipeline:
 
         # Update registry metadata
         self.registry["metadata"]["last_pipeline_run"] = datetime.utcnow().isoformat()
-        self.registry["metadata"]["total_generated"] = len(self.specs)
+        self.registry["metadata"]["total_loaded"] = len(self.specs) if self.specs else 0
         self.registry["metadata"]["total_backtested"] = len(self.parsed_metrics)
         self._save_registry()
 
@@ -496,15 +536,53 @@ class Pipeline:
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description="Strategy Factory Pipeline",
+        description="Strategy Factory Pipeline - Backtest strategy specs created by Claude Code",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+IMPORTANT: This pipeline does NOT generate strategies.
+Claude Code generates strategies through first-principles reasoning.
+See strategy-factory/GENERATE.md for the generation protocol.
+
 Examples:
-    python run_pipeline.py                          # Run with defaults
-    python run_pipeline.py --date-range 10_year     # Use 10-year backtest period
-    python run_pipeline.py --batch-size 5 --dry-run # Generate 5 strategies, no backtests
-    python run_pipeline.py --skip-sweep             # Skip parameter optimization
+    # Backtest all specs in the default directory
+    python run_pipeline.py
+
+    # Backtest specific specs by ID
+    python run_pipeline.py --spec-ids abc12345,def67890
+
+    # Use a custom specs directory
+    python run_pipeline.py --specs-dir /path/to/my/specs
+
+    # Use 10-year backtest period
+    python run_pipeline.py --date-range 10_year
+
+    # Skip parameter sweep phase
+    python run_pipeline.py --skip-sweep
+
+    # Dry run (load specs but don't run backtests)
+    python run_pipeline.py --dry-run
+
+Workflow:
+    1. Ask Claude Code to generate strategies (see GENERATE.md)
+    2. Claude Code writes specs to strategy-factory/strategies/specs/
+    3. Run this pipeline to backtest, validate, and rank
+    4. Review results with Claude Code
+    5. Iterate
         """
+    )
+
+    parser.add_argument(
+        "--specs-dir",
+        type=str,
+        default=None,
+        help="Directory containing strategy specs (default: strategy-factory/strategies/specs/)"
+    )
+
+    parser.add_argument(
+        "--spec-ids",
+        type=str,
+        default=None,
+        help="Comma-separated list of specific spec IDs to backtest (default: all)"
     )
 
     parser.add_argument(
@@ -512,13 +590,6 @@ Examples:
         choices=["5_year", "10_year"],
         default="5_year",
         help="Backtest date range (default: 5_year)"
-    )
-
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=15,
-        help="Number of strategies to generate (default: 15)"
     )
 
     parser.add_argument(
@@ -530,17 +601,23 @@ Examples:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Generate strategies but don't run backtests"
+        help="Load specs but don't run backtests"
     )
 
     args = parser.parse_args()
 
+    # Parse spec IDs
+    spec_ids = None
+    if args.spec_ids:
+        spec_ids = [s.strip() for s in args.spec_ids.split(",")]
+
     # Run pipeline
     pipeline = Pipeline(
         date_range=args.date_range,
-        batch_size=args.batch_size,
         skip_sweep=args.skip_sweep,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
+        specs_dir=args.specs_dir,
+        spec_ids=spec_ids
     )
 
     pipeline.run()

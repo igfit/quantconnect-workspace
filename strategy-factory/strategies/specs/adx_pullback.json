@@ -1,0 +1,35 @@
+{
+  "id": "adx_pullback",
+  "name": "ADX Trend Pullback",
+  "description": "Buy pullbacks (RSI < 40) in trending markets (ADX > 20), exit when overbought",
+  "rationale": "Pullbacks in trending markets offer better risk/reward than breakouts. ADX > 20 confirms a trend exists (not requiring strong trend). RSI < 40 times the entry at moderate pullback. Relaxed thresholds from original (ADX > 25, RSI < 35) for more signals.",
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "NVDA", "AMZN", "META"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "adx_14", "type": "ADX", "params": {"period": 14}, "source": "close"},
+    {"name": "rsi_14", "type": "RSI", "params": {"period": 14}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "adx_14", "operator": ">", "right": 20},
+      {"left": "rsi_14", "operator": "<", "right": 40}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "rsi_14", "operator": ">", "right": 70},
+      {"left": "adx_14", "operator": "<", "right": 15}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.08,
+    "max_holding_days": 20
+  },
+  "parameters": []
+}

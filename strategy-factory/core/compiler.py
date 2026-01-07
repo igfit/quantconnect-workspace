@@ -176,7 +176,8 @@ class StrategyCompiler:
 
             elif ind.type == "RSI":
                 period = ind.params.get("period", 14)
-                lines.append(f"    self.indicators[symbol]['{ind.name}'] = self.rsi(symbol, {period}, Resolution.DAILY)")
+                # RSI requires: symbol, period, MovingAverageType, resolution
+                lines.append(f"    self.indicators[symbol]['{ind.name}'] = self.rsi(symbol, {period}, MovingAverageType.WILDERS, Resolution.DAILY)")
 
             elif ind.type == "MACD":
                 fast = ind.params.get("fast_period", 12)
@@ -186,7 +187,8 @@ class StrategyCompiler:
 
             elif ind.type == "ADX":
                 period = ind.params.get("period", 14)
-                lines.append(f"    self.indicators[symbol]['{ind.name}'] = self.adx(symbol, {period}, Resolution.DAILY)")
+                # ADX shortcut: symbol, period, resolution
+                lines.append(f"    self.indicators[symbol]['{ind.name}'] = self.adx(symbol, {period})")
 
             elif ind.type == "ATR":
                 period = ind.params.get("period", 14)

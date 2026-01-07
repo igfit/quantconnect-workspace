@@ -1,0 +1,35 @@
+{
+  "id": "turtle_breakout",
+  "name": "Turtle Breakout",
+  "description": "Buy when price breaks above 20-day SMA (proxy for Donchian high), exit when drops below 10-day SMA",
+  "rationale": "Made the Turtle Traders famous - original strategy returned 80%+ annually in 1980s. New highs signal strong momentum that tends to continue. The asymmetric exit (faster exit than entry) protects profits and lets winners run. Using SMA crossovers as proxy for Donchian channel breakouts. Low win rate (40-50%) but large winners make the system profitable.",
+  "universe": {
+    "type": "static",
+    "symbols": ["SPY", "QQQ", "IWM", "DIA"]
+  },
+  "timeframe": "daily",
+  "indicators": [
+    {"name": "sma_20", "type": "SMA", "params": {"period": 20}, "source": "close"},
+    {"name": "sma_10", "type": "SMA", "params": {"period": 10}, "source": "close"}
+  ],
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_above", "right": "sma_20"}
+    ]
+  },
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_below", "right": "sma_10"}
+    ]
+  },
+  "risk_management": {
+    "position_size_dollars": 10000,
+    "stop_loss_pct": 0.10
+  },
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 20, 30]},
+    {"path": "indicators.1.params.period", "values": [5, 10, 15]}
+  ]
+}
