@@ -40,12 +40,15 @@ backtests/            # Backtest results and analysis
 |----------|------|-------------|
 | Momentum | `algorithms/examples/momentum_strategy.py` | Top N momentum stocks, monthly rebalance |
 | MA Crossover | `algorithms/strategies/ma_crossover.py` | 50/200 SMA crossover on SPY, QQQ, AAPL, MSFT, GOOGL |
+| Buy & Hold Benchmark | `algorithms/strategies/benchmark_buyhold.py` | Simple buy-and-hold for benchmarking |
 
 ### QC Project IDs
 
 | Project | ID | Description |
 |---------|-----|-------------|
 | MA Crossover Strategy | 27311581 | 50/200 SMA crossover |
+| Benchmark SPY Buy-Hold | 27311779 | SPY buy-and-hold benchmark |
+| Benchmark QQQ Buy-Hold | 27311785 | QQQ buy-and-hold benchmark |
 
 ## QuantConnect API Workflow
 
@@ -128,12 +131,30 @@ class MyStrategy(QCAlgorithm):
         self.set_start_date(2020, 1, 1)
         self.set_end_date(2024, 1, 1)
         self.set_cash(100000)
-        # ... setup
+
+        # Add equities
+        self.add_equity("SPY", Resolution.DAILY)
+
+        # Set benchmark for performance comparison
+        self.set_benchmark("SPY")
 
     def on_data(self, data):
         # ... trading logic
         pass
 ```
+
+### Benchmarking
+
+Always add a benchmark to strategies for performance comparison:
+```python
+# In initialize(), after adding the benchmark security:
+self.set_benchmark("SPY")
+```
+
+This enables:
+- Benchmark chart overlay in backtest results
+- Alpha/Beta calculations relative to benchmark
+- Proper risk-adjusted performance metrics
 
 ## Backtest Documentation
 
@@ -166,11 +187,13 @@ git config user.email "ig.fitbody@gmail.com"
 
 **Never include co-authorship or Claude attribution in commits.**
 
-Push to main:
+**ALWAYS push to main using the GitHub token:**
 ```bash
 git remote set-url origin "https://${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/igfit/quantconnect-workspace.git"
 git push origin main
 ```
+
+Note: Direct push without the token will fail with 403. Always set the remote URL with the token first.
 
 ## API Reference
 
