@@ -16,6 +16,7 @@ A comprehensive guide capturing learnings from developing and testing trading st
 9. [High-Beta Stock Testing](#high-beta-stock-testing)
 10. [Complete Performance Comparison](#complete-performance-comparison)
 11. [Stock Selection for Momentum Strategies](#stock-selection-for-momentum-strategies)
+12. [Momentum Strategy Research Findings](#momentum-strategy-research-findings)
 
 ---
 
@@ -772,6 +773,80 @@ if beta > 1.5:
 ```
 
 **Note**: QuantConnect doesn't have built-in beta screening - must calculate manually.
+
+---
+
+## Momentum Strategy Research Findings
+
+### Key Academic Insights
+
+**1. 52-Week High Effect is Dominant**
+- Stocks near 52WH: **0.65%/month** returns
+- Classic momentum: **0.38%/month** returns
+- Industry momentum: **0.25%/month** returns
+- 52WH dominates and improves upon classic momentum
+
+Source: George & Hwang (2004), Bauer UH Research
+
+**2. Multiple Lookback Periods Outperform Single**
+- 12-month lookback: Academic standard but performs poorly recently
+- 3-6 month lookback: Better in recent market conditions
+- **Best practice**: Combine 1, 3, 6 month returns (Accelerating Momentum)
+
+Source: Engineered Portfolio, Seeking Alpha research
+
+**3. Momentum Crashes are Predictable**
+- Crashes happen **1-3 months AFTER** market plunges
+- Solution: Switch to contrarian after 10%+ market drop
+- 52WH-neutral strategy improves skewness from -1.89 to 0.13
+
+Source: Quantpedia, Marquette Research
+
+### Accelerating Dual Momentum Formula
+
+```python
+# Better than classic 12-month lookback
+accel_momentum = (return_1m + return_3m + return_6m) / 3
+
+# Entry conditions (ALL must be true):
+# 1. accel_momentum > 0 (absolute)
+# 2. accel_momentum > SPY_accel_momentum (relative)
+# 3. price > 50-day SMA (trend confirmation)
+# 4. price within 25% of 52-week high (near-high filter)
+```
+
+**Performance**: $10K → $420K (1998-2017) vs $40K for S&P 500
+
+### Volatility Targeting
+
+Position sizing based on volatility stabilizes returns:
+
+```python
+# Target constant portfolio volatility
+scaling_factor = target_volatility / recent_volatility
+position_size = base_size * scaling_factor
+```
+
+**Benefits**:
+- Improved Sharpe ratio
+- Better drawdown management
+- More consistent monthly returns
+
+### Time-Series vs Cross-Sectional Momentum
+
+| Type | Definition | Best When |
+|------|------------|-----------|
+| Time-Series | Stock's own return > 0 | Strong trending markets |
+| Cross-Sectional | Stock return > peer returns | Sideways markets |
+
+**Recommendation**: Use BOTH for robustness
+
+### Key Sources
+
+- [Alpha Architect - 52WH Secret](https://alphaarchitect.com/the-secret-to-momentum-is-the-52-week-high/)
+- [Engineered Portfolio - ADM](https://engineeredportfolio.com/2018/05/02/accelerating-dual-momentum-investing/)
+- [Quantpedia - Momentum Crashes](https://quantpedia.com/three-methods-to-fix-momentum-crashes/)
+- [AQR - Case for Momentum](https://www.aqr.com/-/media/AQR/Documents/Insights/White-Papers/The-Case-for-Momentum-Investing.pdf)
 
 ---
 

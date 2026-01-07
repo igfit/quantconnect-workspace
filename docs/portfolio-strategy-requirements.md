@@ -164,27 +164,83 @@ This document captures the requirements gathering process for building a systema
 
 ---
 
-## 9. Signal / Strategy (To Be Determined)
+## 9. Signal / Strategy (Research Complete)
 
-### Question: What is a BUY signal? What is a SELL signal?
+### Research Findings
 
-**Options presented:**
-1. Dual Momentum (63-day return > 0 AND > SPY)
-2. Trend Following (Price > 50 SMA AND 50 > 200 SMA)
-3. Breakout (20-day high + ATR trailing stop)
-4. Hybrid (Momentum + Trend confirmation)
-5. Something else
+Based on extensive research across academic papers, practitioner strategies, and hedge fund approaches, the following strategy is proposed:
 
-**Answer:** Left for research - Claude Code to propose
+### Proposed Strategy: Accelerating Dual Momentum with 52WH Filter
 
-### Question: How often to check signals?
+**Why this approach?**
+- Accelerating momentum (multiple lookbacks) outperforms single lookback
+- 52-week high proximity is the strongest momentum predictor (0.65%/month vs 0.38% for classic)
+- Trend confirmation (50 SMA) reduces whipsaws
+- Research shows this combination prevents crashes without sacrificing returns
 
-**Options presented:**
-- A) Daily
-- B) Weekly
-- C) Monthly
+### Entry Conditions (ALL must be true)
 
-**Answer:** Left for research - Claude Code to propose
+```
+1. Accelerating Momentum > 0
+   Formula: (1-month return + 3-month return + 6-month return) / 3
+
+2. Accelerating Momentum > SPY Accelerating Momentum
+   (Relative strength filter)
+
+3. Price > 50-day SMA
+   (Trend confirmation)
+
+4. Price within 25% of 52-week high
+   (Near-high filter - key crash protection)
+```
+
+### Exit Conditions (ANY triggers exit)
+
+```
+1. Accelerating Momentum < 0
+   (Absolute momentum fails)
+
+2. Accelerating Momentum < SPY Accelerating Momentum
+   (Relative strength fails)
+
+3. Price < 50-day SMA
+   (Trend breaks)
+```
+
+### Signal Frequency
+
+**Answer:** Weekly (Friday close → Monday open execution)
+
+**Rationale:**
+- Daily is too noisy, causes whipsaws
+- Monthly is too slow for high-beta stocks
+- Weekly balances responsiveness with transaction costs
+- Aligns with institutional rebalancing patterns
+
+### Position Sizing
+
+```
+Method: Capped Equal Weight
+- Max per position: 5%
+- Minimum positions: 5 (if fewer signals, hold cash)
+- Maximum positions: 20
+
+Risk-Based Alternative (optional):
+- Target 1% portfolio risk per position
+- Position Size = (1% × Portfolio) / (Stock ATR × Price)
+- Cap at 5%
+```
+
+### Crash Protection (Optional Enhancement)
+
+```
+IF SPY drops 10%+ in 1 month:
+   Switch to contrarian mode for 3 months
+   (Buy stocks DOWN most, not UP most)
+   Then revert to momentum
+
+Rationale: Research shows momentum crashes 1-3 months AFTER market plunge
+```
 
 ---
 
@@ -216,15 +272,19 @@ This document captures the requirements gathering process for building a systema
 │  └─ Review:             Only when something breaks          │
 ├─────────────────────────────────────────────────────────────┤
 │  POSITION SIZING                                            │
-│  ├─ Method:             Equal weight OR Capped equal weight │
-│  ├─ Max Positions:      Variable (only with active signal)  │
+│  ├─ Method:             Capped equal weight (max 5%)        │
+│  ├─ Max Positions:      20 (variable based on signals)      │
+│  ├─ Min Positions:      5 (else hold cash)                  │
 │  ├─ Cash:               Automatic (no signal = no position) │
 │  └─ Leverage:           None (max 100% invested)            │
 ├─────────────────────────────────────────────────────────────┤
-│  SIGNAL (TBD - For Research)                                │
-│  ├─ Entry:              To be determined                    │
-│  ├─ Exit:               To be determined                    │
-│  └─ Frequency:          To be determined                    │
+│  SIGNAL (Research Complete)                                 │
+│  ├─ Strategy:           Accelerating Dual Momentum + 52WH   │
+│  ├─ Entry:              AccelMom > 0 AND > SPY AND          │
+│  │                      Price > 50SMA AND near 52WH         │
+│  ├─ Exit:               AccelMom < 0 OR < SPY OR            │
+│  │                      Price < 50SMA                       │
+│  └─ Frequency:          Weekly (Friday → Monday)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -248,11 +308,18 @@ This document captures the requirements gathering process for building a systema
 
 ## Next Steps
 
-1. [ ] Claude Code to research and propose signal logic
-2. [ ] Claude Code to generate initial universe candidates
+1. [x] Claude Code to research and propose signal logic ✓ (See Section 9)
+2. [ ] Claude Code to generate initial universe candidates (25-30 stocks)
 3. [ ] User to approve/reject universe
-4. [ ] Backtest strategy on approved universe
-5. [ ] Iterate based on results
+4. [ ] Implement strategy in QuantConnect
+5. [ ] Backtest strategy on approved universe
+6. [ ] Compare results vs benchmarks (SPY/QQQ B&H, DCA)
+7. [ ] Iterate based on results
+
+## Related Documentation
+
+- **Research**: `docs/portfolio-strategy-research.md` - Full research compilation with sources
+- **Learnings**: `docs/LEARNINGS.md` - Platform and strategy learnings
 
 ---
 
