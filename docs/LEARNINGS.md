@@ -1,0 +1,420 @@
+# QuantConnect & Strategy Development Learnings
+
+A comprehensive guide capturing learnings from developing and testing trading strategies on QuantConnect.
+
+---
+
+## Table of Contents
+1. [QuantConnect Platform](#quantconnect-platform)
+2. [BX Trender Indicator](#bx-trender-indicator)
+3. [Multi-Timeframe Analysis](#multi-timeframe-analysis)
+4. [Strategy Development Insights](#strategy-development-insights)
+5. [Common Pitfalls](#common-pitfalls)
+6. [Best Practices](#best-practices)
+
+---
+
+## QuantConnect Platform
+
+### API Authentication
+
+QuantConnect uses **SHA-256 timestamped authentication**, not simple basic auth:
+
+```bash
+# Correct authentication flow:
+timestamp=$(date +%s)
+hash=$(echo -n "${API_TOKEN}:${timestamp}" | openssl dgst -sha256 | awk '{print $2}')
+auth=$(echo -n "${USER_ID}:${hash}" | base64 -w 0)  # -w 0 prevents newlines
+
+# Headers required:
+Authorization: Basic ${auth}
+Timestamp: ${timestamp}
+```
+
+### API Gotchas
+
+| Issue | Wrong | Correct |
+|-------|-------|---------|
+| Project language | `"Python"` | `"Py"` |
+| Backtest name param | `name` | `backtestName` |
+| Base64 encoding | `base64` | `base64 -w 0` (no newlines) |
+
+### Weekly Consolidation
+
+```python
+# WRONG - CalendarType doesn't exist
+self.consolidate(symbol, Resolution.DAILY, CalendarType.WEEK, handler)
+
+# CORRECT
+self.consolidate(symbol, Calendar.Weekly, handler)
+```
+
+### Handling None Data
+
+```python
+def on_data(self, data):
+    if self.symbol not in data:
+        return
+    bar = data[self.symbol]
+    if bar is None:  # IMPORTANT: bar can be in dict but be None
+        return
+```
+
+### Warm-up Period
+
+- EMAs need `period` bars to be ready
+- Check `indicator.is_ready` before using
+- Use `self.set_warm_up(days, Resolution.DAILY)` for automatic warm-up
+
+---
+
+## BX Trender Indicator
+
+### Formula
+
+```
+BX = RSI(EMA_fast - EMA_slow, period) - 50
+
+Where:
+- EMA_fast = EMA(close, L1)  # Default: 5
+- EMA_slow = EMA(close, L2)  # Default: 20
+- RSI period = L3            # Default: 15
+
+Result: Oscillates between -50 and +50
+- BX > 0: Bullish (green)
+- BX < 0: Bearish (red)
+```
+
+### Standard Parameters
+
+| Timeframe | L1 | L2 | L3 | Use Case |
+|-----------|----|----|----|---------|
+| Daily (short) | 5 | 20 | 15 | Primary signals |
+| Daily (long) | 20 | 50 | 15 | Trend confirmation |
+| Weekly | 5 | 20 | 15 | Higher timeframe filter |
+
+### Implementation
+
+```python
+def calculate_bx(self, closes, l1, l2, l3):
+    """
+    Calculate BX value from closing prices.
+
+    CRITICAL: Requires at least L2 + L3 + 1 data points!
+    For (5, 20, 15): Need 36+ closes minimum
+    """
+    min_len = l2 + l3 + 1
+    if len(closes) < min_len:
+        return None
+
+    # Calculate EMA differences
+    ema_diffs = []
+    for i in range(len(closes) - l2 + 1):
+        subset = closes[:l2 + i]
+        fast = calc_ema(subset, l1)
+        slow = calc_ema(subset, l2)
+        if fast and slow:
+            ema_diffs.append(fast - slow)
+
+    if len(ema_diffs) < l3 + 1:
+        return None
+
+    # RSI of EMA differences
+    rsi = calc_rsi(ema_diffs, l3)
+    return (rsi - 50) if rsi else None
+```
+
+### Trading Signals
+
+```python
+# Entry: BX crosses above 0 (turns bullish)
+if prev_bx < 0 and current_bx >= 0:
+    buy()
+
+# Exit: BX crosses below 0 (turns bearish)
+if prev_bx >= 0 and current_bx < 0:
+    sell()
+```
+
+---
+
+## Multi-Timeframe Analysis
+
+### The Buffer Size Bug
+
+**Problem**: Original implementation used `RollingWindow(25)` for weekly bars, but BX calculation requires more data.
+
+```python
+# BUG
+self.weekly_bars = RollingWindow[TradeBar](25)  # Too small!
+
+# MATH
+# BX needs: L2 closes for slow EMA + L3+1 for RSI
+# With (5, 20, 15): 20 + 16 = 36 minimum
+
+# FIX
+min_bars = L2 + L3 + 1  # = 36
+self.weekly_bars = RollingWindow[TradeBar](min_bars + 5)  # Add buffer
+```
+
+### MTF Performance Comparison (TSLA 2020-2024)
+
+| Strategy | Return | Sharpe | Max DD | Trades |
+|----------|--------|--------|--------|--------|
+| Daily Only | **293%** | **0.90** | 45.9% | 67 |
+| Weekly BX (5,20,15) | 52.5% | 0.36 | **36.8%** | 32 |
+| Weekly BX (3,10,8) | -7.9% | -0.03 | 46.0% | 33 |
+| Weekly EMA filter | 86.8% | 0.48 | 45.0% | 41 |
+| Weekly SMA filter | 16.8% | 0.17 | 45.4% | 43 |
+
+### Key MTF Findings
+
+1. **Weekly filters hurt high-momentum stocks** - TSLA's best moves get filtered out
+2. **Shorter weekly params are too noisy** - (3,10,8) lost money
+3. **Simple EMA crossover > full BX** for weekly filter
+4. **Drawdown reduction is minimal** - not worth the return sacrifice
+5. **Daily timeframe is sufficient** for high-beta stocks
+
+### When MTF Might Help
+
+- Lower volatility assets (SPY, bonds)
+- Mean-reversion strategies
+- Longer holding periods
+- Risk-averse portfolios prioritizing drawdown over returns
+
+---
+
+## Strategy Development Insights
+
+### Optimal Stock Universe for BX Trender
+
+**Best performers:**
+- High-beta stocks (beta > 1.0)
+- Growth/momentum names (TSLA, NVDA, AMD)
+- High volatility assets (COIN, crypto-related)
+
+**Why:** BX is a trend-following indicator. High-beta stocks have stronger trends that BX can capture effectively.
+
+### Win Rate vs Profit/Loss Ratio
+
+All BX strategies showed:
+- **Low win rate**: ~38-45%
+- **High P/L ratio**: 2.5-3.0x
+
+This is characteristic of trend-following systems:
+- Many small losses (false signals)
+- Few large wins (catching major trends)
+- Overall profitable due to asymmetric payoffs
+
+### Portfolio Diversification Effect
+
+| Approach | Return | Sharpe | Max DD |
+|----------|--------|--------|--------|
+| Single stock (TSLA) | 293% | 0.90 | 45.9% |
+| Portfolio (4 stocks) | 133% | 0.85 | 41.3% |
+
+Trade-off: Lower return but better Sortino (0.97 vs 0.85) and reduced single-stock risk.
+
+### Position Sizing
+
+```python
+# Equal weight for portfolio
+weight = 1.0 / len(tickers)  # 25% each for 4 stocks
+
+# Full allocation for single stock
+self.set_holdings(symbol, 1.0)
+```
+
+---
+
+## Common Pitfalls
+
+### 1. Insufficient Data Buffer
+
+```python
+# WRONG: Will return None forever
+self.window = RollingWindow[float](20)
+# ... later trying to calculate indicator needing 30+ values
+
+# RIGHT: Calculate minimum requirement
+min_required = period1 + period2 + buffer
+self.window = RollingWindow[float](min_required)
+```
+
+### 2. Not Checking Indicator Readiness
+
+```python
+# WRONG
+value = self.ema.current.value  # Might be garbage
+
+# RIGHT
+if self.ema.is_ready:
+    value = self.ema.current.value
+```
+
+### 3. F-String Formatting with Conditionals
+
+```python
+# WRONG - causes format error
+self.debug(f"Value: {x:.2f if x else 'None'}")
+
+# RIGHT
+x_str = f"{x:.2f}" if x is not None else "None"
+self.debug(f"Value: {x_str}")
+```
+
+### 4. List Reversal for RollingWindow
+
+```python
+# RollingWindow stores newest first (index 0 = most recent)
+# For chronological order, reverse:
+values = [window[i] for i in range(window.count)]
+values.reverse()  # Now oldest first
+```
+
+### 5. Consolidator Handler Scope
+
+```python
+# WRONG - all symbols use same handler with wrong symbol
+for symbol in symbols:
+    self.consolidate(symbol, Calendar.Weekly, self.handler)
+
+# RIGHT - capture symbol in lambda
+for symbol in symbols:
+    self.consolidate(symbol, Calendar.Weekly,
+                     lambda bar, s=symbol: self.handler(bar, s))
+```
+
+---
+
+## Best Practices
+
+### 1. Always Set Benchmark
+
+```python
+def initialize(self):
+    self.add_equity("SPY", Resolution.DAILY)
+    self.set_benchmark("SPY")  # Enables alpha/beta calculations
+```
+
+### 2. Log Key Metrics
+
+```python
+def on_end_of_algorithm(self):
+    self.log(f"Final: ${self.portfolio.total_portfolio_value:,.2f}")
+```
+
+### 3. Debug Strategically
+
+```python
+# Log state changes, not every tick
+if turned_bullish:
+    self.debug(f"{self.time}: Signal change - BX: {bx:.1f}")
+```
+
+### 4. Handle Edge Cases
+
+```python
+# Division by zero in RSI
+if avg_loss == 0:
+    return 100  # All gains, RSI = 100
+
+# Empty data
+if not data or symbol not in data:
+    return
+```
+
+### 5. Document Strategy Parameters
+
+```python
+class MyStrategy(QCAlgorithm):
+    """
+    Strategy: BX Trender on High-Beta Stocks
+
+    Parameters:
+        - L1, L2, L3: 5, 20, 15 (BX calculation)
+        - Universe: TSLA, NVDA, AMD, COIN
+        - Position: Equal weight (25% each)
+
+    Entry: Daily BX crosses above 0
+    Exit: Daily BX crosses below 0
+    """
+```
+
+### 6. Test Incrementally
+
+1. Single stock, daily only → verify basic logic
+2. Add weekly filter → compare performance
+3. Expand to portfolio → test diversification
+4. Optimize parameters → avoid overfitting
+
+---
+
+## Strategy Template
+
+```python
+from AlgorithmImports import *
+import numpy as np
+
+class MyStrategy(QCAlgorithm):
+    """
+    [Strategy description]
+
+    Entry: [conditions]
+    Exit: [conditions]
+    Universe: [assets]
+    """
+
+    def initialize(self):
+        self.set_start_date(2020, 1, 1)
+        self.set_end_date(2024, 1, 1)
+        self.set_cash(100000)
+
+        # Add securities
+        self.symbol = self.add_equity("SPY", Resolution.DAILY).symbol
+
+        # Indicators
+        self.indicator = self.ema(self.symbol, 20, Resolution.DAILY)
+
+        # State
+        self.prev_value = None
+
+        # Benchmark & warmup
+        self.set_benchmark("SPY")
+        self.set_warm_up(50, Resolution.DAILY)
+
+    def on_data(self, data):
+        if self.is_warming_up:
+            return
+        if self.symbol not in data or data[self.symbol] is None:
+            return
+        if not self.indicator.is_ready:
+            return
+
+        # Trading logic here
+        current = self.indicator.current.value
+
+        if self.prev_value is not None:
+            # Signal detection
+            pass
+
+        self.prev_value = current
+
+    def on_end_of_algorithm(self):
+        self.log(f"Final: ${self.portfolio.total_portfolio_value:,.2f}")
+```
+
+---
+
+## Future Improvements to Explore
+
+1. **Adaptive parameters** - adjust L1/L2/L3 based on volatility
+2. **Regime detection** - different params for bull/bear markets
+3. **Risk management** - stop losses, position sizing based on ATR
+4. **Sector rotation** - apply BX to sector ETFs
+5. **Crypto markets** - test on 24/7 markets with higher volatility
+6. **Options overlay** - use BX signals for options strategies
+
+---
+
+*Last updated: January 2026*
