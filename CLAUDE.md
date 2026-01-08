@@ -317,6 +317,29 @@ Tested BX Trender on BTC/ETH (2021-2024):
 - Document strategy logic with docstrings
 - Include parameter descriptions in class docstring
 
+### Variable Naming - Avoid Shadowing QCAlgorithm Methods
+
+**CRITICAL**: Never name instance variables the same as QCAlgorithm built-in methods.
+
+```python
+# WRONG - shadows self.sma() and self.rsi() methods
+self.sma = {}      # Dict for SMA indicators
+self.rsi = {}      # Dict for RSI indicators
+
+# Error: 'dict' object is not callable
+self.sma(symbol, 50)  # Tries to call dict, not the method!
+
+# RIGHT - use descriptive suffixes
+self.sma_ind = {}     # or self.sma50 = {}
+self.rsi_ind = {}     # or self.rsi14 = {}
+self.momentum = {}    # "momentum" is not a QCAlgorithm method, so it's safe
+
+# Now you can still use the built-in methods
+self.sma_ind[symbol] = self.sma(sym, 50)  # Works correctly
+```
+
+**Common methods to avoid shadowing**: `sma`, `ema`, `rsi`, `macd`, `atr`, `adx`, `bb` (Bollinger Bands)
+
 ### Standard Algorithm Template
 ```python
 from AlgorithmImports import *
@@ -361,6 +384,97 @@ This enables:
 - Benchmark chart overlay in backtest results
 - Alpha/Beta calculations relative to benchmark
 - Proper risk-adjusted performance metrics
+
+## Strategy Development Workflows
+
+### Robustness Testing
+
+**ALWAYS test strategy robustness by removing dominant performers:**
+
+When a strategy shows strong results, verify it's not dependent on a single stock:
+1. Identify the top contributor (often NVDA in recent years)
+2. Remove that stock from the universe
+3. Re-run the backtest
+4. Compare results - a robust strategy should still beat benchmarks
+
+```bash
+# Example: Testing without NVDA
+# Original universe: ["AAPL", "MSFT", "NVDA", "GOOGL", ...]
+# Test universe:     ["AAPL", "MSFT", "GOOGL", ...]  # NVDA removed
+```
+
+**Why this matters**: In 2020-2024 testing, removing NVDA typically reduced returns by ~30%. Strategies that still beat SPY without the top performer are more robust.
+
+### Batch Backtest Workflow
+
+For running multiple strategy backtests efficiently:
+
+```bash
+#!/bin/bash
+# Example batch backtest script
+
+run_backtest() {
+    PROJECT_ID=$1
+    FILE=$2
+    NAME=$3
+
+    # Push code
+    ./scripts/qc-api.sh push $PROJECT_ID $FILE main.py 2>/dev/null | tail -1
+    sleep 2
+
+    # Compile and capture compileId
+    COMPILE_OUTPUT=$(./scripts/qc-api.sh compile $PROJECT_ID 2>/dev/null)
+    COMPILE_ID=$(echo "$COMPILE_OUTPUT" | grep '"compileId"' | head -1 | sed 's/.*"compileId": "\([^"]*\)".*/\1/')
+
+    if [ -z "$COMPILE_ID" ]; then
+        echo "Compile failed for $NAME"
+        return 1
+    fi
+
+    sleep 3
+
+    # Run backtest with compileId
+    ./scripts/qc-api.sh backtest $PROJECT_ID "$NAME" "$COMPILE_ID" 2>/dev/null
+}
+```
+
+### Results Documentation
+
+**Document all experiment results in `docs/strategy-experiments.md`:**
+
+```markdown
+## Round N - [Date]
+
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| Strategy A | 35% | 1.1 | 25% | New best |
+| Strategy B | 28% | 0.9 | 30% | Below target |
+
+### Key Findings
+- [What worked]
+- [What didn't work]
+- [Next steps]
+```
+
+### P&L Analysis Requirement
+
+**ALWAYS run P&L analysis when reporting strategy results:**
+
+```bash
+python scripts/backtest_pnl.py <project_id> <backtest_id> --name <strategy_name>
+```
+
+This saves:
+- `backtests/<name>_orders_<date>.csv` - Complete trade history
+- `backtests/<name>_pnl_<date>.csv` - P&L breakdown per ticker
+
+### Commit Cadence
+
+Commit after each significant batch of work:
+- After creating new strategies
+- After running backtests and documenting results
+- After fixing bugs or updating code
+- After updating documentation
 
 ## Backtest Documentation
 
