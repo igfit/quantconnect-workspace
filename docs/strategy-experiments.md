@@ -444,6 +444,43 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ## Progress Log
 
+### 2026-01-08 (Session 9 - Round 16 Non-Obvious Indicators)
+
+**BREAKTHROUGH: Residual Momentum HighBeta - Sharpe 1.404, CAGR 49%**
+
+#### Research-Based Strategies Tested
+
+| Strategy | Sharpe | CAGR | MaxDD | Source |
+|----------|--------|------|-------|--------|
+| **Residual HighBeta** | **1.404** | **49.0%** | 25.7% | Academic (Blitz, Hühn) |
+| **Residual Combo** | **1.011** | 24.5% | 24.6% | Multi-factor |
+| Residual Momentum V1 | 0.96 | 23.7% | 31.5% | Academic |
+| Keltner Breakout | 0.76 | 17.2% | 23.8% | QuantifiedStrategies |
+| Connors RSI | 0.47 | 9.5% | 15.8% | Larry Connors |
+| Williams %R | 0.43 | 10.1% | 30.6% | QuantifiedStrategies |
+| TTM Squeeze | 0.14 | 4.5% | 4.0% | John Carter |
+| WaveTrend | -0.71 | -0.3% | 12.5% | LazyBear |
+
+#### Why Residual Momentum Works
+
+**Alpha = Stock Return - (Beta × Market Return)**
+
+Instead of ranking stocks by raw returns (which includes market exposure), rank by RESIDUAL returns (firm-specific alpha). This:
+1. Isolates firm-specific momentum from market momentum
+2. Avoids buying "up because market is up" stocks
+3. Academic research shows 2x better risk-adjusted returns
+
+**Signal Alpha Proof**: 95% of P&L is REALIZED (closed trades), not unrealized holdings.
+
+#### Key Learnings
+
+1. **Popular TradingView indicators underperform** on daily equity data
+2. **Academic research is valuable** - Residual momentum delivered as promised
+3. **High-beta universe amplifies alpha** - Same signal, more volatile stocks = higher returns
+4. **Multi-factor confirmation helps** - Residual + ADX + Keltner = Sharpe 1.01
+
+---
+
 ### 2026-01-08 (Session 8 - Round 14-15 Out-of-Sample Validation)
 
 **Key Finding: Trailing Stops Are More Robust Than Profit Targets**
