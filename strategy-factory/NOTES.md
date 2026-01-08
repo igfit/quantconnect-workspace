@@ -82,6 +82,34 @@ Equity Final       → End Equity
 
 ## Strategy Generation Learnings
 
+### Round 7 - Diversification Strategies (2026-01-08)
+
+**Problem Identified:** Previous strategies had 25-73% of P&L from NVDA alone.
+
+**Solutions Tested:**
+1. **Multi-Sector Balanced** - Force sector diversification (max 35% per sector)
+2. **Diversified Caps** - Hard 10% position caps, 10 positions minimum
+3. **Sector ETF Momentum** - Use ETFs instead of individual stocks
+4. **Equal-Risk Contribution** - Volatility-weighted positions
+5. **Anti-Concentration** - Force rotation of long-held positions
+
+**Results:**
+| Strategy | Sharpe | CAGR | Max DD | NVDA % |
+|----------|--------|------|--------|--------|
+| MultiSectorBalanced | 0.898 | 22.1% | 19.0% | 19.8% |
+| DiversifiedCaps | 0.865 | 20.4% | 18.1% | 20.0% |
+| SectorETFMomentum | 0.727 | 14.2% | 13.0% | N/A |
+| EqualRiskContrib | 0.713 | 17.9% | 24.4% | ~25% |
+| AntiConcentration | 0.712 | 19.8% | 25.2% | ~25% |
+
+**Key Insight:** Diversification WORKS. NVDA contribution reduced from 73% to 20%.
+Trade-off is lower absolute returns (22% vs 40%+) but much better risk-adjusted.
+
+**Best Approach:** MultiSectorBalanced - forces sector diversification while
+maintaining strong momentum signal. 8 positions, max 3 per sector, 35% sector cap.
+
+---
+
 ### What Works
 
 **High Breakout Strategy:**
