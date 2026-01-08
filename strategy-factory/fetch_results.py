@@ -220,7 +220,7 @@ def format_currency(value: float) -> str:
         return f"-${abs(value):,.0f}"
 
 
-def print_pnl_table(pnl_data: Dict[str, Dict], top_n: int = 15):
+def print_pnl_table(pnl_data: Dict[str, Dict]):
     """Print P&L by ticker table."""
     if not pnl_data:
         print("  No P&L data available")
@@ -238,8 +238,8 @@ def print_pnl_table(pnl_data: Dict[str, Dict], top_n: int = 15):
     print(f"  {'Ticker':<8} {'Trades':>7} {'Win%':>7} {'Realized':>12} {'Unreal':>10} {'Total':>12}")
     print(f"  {'-'*8} {'-'*7} {'-'*7} {'-'*12} {'-'*10} {'-'*12}")
 
-    # Top performers
-    for ticker, data in sorted_tickers[:top_n]:
+    # All tickers
+    for ticker, data in sorted_tickers:
         trades = data.get('total_trades', 0)
         win_rate = data.get('wins', 0) / trades * 100 if trades > 0 else 0
         realized = data.get('realized_pnl', 0)
@@ -247,11 +247,6 @@ def print_pnl_table(pnl_data: Dict[str, Dict], top_n: int = 15):
         total = data.get('total_pnl', 0)
 
         print(f"  {ticker:<8} {trades:>7} {win_rate:>6.1f}% {format_currency(realized):>12} {format_currency(unrealized):>10} {format_currency(total):>12}")
-
-    # If there are more tickers, show count
-    if len(sorted_tickers) > top_n:
-        remaining = len(sorted_tickers) - top_n
-        print(f"  ... and {remaining} more tickers")
 
     # Summary totals
     total_realized = sum(d.get('realized_pnl', 0) for d in pnl_data.values())
@@ -357,9 +352,9 @@ def fetch_and_save(
         # P&L by ticker table
         if show_pnl_table and pnl_data:
             print()
-            print("  P&L BY TICKER (Top 15)")
+            print(f"  P&L BY TICKER ({len(pnl_data)} tickers)")
             print("  " + "-" * 40)
-            print_pnl_table(pnl_data, top_n=15)
+            print_pnl_table(pnl_data)
 
     return result_dir
 
@@ -454,7 +449,6 @@ def main():
     # Options
     parser.add_argument('--quiet', '-q', action='store_true', help='Minimal output')
     parser.add_argument('--no-pnl-table', action='store_true', help='Skip P&L by ticker table')
-    parser.add_argument('--top-tickers', type=int, default=15, help='Number of top tickers to show (default: 15)')
 
     args = parser.parse_args()
     verbose = not args.quiet
