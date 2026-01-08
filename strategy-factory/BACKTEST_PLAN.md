@@ -292,6 +292,133 @@ strategy-factory/
     └── results_parser.py     # Extract metrics
 ```
 
+---
+
+## Part 5.5: Results Storage and P&L Analysis
+
+### Results Directory Structure
+
+Every backtest MUST save full results to disk for analysis:
+
+```
+backtests/
+├── {strategy_name}/
+│   ├── {backtest_id}/
+│   │   ├── orders.csv           # All orders from QC API
+│   │   ├── trades.csv           # Round-trip trades (entry→exit)
+│   │   ├── pnl_by_ticker.csv    # P&L breakdown per symbol
+│   │   ├── metrics.json         # Summary metrics
+│   │   └── equity_curve.csv     # Daily equity values
+│   └── summary.csv              # All backtests for this strategy
+└── comparison/
+    └── all_strategies.csv       # Cross-strategy comparison
+```
+
+### What to Save Per Backtest
+
+**1. Orders (orders.csv)**
+```csv
+date,symbol,direction,quantity,fill_price,value,fees,order_id
+2015-03-15,AAPL,Buy,100,125.50,12550.00,1.00,12345
+2015-04-20,AAPL,Sell,100,135.20,13520.00,1.00,12346
+```
+
+**2. Round-Trip Trades (trades.csv)**
+```csv
+symbol,entry_date,exit_date,direction,shares,entry_price,exit_price,pnl_dollars,pnl_pct,bars_held
+AAPL,2015-03-15,2015-04-20,Long,100,125.50,135.20,970.00,7.73%,25
+NVDA,2015-05-01,2015-05-15,Long,50,22.30,24.80,125.00,11.21%,10
+```
+
+**3. P&L by Ticker (pnl_by_ticker.csv)**
+```csv
+symbol,total_trades,wins,losses,win_rate,realized_pnl,unrealized_pnl,total_pnl,avg_win,avg_loss,rr_ratio
+AAPL,12,7,5,58.3%,4250.00,0.00,4250.00,+8.2%,-3.1%,2.65
+NVDA,8,4,4,50.0%,6800.00,1200.00,8000.00,+15.5%,-4.2%,3.69
+MSFT,10,6,4,60.0%,2100.00,0.00,2100.00,+5.8%,-2.9%,2.00
+```
+
+**4. Summary Metrics (metrics.json)**
+```json
+{
+  "strategy": "clenow_momentum",
+  "universe": "large_cap_100",
+  "period": "2015-01-01 to 2024-12-31",
+  "starting_capital": 100000,
+  "ending_equity": 842000,
+  "cagr": 26.8,
+  "sharpe": 1.24,
+  "max_drawdown": 22.5,
+  "total_trades": 312,
+  "win_rate": 44.2,
+  "avg_win_pct": 9.8,
+  "avg_loss_pct": 3.7,
+  "risk_reward": 2.65,
+  "profit_factor": 1.82,
+  "avg_bars_held": 14,
+  "time_in_market": 72.5
+}
+```
+
+### P&L Analysis Script
+
+Use the existing `scripts/backtest_pnl.py` or extend it:
+
+```bash
+# Basic usage (already exists)
+python scripts/backtest_pnl.py <project_id> <backtest_id> --name <strategy_name>
+
+# Extended usage (to implement)
+python scripts/backtest_pnl.py <project_id> <backtest_id> \
+    --name clenow_momentum \
+    --output-dir backtests/clenow_momentum/ \
+    --compute-trades           # Calculate round-trip trades
+    --compute-metrics          # Generate metrics.json
+```
+
+### P&L Calculation Logic
+
+**Realized P&L**: Profit from fully closed positions
+- Position opened and closed completely
+- Sum of (exit_value - entry_value - fees)
+
+**Unrealized P&L**: Gain/loss on positions still open at backtest end
+- Uses final holdings from backtest stats
+- (current_value - cost_basis)
+
+**Total P&L**: Realized + Unrealized
+
+**Per-Trade Metrics**:
+```python
+avg_win = mean([t.pnl_pct for t in trades if t.pnl_pct > 0])
+avg_loss = mean([t.pnl_pct for t in trades if t.pnl_pct < 0])
+risk_reward = abs(avg_win / avg_loss)
+```
+
+### Workflow: After Every Backtest
+
+1. **Fetch orders**: `./scripts/qc-api.sh orders <projectId> <backtestId>`
+2. **Run P&L script**: `python scripts/backtest_pnl.py ...`
+3. **Save to results folder**: All CSVs + metrics.json
+4. **Update comparison table**: Append to `backtests/comparison/all_strategies.csv`
+
+### Automated Pipeline (Future)
+
+```python
+# runner/save_results.py
+def save_backtest_results(project_id, backtest_id, strategy_name):
+    """
+    1. Fetch orders from QC API
+    2. Calculate round-trip trades
+    3. Compute P&L by ticker
+    4. Generate metrics summary
+    5. Save all files to backtests/{strategy_name}/{backtest_id}/
+    """
+    pass
+```
+
+---
+
 ### Base Strategy Template
 
 Every strategy inherits from a base class that provides:
@@ -427,11 +554,12 @@ class BaseSwingStrategy(QCAlgorithm):
 
 | Metric | Target | Notes |
 |--------|--------|-------|
-| Sharpe Ratio | > 0.8 | Risk-adjusted return |
-| CAGR | > 12% | Beat passive after costs |
-| Max Drawdown | < 25% | Survivable for real trading |
+| Sharpe Ratio | > 1.0 | Risk-adjusted return |
+| CAGR | **25-30%** | Aggressive target, requires high-beta or leverage |
+| Max Drawdown | < 30% | Survivable for real trading |
 | Win Rate | Any | Lower OK if R:R > 2 |
 | Profit Factor | > 1.5 | Gross profit / gross loss |
+| Risk:Reward | > 2:1 | Avg win / avg loss |
 | Time in Market | < 80% | Some cash buffer |
 
 ### Secondary Metrics
@@ -445,13 +573,19 @@ class BaseSwingStrategy(QCAlgorithm):
 ### Comparison Framework
 
 ```markdown
-| Strategy | Universe | Sharpe | CAGR | MaxDD | Trades/Yr | Avg Days |
-|----------|----------|--------|------|-------|-----------|----------|
-| Clenow   | C        | 1.2    | 18%  | 22%   | 52        | 14       |
-| Donchian | E        | 0.9    | 14%  | 18%   | 12        | 45       |
-| ...      | ...      | ...    | ...  | ...   | ...       | ...      |
-| SPY B&H  | -        | 0.6    | 10%  | 34%   | 0         | -        |
+| Strategy | Universe | Sharpe | CAGR | MaxDD | Win% | Avg Win | Avg Loss | R:R | Trades/Yr | Avg Days |
+|----------|----------|--------|------|-------|------|---------|----------|-----|-----------|----------|
+| Clenow   | C        | 1.2    | 28%  | 22%   | 45%  | +8.2%   | -3.1%    | 2.6 | 52        | 14       |
+| Donchian | E        | 1.1    | 26%  | 18%   | 38%  | +12.5%  | -4.8%    | 2.6 | 12        | 45       |
+| VCP      | D        | 1.3    | 32%  | 28%   | 42%  | +15.2%  | -5.1%    | 3.0 | 24        | 8        |
+| ...      | ...      | ...    | ...  | ...   | ...  | ...     | ...      | ... | ...       | ...      |
+| SPY B&H  | -        | 0.6    | 12%  | 34%   | -    | -       | -        | -   | 0         | -        |
 ```
+
+**Column Definitions**:
+- **Avg Win**: Average gain on winning trades (%)
+- **Avg Loss**: Average loss on losing trades (%)
+- **R:R**: Risk-to-Reward ratio = |Avg Win| / |Avg Loss|
 
 ---
 
@@ -502,11 +636,12 @@ For each strategy, document:
 ### Minimum Bar to Pass
 
 A strategy is considered viable if:
-1. Sharpe > 0.8 (meaningfully better than market)
-2. CAGR > SPY buy-and-hold by 2%+
-3. Max DD < 30% (or < SPY's max DD)
-4. Works on intended universe (not just 1-2 stocks)
-5. Consistent across sub-periods (no cliff in 2022)
+1. **CAGR: 25-30%** (aggressive target)
+2. Sharpe > 1.0 (meaningfully better than market)
+3. Max DD < 30% (survivable)
+4. Risk:Reward > 2:1 (avg win / avg loss)
+5. Works on intended universe (not just 1-2 stocks)
+6. Consistent across sub-periods (no cliff in 2022)
 
 ### Bonus Points
 
@@ -514,6 +649,7 @@ A strategy is considered viable if:
 - Simple rules (< 5 parameters)
 - Logical edge hypothesis
 - Regime filter improves results
+- Win rate > 50% with R:R > 2 (exceptional)
 
 ---
 
