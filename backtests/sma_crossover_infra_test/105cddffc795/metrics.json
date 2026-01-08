@@ -1,0 +1,22 @@
+{
+  "strategy_name": "sma_crossover_infra_test",
+  "universe": "single_instrument",
+  "backtest_id": "105cddffc795ad195857e6423d2fcf86",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 228125.65,
+  "cagr": 8.59,
+  "sharpe": 0.388,
+  "max_drawdown": 32.3,
+  "total_trades": 4,
+  "win_rate": 50.0,
+  "avg_win_pct": 36.24113688549635,
+  "avg_loss_pct": -7.392903220377897,
+  "risk_reward": 4.902152213436367,
+  "profit_factor": 4.89,
+  "avg_bars_held": 498,
+  "time_in_market": 0.0,
+  "total_fees": -20.44,
+  "net_profit": 55995.45
+}

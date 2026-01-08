@@ -606,14 +606,25 @@ def save_backtest_results(
     storage.save_pnl_by_ticker(strategy_name, backtest_id, pnl_data)
 
     # Extract metrics from stats
+    # Note: QC API returns metrics in two places:
+    #   - runtimeStatistics: Equity, Fees, Holdings, Net Profit, etc.
+    #   - statistics: Compounding Annual Return, Sharpe Ratio, Drawdown, etc.
     runtime = stats.get('runtimeStatistics', {})
+    statistics = stats.get('statistics', {})
 
-    # Parse values
+    # Parse values - handle strings with $, %, commas
     def parse_value(s):
+        if s is None:
+            return 0.0
         if isinstance(s, (int, float)):
             return float(s)
         try:
-            return float(s.replace('$', '').replace(',', '').replace('%', '').replace('-', ''))
+            # Remove $, commas, %, and handle negative signs
+            cleaned = str(s).replace('$', '').replace(',', '').replace('%', '').strip()
+            # Handle negative values like "-$20.44"
+            if cleaned.startswith('-'):
+                return -abs(float(cleaned.replace('-', '')))
+            return float(cleaned) if cleaned else 0.0
         except:
             return 0.0
 
@@ -635,15 +646,15 @@ def save_backtest_results(
         period_end=stats.get('backtestEnd', ''),
         starting_capital=100000.0,
         ending_equity=parse_value(runtime.get('Equity', '0')),
-        cagr=parse_value(runtime.get('Compounding Annual Return', '0')),
-        sharpe=parse_value(runtime.get('Sharpe Ratio', '0')),
-        max_drawdown=parse_value(runtime.get('Drawdown', '0')),
+        cagr=parse_value(statistics.get('Compounding Annual Return', '0')),
+        sharpe=parse_value(statistics.get('Sharpe Ratio', '0')),
+        max_drawdown=parse_value(statistics.get('Drawdown', '0')),
         total_trades=total_trades,
         win_rate=win_rate,
         avg_win_pct=avg_win,
         avg_loss_pct=avg_loss,
         risk_reward=risk_reward,
-        profit_factor=parse_value(runtime.get('Profit-Loss Ratio', '0')),
+        profit_factor=parse_value(statistics.get('Profit-Loss Ratio', '0')),
         avg_bars_held=int(avg_bars),
         total_fees=parse_value(runtime.get('Fees', '0')),
         net_profit=parse_value(runtime.get('Net Profit', '0')),
