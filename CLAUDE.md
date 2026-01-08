@@ -238,6 +238,62 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | DCA Strategies | `algorithms/strategies/dca_*.py` | Monthly DCA for TSLA, SPY, QQQ |
 | Benchmarks | `algorithms/strategies/benchmark_*_bh.py` | SPY/QQQ buy-hold benchmarks |
 
+### Strategy Factory Best Performers (Round 9 - 2026-01-08)
+
+**ALWAYS document these metrics when reporting strategy results:**
+
+| Strategy | Sharpe | CAGR | MaxDD | Win% | AvgWin | AvgLoss | R:R | Expect | Orders |
+|----------|--------|------|-------|------|--------|---------|-----|--------|--------|
+| **TrendStrengthMom** | **1.321** | 32.7% | 22.8% | 71% | +1.18% | -0.80% | 1.47 | 0.743 | 450 |
+| **CombinedAdaptiveAccel** | **1.108** | 28.8% | 23.6% | 69% | +1.25% | -0.98% | 1.27 | 0.568 | 433 |
+| **BreadthMomentum** | **1.03** | 26.4% | 25.7% | 68% | +1.14% | -0.92% | 1.24 | 0.519 | 451 |
+| VolRegimeStrategic | 0.995 | 24.0% | 21.9% | 68% | +0.84% | -0.76% | 1.11 | 0.442 | 589 |
+| MultiFactorRank | 0.926 | 22.5% | 30.2% | 69% | +0.99% | -0.88% | 1.12 | 0.456 | 484 |
+| AdaptivePositions (R8) | 0.967 | 24.4% | 16.9% | - | - | - | - | - | 267 |
+| AccelMomSectors (R8) | 0.934 | 22.5% | 18.1% | - | - | - | - | - | 336 |
+
+**Benchmark**: SPY Buy-Hold (2020-2024): Sharpe 0.57, CAGR 17.1%, MaxDD 33.7%
+
+### P&L Concentration (Top Performers)
+
+| Strategy | Top Stock | % of P&L | Top 5 % | Profitable |
+|----------|-----------|----------|---------|------------|
+| TrendStrengthMom | GE | 22.7% | 70% | 22/24 (92%) |
+| CombinedAdaptiveAccel | NVDA | 29.9% | 65% | 22/29 (76%) |
+
+### Strategy Files (Round 9)
+
+| Strategy | File | Key Feature |
+|----------|------|-------------|
+| **TrendStrengthMom** | `algorithms/strategies/trend_strength_momentum.py` | ADX > 20 filter |
+| **CombinedAdaptiveAccel** | `algorithms/strategies/combined_adaptive_accel.py` | VIX + multi-lookback |
+| **BreadthMomentum** | `algorithms/strategies/breadth_momentum.py` | Market breadth filter |
+| VolRegimeStrategic | `algorithms/strategies/vol_regime_strategic.py` | Quality in high vol |
+| MultiFactorRank | `algorithms/strategies/multi_factor_rank.py` | Multi-factor ranking |
+
+### Key Metrics Definitions
+
+| Metric | Description | Good Value |
+|--------|-------------|------------|
+| **Sharpe** | Risk-adjusted return (excess return / volatility) | > 1.0 |
+| **CAGR** | Compound Annual Growth Rate | > 20% |
+| **MaxDD** | Maximum Drawdown (peak-to-trough decline) | < 25% |
+| **Win%** | Winning trades / Total trades | > 60% |
+| **AvgWin** | Average profit on winning trades | > AvgLoss |
+| **AvgLoss** | Average loss on losing trades | < AvgWin |
+| **R:R** | Risk/Reward ratio (AvgWin / AvgLoss) | > 1.2 |
+| **Expect** | Expectancy per trade = (Win% × AvgWin) - (Loss% × AvgLoss) | > 0.5 |
+| **Orders** | Total trades executed | Depends |
+
+### Why TrendStrengthMom Works
+
+**ADX (Average Directional Index) filter eliminates false signals:**
+- ADX > 20 = stock is trending (not choppy sideways)
+- +DI > -DI = uptrend confirmed
+- Momentum * trend_strength composite scoring
+
+**Result**: Higher win rate (71%) and better risk/reward (1.47) than pure momentum
+
 ### QC Project IDs
 
 | Project | ID | Description |
