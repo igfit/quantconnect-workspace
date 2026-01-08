@@ -24,7 +24,23 @@ Systematic exploration to find a strategy with 30%+ CAGR and Sharpe > 1.0.
 
 ---
 
-### Option B: Best Risk-Adjusted - Quality MegaCap Momentum ⭐
+### Option B: Best Risk-Adjusted - Market Regime Momentum ⭐⭐ NEW BEST
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| **CAGR** | **42.96%** | 30%+ | **ACHIEVED** |
+| **Sharpe** | **1.228** | > 1.0 | **ACHIEVED** |
+| Max DD | **25.7%** | < 30% | **EXCELLENT** |
+| Total Return | **498%** | - | Excellent |
+| Win Rate | 78% | - | Strong |
+
+**Edge**: Only invests when SPY > 200 SMA (bull market). Goes to cash in bear markets.
+**Advantage**: Lowest drawdown (25.7%) with highest Sharpe (1.228)!
+**File**: `algorithms/strategies/market_regime_momentum.py`
+
+---
+
+### Option C: Previous Best Risk-Adj - Quality MegaCap Momentum
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
@@ -247,10 +263,23 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | `momentum_trend_strength.py` | ADX + Momentum | 22.92% | 0.65 | 46.7% |
 | `leveraged_etf_momentum.py` | 3x ETFs - FAILED | -0.81% | 0.15 | 51.1% |
 | `mean_reversion_oversold.py` | RSI < 30 - No trades | N/A | N/A | N/A |
+| **`market_regime_momentum.py`** | **NEW BEST** - SPY>200SMA filter | **42.96%** | **1.228** | **25.7%** |
+| `defensive_momentum_rotation.py` | TLT rotation when weak | 43.99% | 1.127 | 40.0% |
+| `relative_strength_leaders.py` | RS vs SPY ranking | 45.78% | 1.162 | 42.5% |
+| `momentum_pullback_entry.py` | RSI<40 entries - FAILED | 4.41% | 0.08 | 14.6% |
+| `global_momentum_rotation.py` | Intl ETFs - Below target | 14.27% | 0.58 | 21.7% |
 
 ---
 
 ## Progress Log
+
+### 2026-01-08 (Session 4 - Round 4 Experiments)
+- **Market Regime Momentum** - NEW BEST RISK-ADJUSTED (42.96% CAGR, 1.228 Sharpe, **25.7% DD**)
+- **Relative Strength Leaders** - HIGHEST RETURNS (45.78% CAGR, 1.162 Sharpe, 42.5% DD)
+- **Defensive Momentum** - Strong (43.99% CAGR, 1.127 Sharpe, 40% DD)
+- Momentum Pullback Entry - **FAILED** (4.41% CAGR - RSI entries too selective)
+- Global Momentum Rotation - Below target (14.27% CAGR - international underperformed)
+- **Key insight**: SPY > 200 SMA filter dramatically reduces drawdown while preserving returns!
 
 ### 2026-01-07 (Session 3 - Round 3 Experiments)
 - **High Flyer Aggressive** - 49.95% CAGR but 65% DD (too risky)
