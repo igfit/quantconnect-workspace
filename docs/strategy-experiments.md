@@ -141,6 +141,102 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ---
 
+## Strategy Analysis - WHY Things Work or Fail
+
+### Successful Strategies
+
+#### Market Regime Momentum (42.96% CAGR, 1.23 Sharpe, 25.7% DD) - BEST RISK-ADJUSTED
+
+**Thesis**: Only invest when SPY > 200 SMA (bull market). Go to cash in bear markets.
+
+**Why it works**:
+- **Avoids catastrophic drawdowns**: 2022 bear market saw 30%+ declines. Going to cash preserved capital.
+- **Momentum needs trends**: Momentum strategies fail in choppy/bear markets. The regime filter ensures we only trade in favorable conditions.
+- **Self-fulfilling prophecy**: The 200 SMA is the most-watched technical level. Institutions use it, creating support/resistance.
+- **Behavioral edge**: Retail investors panic sell in bear markets. This strategy exits mechanically before panic sets in.
+
+**Risk factors**:
+- Whipsaw: SPY hovering around 200 SMA could trigger frequent buy/sell signals
+- Late entry: May miss first 5-10% of new bull markets (lagging indicator)
+- 2020-2024 was ideal: One clean bear market (2022) with clear regime signals
+
+#### Concentrated Top 3 (44.37% CAGR, 1.05 Sharpe, 49.4% DD)
+
+**Thesis**: Fewer positions = more exposure to winners. Top 3 momentum stocks capture most of the upside.
+
+**Why it works**:
+- **Winner concentration**: In any given period, a handful of stocks drive market returns. Owning 3 vs 20 stocks means more exposure to NVDA, TSLA, META when they 10x.
+- **Momentum persistence**: Stocks that outperform tend to continue outperforming (behavioral: slow information diffusion, institutional herding)
+- **Reduced dilution**: Each position is 33% vs 5% in a 20-stock portfolio. A 100% gain moves the needle.
+
+**Why drawdown is high (49%)**:
+- Concentration is a double-edged sword. When winners correct, the whole portfolio drops.
+- No defensive assets or hedging
+
+#### Dual Momentum Filter (32.46% CAGR, 0.87 Sharpe)
+
+**Thesis**: Require BOTH absolute momentum (price > 6mo ago) AND relative momentum (beats SPY) to filter noise.
+
+**Why it works**:
+- **Double confirmation reduces false signals**: A stock could be up 20% (absolute) but if SPY is up 25%, it's actually weak. Vice versa.
+- **Based on academic research**: Gary Antonacci's dual momentum is well-documented to improve risk-adjusted returns
+- **Regime-aware**: When nothing passes both filters, going to cash protects in bear markets
+
+**Why Sharpe < 1.0**:
+- Without NVDA in universe, the strategy lacks a dominant winner
+- 2020-2024 was a concentrated market - few stocks drove returns
+
+### Failed Strategies
+
+#### Mean Reversion RSI (5.80% CAGR, 0.28 Sharpe)
+
+**Thesis**: High-beta stocks overshoot. RSI < 30 = oversold, likely to bounce.
+
+**Why it failed**:
+- **Bull market paradox**: In strong uptrends, stocks rarely get oversold. RSI < 30 events are rare.
+- **When it triggered, it was falling knives**: March 2020, 2022 bear - these weren't bounces, they were crashes.
+- **Mean reversion is regime-dependent**: Works in range-bound markets, fails in trending markets.
+- **Selection bias in universe**: High-beta stocks that DO get oversold often have fundamental problems.
+
+**Learning**: Mean reversion needs regime filter. Only apply in range-bound (low VIX, SPY between 50 and 200 SMA).
+
+#### Sector Rotation Momentum (5.35% CAGR, 0.14 Sharpe)
+
+**Thesis**: Rotate between sector ETFs based on momentum. Sectors lead at different economic cycle phases.
+
+**Why it failed**:
+- **ETF diversification dilutes alpha**: XLK contains 70 tech stocks. Even if tech is the best sector, you're not getting concentrated exposure to NVDA/AAPL.
+- **Sector momentum is slow**: Economic cycles are long. By the time a sector shows momentum, half the move is over.
+- **2020-2024 was tech-dominated**: One sector (XLK) crushed all others. Rotation added no value.
+
+**Learning**: Individual stock momentum >> sector ETF rotation for returns. Use sectors only for diversification, not alpha.
+
+#### Breakout with Volume (19.94% CAGR, 0.69 Sharpe)
+
+**Thesis**: 52-week high + high volume = institutional buying, momentum continuation.
+
+**Why it underperformed**:
+- **Late entry**: By the time a stock hits 52-week highs, a lot of the move has happened.
+- **False breakouts common**: Many breakouts fail and reverse, triggering stop losses.
+- **Volume signal is noisy**: High volume can be selling (distribution) not buying (accumulation).
+
+**Partially worked because**:
+- 20% trailing stop limited losses on false breakouts
+- Some genuine breakouts (NVDA 2023) were captured
+
+#### Volatility-Weighted Momentum (29.57% CAGR, 0.81 Sharpe)
+
+**Thesis**: Weight positions by inverse volatility. Stable stocks get more capital.
+
+**Why it underperformed pure momentum**:
+- **Penalized the winners**: TSLA, AMD, NVDA are high volatility. Weighting them down reduced exposure to best performers.
+- **Volatility != risk in trending markets**: In uptrends, high volatility often means high returns.
+- **Risk parity logic doesn't apply**: Risk parity works for asset allocation (stocks/bonds), not within equities.
+
+**Learning**: In momentum strategies, don't penalize volatility. The volatile stocks ARE the momentum stocks.
+
+---
+
 ## Experiment Details
 
 ### Experiment 1: Concentrated Momentum (Top 3) - WINNER

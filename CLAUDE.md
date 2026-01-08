@@ -456,6 +456,49 @@ run_backtest() {
 - [Next steps]
 ```
 
+### Strategy Analysis - Document the WHY
+
+**CRITICAL**: Always document WHY strategies work or fail, not just the metrics. This allows future sessions to learn from past experiments without re-running them.
+
+**For successful strategies, document:**
+- What market condition/inefficiency does it exploit?
+- Why does this edge exist? (behavioral, structural, informational)
+- What could cause it to stop working?
+
+**For failed strategies, document:**
+- Why did the thesis not hold?
+- What was the flaw in reasoning?
+- What did we learn for future experiments?
+
+**Example analysis format:**
+```markdown
+### Strategy: Mean Reversion RSI - FAILED (5.8% CAGR)
+
+**Thesis**: High-beta stocks overshoot. RSI < 30 = oversold bounce opportunity.
+
+**Why it failed**:
+- In 2020-2024 bull market, RSI < 30 events were rare (strong uptrends don't get oversold)
+- When oversold DID occur (March 2020, 2022 bear), the strategy bought falling knives
+- Mean reversion works in range-bound markets, not trending markets
+
+**Learning**: Mean reversion is regime-dependent. Need to detect market regime first.
+
+### Strategy: Market Regime Momentum - SUCCESS (42.96% CAGR, 1.23 Sharpe)
+
+**Thesis**: Only invest when SPY > 200 SMA (bull market). Go to cash in bear markets.
+
+**Why it works**:
+- Avoids major drawdowns (2022 bear market) by going to cash
+- Momentum works best in bull markets - this filter ensures we're only trading then
+- 200 SMA is widely watched - self-fulfilling prophecy element
+
+**Risk factors**:
+- Whipsaw around the 200 SMA line could cause frequent false signals
+- May miss early recovery rallies (lagging indicator)
+```
+
+**Speculation is encouraged** - Even if you're not 100% certain why something worked/failed, document your best hypothesis. Future sessions can validate or refute.
+
 ### P&L Analysis Requirement
 
 **ALWAYS run P&L analysis when reporting strategy results:**
