@@ -102,6 +102,25 @@ Equity Final       → End Equity
 - Results: Sharpe 0.78, CAGR 13.8%, MaxDD 12.5%, 213 trades
 - Best risk-adjusted returns with low drawdown
 
+**ROC Momentum Simple (2026-01-08):**
+- ROC(21) > 0 entry, ROC(21) < 0 exit
+- Universe: NVDA, TSLA, AMD, COIN, META, SQ (high-beta)
+- Results: Sharpe 0.94, CAGR 21.7%, MaxDD 26.2%, 645 trades
+- Pure momentum signal works well on volatile stocks
+- High turnover (143/year) but still best Sharpe in this round
+
+**EMA Trend High-Beta (2026-01-08):**
+- 12/26 EMA crossover on high-beta tech
+- Universe: NVDA, TSLA, AMD, META, GOOGL, AMZN
+- Results: Sharpe 0.92, CAGR 20.8%, MaxDD 18.4%, 246 trades
+- Excellent risk-adjusted returns with moderate drawdown
+
+**SMA Trend Quality MegaCap (2026-01-08):**
+- Price crosses 50 SMA entry/exit
+- Universe: AAPL, MSFT, GOOGL, NVDA, META, AMZN (quality mega-caps)
+- Results: Sharpe 0.74, CAGR 15.9%, MaxDD 22.9%, 561 trades
+- Simple trend following on quality names beats benchmark
+
 ### What Doesn't Work
 
 **Crossover Strategies with Trend Filter:**
@@ -214,6 +233,14 @@ Total:                ~1-1.5 minutes
 **Fix:** Removed unused indicators from strategy definitions. Only define indicators actually used in conditions.
 **Prevention:** Never define indicators that aren't used in entry/exit conditions
 
+### Bug: Operator Enum Validation
+**Date:** 2026-01-08
+**Symptoms:** Strategy specs failed to load with error: `'greater_than' is not a valid Operator`
+**Root Cause:** The Operator enum in `models/strategy_spec.py` only supports: `crosses_above`, `crosses_below`, `less_than`. Missing `greater_than`.
+**Affected Specs:** `rsi_momentum_filter.json`, `triple_ema_alignment.json`, `adx_strong_trend.json`
+**Fix:** Need to add `greater_than` to the Operator enum, or use `crosses_above` with numeric thresholds
+**Prevention:** Check `models/strategy_spec.py` for supported operators before creating specs
+
 ### Bug Template
 ```
 ### Bug: [Title]
@@ -230,7 +257,45 @@ Total:                ~1-1.5 minutes
 
 *(Capture ideas as they come up)*
 
-- *(Add ideas here)*
+- Add `greater_than` operator to enable non-crossover conditions
+- Test shorter ROC periods (10-day) for faster signals
+- Combine ROC momentum with quality filter for better risk-adjusted returns
+- Test adaptive position sizing based on volatility
+- Add regime filter (SPY > 200 SMA) to strategy-factory infrastructure
+
+---
+
+## Generation Rounds Log
+
+### Round 2 - 2026-01-08 (Autonomous Mode)
+
+**Thesis:** Port validated winning strategies into strategy-factory format. Previous specs failed because they lacked quality universe selection and used complex indicators.
+
+**Strategies Created:**
+1. `ema_trend_highbeta` - 12/26 EMA on high-beta (NVDA, TSLA, AMD, META, GOOGL, AMZN)
+2. `sma_trend_quality` - Price > 50 SMA on mega-caps (AAPL, MSFT, GOOGL, NVDA, META, AMZN)
+3. `roc_momentum_simple` - ROC(21) > 0 on high-beta (NVDA, TSLA, AMD, COIN, META, SQ)
+4. `rsi_momentum_filter` - RSI > 50 + Price > 20 SMA (FAILED TO LOAD - operator issue)
+5. `triple_ema_alignment` - 9/21/55 EMA alignment (FAILED TO LOAD - operator issue)
+6. `adx_strong_trend` - ADX > 25 + EMA cross (FAILED TO LOAD - operator issue)
+
+**Results:**
+| Strategy | Sharpe | CAGR | MaxDD | Status |
+|----------|--------|------|-------|--------|
+| ROC Momentum Simple | **0.94** | **21.7%** | 26.2% | ✅ Best Sharpe |
+| EMA Trend High-Beta | **0.92** | **20.8%** | 18.4% | ✅ Best risk-adj |
+| SMA Trend Quality | 0.74 | 15.9% | 22.9% | ✅ Beats benchmark |
+
+**Key Learnings:**
+1. **High-beta universe is critical** - All top performers used NVDA, TSLA, AMD, META
+2. **Simple signals work** - ROC(21) > 0 outperformed complex crossovers
+3. **Operator limitation** - `greater_than` not supported, need to fix
+4. **Quality mega-caps reduce drawdown** - 18-23% MaxDD vs 26%+ on riskier universe
+
+**Next Steps:**
+1. Fix `greater_than` operator in `models/strategy_spec.py`
+2. Test RSI momentum filter once operator is fixed
+3. Add regime filter to infrastructure
 
 ---
 

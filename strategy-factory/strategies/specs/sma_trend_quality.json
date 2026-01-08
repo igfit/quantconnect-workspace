@@ -1,0 +1,41 @@
+{
+  "id": "sma_trend_quality",
+  "name": "SMA Trend Quality MegaCap",
+  "description": "Price above 50 SMA trend following on quality mega-caps",
+  "rationale": "The 50-day SMA is the most-watched intermediate trend indicator by institutions. Quality mega-caps (AAPL, MSFT, GOOGL, NVDA, META, AMZN) have strong fundamentals and trend well - they don't have the binary risk of smaller companies. When price is above 50 SMA, the intermediate trend is bullish. This simple rule captures the core of trend following without overfitting. Mega-caps also have massive institutional flows that reinforce trends.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "NVDA", "META", "AMZN"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "sma50", "type": "SMA", "params": {"period": 50}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_above", "right": "sma50"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_below", "right": "sma50"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [20, 50, 100]}
+  ]
+}

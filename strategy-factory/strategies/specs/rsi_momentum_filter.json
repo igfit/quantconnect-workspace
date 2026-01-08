@@ -1,0 +1,44 @@
+{
+  "id": "rsi_momentum_filter",
+  "name": "RSI Momentum Filter",
+  "description": "RSI > 50 momentum filter with SMA trend confirmation",
+  "rationale": "RSI > 50 indicates positive momentum - recent gains exceed recent losses. Combined with price > 20 SMA, we get dual confirmation: momentum is positive AND price is in uptrend. This avoids the failed mean-reversion approach (RSI < 30) and instead rides momentum. The 20-day SMA is a short-term trend filter that keeps us in strong moves. This approach works because momentum persists - stocks that are already going up tend to continue going up due to institutional herding and slow information diffusion.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["NVDA", "TSLA", "AMD", "META", "AAPL", "MSFT"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "rsi14", "type": "RSI", "params": {"period": 14}},
+    {"name": "sma20", "type": "SMA", "params": {"period": 20}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "rsi14", "operator": "crosses_above", "right": 50},
+      {"left": "price", "operator": "greater_than", "right": "sma20"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "OR",
+    "conditions": [
+      {"left": "rsi14", "operator": "crosses_below", "right": 50},
+      {"left": "price", "operator": "crosses_below", "right": "sma20"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 14, 21]}
+  ]
+}

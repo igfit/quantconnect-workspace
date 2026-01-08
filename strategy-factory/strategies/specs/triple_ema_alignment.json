@@ -1,0 +1,45 @@
+{
+  "id": "triple_ema_alignment",
+  "name": "Triple EMA Alignment",
+  "description": "Three EMA alignment for strong trend confirmation",
+  "rationale": "When fast EMA > medium EMA > slow EMA, we have alignment across three timeframes - this indicates a strong, sustained trend rather than a temporary bounce. The 9/21/55 combination covers short-term (9), medium-term (21), and intermediate (55) trends. Entry when fast crosses above medium ensures we catch the trend early. Exit when fast crosses below medium catches trend reversals. This multi-timeframe confirmation reduces false signals compared to single EMA crossovers. Works best on trending stocks like tech leaders.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["AAPL", "MSFT", "GOOGL", "NVDA", "META", "TSLA"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "ema_fast", "type": "EMA", "params": {"period": 9}},
+    {"name": "ema_med", "type": "EMA", "params": {"period": 21}},
+    {"name": "ema_slow", "type": "EMA", "params": {"period": 55}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_above", "right": "ema_med"},
+      {"left": "ema_med", "operator": "greater_than", "right": "ema_slow"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_below", "right": "ema_med"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [8, 9, 12]},
+    {"path": "indicators.1.params.period", "values": [20, 21, 26]}
+  ]
+}

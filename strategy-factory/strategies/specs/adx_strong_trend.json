@@ -1,0 +1,45 @@
+{
+  "id": "adx_strong_trend",
+  "name": "ADX Strong Trend",
+  "description": "ADX > 25 trend strength filter with EMA direction",
+  "rationale": "ADX measures trend STRENGTH, not direction. ADX > 25 indicates a strong trend is in place - this filters out choppy, sideways markets where momentum strategies fail. Combined with EMA crossover for direction, we only trade when: (1) a trend exists (ADX > 25), AND (2) the trend is turning bullish (fast EMA crosses above slow). This should reduce whipsaws in ranging markets. Previous ADX strategies failed because they were too restrictive - this uses ADX as a filter, not the primary signal.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["NVDA", "TSLA", "AMD", "META", "GOOGL", "AMZN"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "adx14", "type": "ADX", "params": {"period": 14}},
+    {"name": "ema_fast", "type": "EMA", "params": {"period": 12}},
+    {"name": "ema_slow", "type": "EMA", "params": {"period": 26}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "adx14", "operator": "greater_than", "right": 25},
+      {"left": "ema_fast", "operator": "crosses_above", "right": "ema_slow"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_below", "right": "ema_slow"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 14, 20]},
+    {"path": "entry_conditions.conditions.0.right", "values": [20, 25, 30]}
+  ]
+}

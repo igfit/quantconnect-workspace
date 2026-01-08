@@ -1,0 +1,43 @@
+{
+  "id": "ema_trend_highbeta",
+  "name": "EMA Trend High-Beta",
+  "description": "12/26 EMA crossover on high-beta tech stocks",
+  "rationale": "EMA crossovers capture trend changes earlier than SMA. High-beta stocks (NVDA, TSLA, AMD, META) amplify momentum moves. The 12/26 combination is the MACD standard - fast EMA reacts to recent price action, slow EMA filters noise. When fast crosses above slow, it signals trend shift from bearish to bullish. Works best on volatile, trending stocks.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["NVDA", "TSLA", "AMD", "META", "GOOGL", "AMZN"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "ema_fast", "type": "EMA", "params": {"period": 12}},
+    {"name": "ema_slow", "type": "EMA", "params": {"period": 26}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_above", "right": "ema_slow"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_below", "right": "ema_slow"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [8, 12, 15]},
+    {"path": "indicators.1.params.period", "values": [21, 26, 30]}
+  ]
+}

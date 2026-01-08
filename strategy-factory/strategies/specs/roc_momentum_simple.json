@@ -1,0 +1,41 @@
+{
+  "id": "roc_momentum_simple",
+  "name": "ROC Momentum Simple",
+  "description": "Rate of Change momentum on high-beta stocks",
+  "rationale": "Rate of Change (ROC) is the purest momentum indicator - it simply measures percentage price change over N days. ROC > 0 means price is higher than N days ago = positive momentum. This directly captures what made the manual strategies work: buying stocks with positive recent returns. The 21-day period (~1 month) balances signal responsiveness with noise reduction. High-beta stocks amplify this momentum signal. Simple and direct - no complex indicator combinations that overfit.",
+
+  "universe": {
+    "type": "static",
+    "symbols": ["NVDA", "TSLA", "AMD", "COIN", "META", "SQ"]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "roc21", "type": "ROC", "params": {"period": 21}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_above", "right": 0}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_below", "right": 0}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 15000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 21, 63]}
+  ]
+}
