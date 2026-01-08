@@ -401,6 +401,11 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | Dual Momentum Filter | 27330873 | c412b202ddb5f6f61ab63f9825768b02 |
 | Mean Reversion RSI | 27330874 | e3eecf9f2950047e037775e487bad4b2 |
 | Breakout with Volume | 27330876 | 123fba03655c65c47a365573a253d23d |
+| Adaptive Lookback No NVDA | 27331332 | 1aa28598f1079c46f716dc2a64a9268d |
+| Quality Momentum No NVDA | 27331333 | 5ecfb0ff97ac617e926e333be57f3b60 |
+| VIX Filtered No NVDA | 27331334 | 27907ae90d4c62402a12c892104e4843 |
+| Momentum Acceleration No NVDA | 27331335 | 680184cc7f78188b8a679b8541ee0ce2 |
+| Regime Concentrated No NVDA | 27331337 | 5e252dbce7b8e4ec463a266d5caea159 |
 
 ---
 
@@ -439,6 +444,11 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | `momentum_acceleration.py` | Acceleration signal | 44.12% | 1.11 | 38.8% |
 | `vix_filtered_momentum.py` | **LOWEST DD** - VIX < 25 filter | 33.05% | 1.11 | **22.9%** |
 | `regime_concentrated_momentum.py` | Regime + Top 3 | 39.53% | 1.04 | 33.6% |
+| `adaptive_lookback_no_nvda.py` | **MOST ROBUST** - No NVDA | 39.25% | 0.997 | 39.0% |
+| `momentum_acceleration_no_nvda.py` | 2nd most robust - No NVDA | 37.48% | 0.934 | 49.4% |
+| `quality_momentum_no_nvda.py` | No NVDA test | 24.97% | 0.861 | 32.1% |
+| `vix_filtered_no_nvda.py` | No NVDA test | 22.24% | 0.788 | 23.2% |
+| `regime_concentrated_no_nvda.py` | No NVDA test | 28.37% | 0.794 | 32.5% |
 
 ---
 
@@ -453,6 +463,35 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 - **Regime + Concentrated** - Solid (39.53% CAGR, 1.036 Sharpe, 33.6% DD)
 - **Key insight**: Combining successful elements (regime filters, NVDA, adaptive parameters) works!
 - **Key insight**: NVDA inclusion + quality filter + regime = best risk-adjusted returns
+
+### 2026-01-08 (Session 6 - Robustness Testing WITHOUT NVDA)
+
+**Critical test**: Remove NVDA from all Round 6 strategies to verify they work without the dominant performer.
+
+| Strategy | CAGR (w/NVDA) | CAGR (no NVDA) | Δ CAGR | Sharpe (w/NVDA) | Sharpe (no NVDA) | Δ Sharpe |
+|----------|---------------|----------------|--------|-----------------|------------------|----------|
+| **Adaptive Lookback** | 51.34% | 39.25% | -12.1% | 1.23 | **0.997** | -0.23 |
+| **Momentum Acceleration** | 44.12% | 37.48% | -6.6% | 1.11 | **0.934** | -0.18 |
+| Regime Concentrated | 39.53% | 28.37% | -11.2% | 1.04 | 0.794 | -0.24 |
+| Quality NVDA | 40.95% | 24.97% | -16.0% | 1.28 | 0.861 | -0.42 |
+| VIX Filtered | 33.05% | 22.24% | -10.8% | 1.11 | 0.788 | -0.32 |
+
+**Most Robust Strategies (still near Sharpe 1.0 without NVDA):**
+1. **Adaptive Lookback** - Sharpe 0.997 without NVDA (only -0.23 drop), still 39.25% CAGR
+2. **Momentum Acceleration** - Sharpe 0.934 without NVDA (only -0.18 drop), still 37.48% CAGR
+
+**NVDA-Dependent Strategies:**
+- **Quality NVDA** lost the most (-16% CAGR, -0.42 Sharpe) - heavily relied on NVDA
+- **VIX Filtered** and **Regime Concentrated** also dropped significantly (-0.32 and -0.24 Sharpe)
+
+**Key Conclusions:**
+1. **Adaptive Lookback and Momentum Acceleration are genuinely robust** - near Sharpe 1.0 even without NVDA
+2. **All 5 strategies still beat SPY** (17% CAGR, 0.57 Sharpe) even without NVDA
+3. **NVDA was responsible for ~10-15% of CAGR** across all strategies
+4. **Quality filter alone isn't enough** - without NVDA, Quality strategy dropped most
+5. **Adaptive parameters (VIX-based lookback) provide real edge** beyond stock selection
+
+**Recommendation**: Use **Adaptive Lookback Momentum** as primary strategy - highest returns WITH AND without NVDA
 
 ### 2026-01-08 (Session 5 - Round 5 Experiments)
 - **Dual Momentum Filter** - Best R5 (32.46% CAGR, 0.868 Sharpe, 38.3% DD)
