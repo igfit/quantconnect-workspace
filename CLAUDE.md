@@ -234,8 +234,10 @@ Tested BX Trender on BTC/ETH (2021-2024):
 | Wave-EWO MSTR | `algorithms/strategies/wave_ewo_mstr.py` | 365% return, 0.91 Sharpe (high DD) |
 | Wave-EWO SMCI | `algorithms/strategies/wave_ewo_smci.py` | 159% return, 0.65 Sharpe |
 | Wave-EWO COIN | `algorithms/strategies/wave_ewo_coin.py` | 41% return (avoid - crypto correlation) |
-| **Momentum Accel Entry** | `algorithms/strategies/momentum_acceleration_entry.py` | **Best momentum**: 32.94% CAGR, 1.035 Sharpe, 21.1% DD |
+| **Momentum Accel MegaCap** | `algorithms/strategies/momentum_accel_megacap.py` | **NEW BEST**: 39.94% CAGR, 1.248 Sharpe, 28.6% DD |
+| Momentum Accel Entry | `algorithms/strategies/momentum_acceleration_entry.py` | 32.94% CAGR, 1.035 Sharpe, 21.1% DD |
 | Momentum Accel No NVDA | `algorithms/strategies/momentum_acceleration_no_nvda.py` | Robustness test: 28.47% CAGR without NVDA |
+| Momentum Accel OOS | `algorithms/strategies/momentum_accel_oos.py` | OOS test (2015-2019): 18.83% CAGR |
 | Momentum Weighted Trail | `algorithms/strategies/momentum_weighted_trailing.py` | 29.35% CAGR, 0.91 Sharpe, trailing stops |
 | Momentum Ride Winners | `algorithms/strategies/momentum_ride_winners.py` | 19.98% CAGR (stop-loss hurt returns) |
 | Momentum Aggressive | `algorithms/strategies/momentum_aggressive_signals.py` | 16.03% CAGR (ultra-concentrated, didn't work) |
