@@ -24,11 +24,17 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     - All existed before 2015
     - Mix of winners AND losers (no hindsight)
     - Sector-balanced exposure
+
+    TREND FILTER: Only buy stocks that are:
+    1. Above their 100-day SMA (uptrend)
+    2. Have positive momentum score > MIN_MOMENTUM
+    3. Have positive 20-day returns (not down-ranging)
     """
 
     MOMENTUM_LOOKBACK = 63
     TOP_N = 5
-    MIN_MOMENTUM = 10
+    MIN_MOMENTUM = 15  # Stricter threshold
+    TREND_SMA_PERIOD = 100  # Stock must be above this SMA
 
     def initialize(self):
         self.set_start_date(2015, 1, 1)
@@ -118,7 +124,12 @@ class ClenowHighBetaSystematic(QCAlgorithm):
 
         self.current_holdings = set()
         self.peak_equity = 100000
-        self.set_warmup(timedelta(days=100))
+        self.set_warmup(timedelta(days=150))  # Longer warmup for SMA
+
+        # Store SMAs for trend filter
+        self.stock_smas = {}
+        for symbol in self.stocks:
+            self.stock_smas[symbol] = self.sma(symbol, self.TREND_SMA_PERIOD, Resolution.DAILY)
 
         self.schedule.on(
             self.date_rules.month_start(self.spy),
@@ -155,6 +166,39 @@ class ClenowHighBetaSystematic(QCAlgorithm):
             return annualized_slope * r_squared
         except:
             return None
+
+    def is_uptrending(self, symbol) -> bool:
+        """
+        Check if stock is in uptrend (not down-ranging):
+        1. Price > 100-day SMA
+        2. 20-day return is positive
+        """
+        # Check SMA filter
+        if symbol not in self.stock_smas:
+            return False
+
+        sma = self.stock_smas[symbol]
+        if not sma.is_ready:
+            return False
+
+        price = self.securities[symbol].price
+        if price <= 0 or price < sma.current.value:
+            return False  # Below SMA = downtrend
+
+        # Check recent returns (20-day)
+        history = self.history(symbol, 21, Resolution.DAILY)
+        if history.empty or len(history) < 20:
+            return False
+
+        try:
+            prices = history['close'].values
+            recent_return = (prices[-1] / prices[0]) - 1
+            if recent_return < -0.05:  # Down more than 5% in 20 days = avoid
+                return False
+        except:
+            return False
+
+        return True
 
     def get_regime_exposure(self) -> float:
         if not self.spy_sma.is_ready:
@@ -204,15 +248,27 @@ class ClenowHighBetaSystematic(QCAlgorithm):
                 self.log("LOW EXPOSURE → CASH")
             return
 
+        # Rank stocks: must be uptrending AND have good momentum
         rankings = []
+        filtered_out = 0
         for symbol in self.stocks:
+            # TREND FILTER: Skip stocks that are down-ranging
+            if not self.is_uptrending(symbol):
+                filtered_out += 1
+                continue
+
             mom = self.calculate_momentum(symbol)
             if mom is not None and mom > self.MIN_MOMENTUM:
                 rankings.append((symbol, mom))
 
+        self.log(f"Filtered out {filtered_out} down-ranging stocks")
+
+        # If not enough uptrending stocks with high momentum, lower threshold
         if len(rankings) < self.TOP_N:
             rankings = []
             for symbol in self.stocks:
+                if not self.is_uptrending(symbol):
+                    continue
                 mom = self.calculate_momentum(symbol)
                 if mom is not None and mom > 0:
                     rankings.append((symbol, mom))
