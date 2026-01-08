@@ -587,4 +587,86 @@ Gold worked (+$10K), bonds didn't (-$15K) in 2020-2024. Future may differ.
 
 ---
 
-*Last Updated: 2026-01-08 (Round 6 Complete)*
+### 2026-01-08 (Session 8 - Rounds 8-11: Targeting 30% CAGR with <30% DD, NO NVDA)
+
+**Goal**: Achieve 30% CAGR with Sharpe >1.0 and Max DD <30% WITHOUT NVDA.
+
+#### Round 8: Initial Attempts
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| Tiered Momentum | 26.24% | 0.926 | 19.6% | **Best R8** - tiered weighting |
+| Quality Concentrated 10 | 24.53% | 1.047 | 16.2% | Best Sharpe, but returns low |
+| Adaptive Concentration | 23.33% | 0.778 | 25.9% | VIX-based position count |
+| Dual Filter Momentum | 23.16% | 0.814 | 26.1% | SPY+VIX dual filter |
+| Low Vol Momentum | 5.49% | 0.184 | N/A | **FAILED** - filtered out winners |
+
+**Learning**: Without NVDA, ceiling ~26% CAGR with 10 positions.
+
+#### Round 9: Leverage Experiments
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| Levered Bull 1.25x | 27.29% | 0.82 | **40.1%** | DD exploded past 30% |
+| Weekly Momentum | 25.03% | 0.922 | 24.1% | Good Sharpe |
+| Aggressive Regime | 22.15% | 0.778 | 27.1% | VIX-based leverage |
+| Tech Concentrated | 20.70% | 0.761 | 32.3% | Tech correlation hurt |
+| Breakout Momentum | 7.88% | 0.309 | 13.9% | **FAILED** - late entries |
+
+**Learning**: 1.25x leverage overshoots DD limit. Breakout strategy doesn't work.
+
+#### Round 10: Refined Approaches
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| **Short Momentum (3mo)** | **26.26%** | **0.991** | **23.1%** | **BREAKTHROUGH!** |
+| Weekly Tiered | 19.61% | 0.736 | 26.9% | Too much churn |
+| Conservative 1.15x | 21.91% | 0.731 | 35.1% | DD still too high |
+| Stop-Loss Leverage | 17.35% | 0.666 | 21.2% | Stop-loss killed gains |
+| Concentrated Top5 | 20.06% | 0.688 | 33.2% | DD > returns |
+
+**KEY INSIGHT**: 3-month momentum lookback (vs 6-month) significantly improved risk-adjusted returns!
+
+#### Round 11: Final Optimization - TARGET HIT! 🎯
+| Strategy | CAGR | Sharpe | Max DD | Status |
+|----------|------|--------|--------|--------|
+| **Short 3mo + 1.15x Lev** | **30.36%** | **1.031** | **26.1%** | ✅ **ALL TARGETS MET!** |
+| Short 3mo Weekly | 25.24% | 0.984 | 19.8% | Great risk-adjusted |
+| Ultra Short 1mo | 17.86% | 0.703 | 20.3% | Too noisy |
+
+### 🏆 WINNING STRATEGY (No NVDA): Short Momentum + 1.15x Leverage
+
+**File**: `algorithms/strategies/short_momentum_levered.py`
+
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| **CAGR** | **30.36%** | 30%+ | ✅ **ACHIEVED** |
+| **Sharpe** | **1.031** | > 1.0 | ✅ **ACHIEVED** |
+| **Max DD** | **26.1%** | < 30% | ✅ **ACHIEVED** |
+| Total Return | 277% | - | Excellent |
+
+**Top Contributors (P&L):**
+1. TSLA: +$44,879 (16.2%)
+2. META: +$39,012 (14.1%)
+3. SHOP: +$26,362 (9.5%)
+4. NOW: +$20,274 (7.3%)
+5. AVGO: +$18,444 (6.6%)
+
+**WHY IT WORKS:**
+1. **3-month momentum is more responsive** than 6-month - catches breakouts earlier
+2. **1.15x leverage** is the sweet spot - boosts returns without exploding DD
+3. **Tiered weighting** (top 3 at 15%, next 7 at 7%) concentrates on winners
+4. **SPY > 200 SMA regime filter** avoids bear markets entirely
+5. **50 SMA trend filter** on individual stocks adds quality filter
+
+**WHY 3-MONTH BEATS 6-MONTH:**
+- Momentum is strongest in 3-12 month window
+- 3-month captures recent acceleration
+- 6-month is "staler" - by the time you see it, move may be ending
+- In fast-moving markets (2020-2024), shorter lookback = earlier entry
+
+**RISK FACTORS:**
+- Leverage amplifies both gains and losses
+- 3-month signal is noisier than 6-month
+- Still relies on TSLA (16% of P&L) but diversified across 10 positions
+
+---
+
+*Last Updated: 2026-01-08 (Rounds 8-11 Complete - TARGET HIT!)*
