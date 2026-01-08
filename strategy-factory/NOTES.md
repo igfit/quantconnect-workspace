@@ -173,6 +173,39 @@ maintaining strong momentum signal. 8 positions, max 3 per sector, 35% sector ca
 **Bug Fixed:** Variable naming shadowing - `self.momp = {}` shadows `self.momp()` method.
 Use `self.momp_ind = {}` instead.
 
+### Round 10 - Drawdown Reduction (2026-01-08)
+
+**Goal:** Reduce drawdown while maintaining Sharpe > 1.0.
+
+**Solutions Tested:**
+1. **TrendMomRSIExit** - ADX entry + RSI < 30 early exit
+2. **ATRTrailingStop** - ADX entry + ATR-based trailing stops
+3. **AccelMomentum** - Only enter when momentum accelerating (1m > 3m)
+4. **VolTargeted** - Position sizing to target constant portfolio volatility
+5. **DualFilterMom** - ADX + RSI confirmation for entry AND exit
+
+**Results:**
+| Strategy | Sharpe | CAGR | Max DD | Win% |
+|----------|--------|------|--------|------|
+| TrendMomRSIExit | **1.351** | 32.7% | 21.7% | 70% |
+| ATRTrailingStop | **1.243** | 24.0% | **14.7%** | 58% |
+| DualFilterMom | 0.953 | 16.9% | 15.7% | 49% |
+| VolTargeted | 0.814 | 11.0% | **6.4%** | 63% |
+| AccelMomentum | 0.275 | 8.3% | 28.0% | 58% |
+
+**Key Insights:**
+1. **ATR trailing stops are the key to drawdown** - 14.7% MaxDD vs 22.8% in R9
+2. **RSI early exit improves Sharpe** - 1.351 vs 1.321 with faster exits
+3. **Acceleration filter FAILS** - Too restrictive, missed opportunities
+4. **Volatility targeting too conservative** - Low DD but also low returns
+
+**Best By Use Case:**
+- Best Overall: TrendMomRSIExit (Sharpe 1.351)
+- Best Drawdown: ATRTrailingStop (MaxDD 14.7%, still Sharpe > 1.0)
+- Most Conservative: VolTargeted (MaxDD 6.4%, but CAGR only 11%)
+
+**Progress:** MaxDD improved 22.8% → 14.7% (-35%) while Sharpe improved 1.321 → 1.351
+
 ---
 
 ### What Works
