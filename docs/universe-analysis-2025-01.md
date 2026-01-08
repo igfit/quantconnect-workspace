@@ -131,5 +131,111 @@ The momentum universe remains well-positioned for 2025 with strong quality metri
 
 ---
 
+## Full Universe Generator Results
+
+### Phase 1: Quantitative Screening
+
+Started with 37 S&P 500 / NASDAQ-100 candidates, applied filters:
+- Market cap: $20B - $3T
+- Gross margin: ≥30%
+- Revenue growth: ≥5% CAGR
+- ROE: ≥12%
+- Debt/Equity: ≤2.0
+
+**Result: 24 stocks passed quantitative filters**
+
+### Phase 2: LLM Qualitative Analysis (Claude Opus 4.5)
+
+Each stock analyzed for:
+- **Moat Score** (0-10): Network effects, switching costs, cost advantages, intangibles
+- **Tailwind Score** (0-10): AI, cloud, clean energy, healthcare innovation exposure
+- **Management Score** (0-10): Capital allocation, execution, alignment
+- **Disruption Risk** (0-10): Tech disruption, regulatory, competitive threats
+
+### Phase 3: Final Universe (Ranked by Composite Score)
+
+| Rank | Ticker | Score | Sector | Moat | Tailwind | Mgmt | Risk | Key Strength |
+|------|--------|-------|--------|------|----------|------|------|--------------|
+| 1 | NVDA | 0.834 | Tech | 9 | 10 | 9 | 5 | CUDA ecosystem dominance |
+| 2 | PANW | 0.764 | Tech | 7 | 9 | 8 | 5 | Enterprise security platform |
+| 3 | MSFT | 0.760 | Tech | 9 | 9 | 9 | 3 | Azure + OpenAI partnership |
+| 4 | V | 0.754 | Financials | 9 | 8 | 8 | 4 | Payment network dominance |
+| 5 | AVGO | 0.752 | Tech | 8 | 8 | 9 | 4 | AI networking + custom ASICs |
+| 6 | LLY | 0.734 | Healthcare | 8 | 9 | 8 | 4 | GLP-1 obesity drugs |
+| 7 | ADBE | 0.697 | Tech | 9 | 7 | 7 | 6 | Creative suite monopoly |
+| 8 | AMAT | 0.690 | Tech | 8 | 9 | 7 | 4 | Semiconductor equipment |
+| 9 | META | 0.673 | Tech | 8 | 7 | 7 | 6 | 3B+ user network effects |
+| 10 | CRWD | 0.668 | Tech | 8 | 9 | 8 | 5 | AI-powered cybersecurity |
+| 11 | NOW | 0.646 | Tech | 8 | 8 | 8 | 4 | Enterprise workflow lock-in |
+| 12 | GOOGL | 0.634 | Tech | 9 | 8 | 7 | 6 | Search monopoly + YouTube |
+| 13 | QCOM | 0.617 | Tech | 7 | 7 | 6 | 6 | Wireless IP patents |
+| 14 | CAT | 0.611 | Industrials | 8 | 6 | 7 | 4 | Dealer network moat |
+| 15 | INTU | 0.606 | Tech | 8 | 7 | 8 | 5 | TurboTax/QuickBooks lock-in |
+| 16 | DE | 0.602 | Industrials | 8 | 6 | 8 | 3 | Precision ag technology |
+| 17 | MA | 0.600 | Financials | 9 | 8 | 8 | 4 | Payment duopoly with Visa |
+| 18 | AMZN | 0.591 | Tech | 9 | 9 | 8 | 4 | AWS + logistics network |
+| 19 | HON | 0.564 | Industrials | 7 | 6 | 7 | 4 | Aerospace/building systems |
+| 20 | GE | 0.529 | Industrials | 8 | 8 | 8 | 3 | Jet engine duopoly |
+| 21 | JPM | 0.522 | Financials | 8 | 5 | 9 | 4 | Banking scale advantage |
+| 22 | NFLX | 0.516 | Tech | 6 | 5 | 7 | 7 | Content library + brand |
+| 23 | AAPL | 0.507 | Tech | 9 | 6 | 8 | 4 | Ecosystem lock-in |
+| 24 | GS | 0.394 | Financials | 7 | 5 | 6 | 5 | Elite investment bank |
+
+### Sector Distribution
+
+| Sector | Count | % of Universe |
+|--------|-------|---------------|
+| Tech | 15 | 62.5% |
+| Financials | 4 | 16.7% |
+| Industrials | 4 | 16.7% |
+| Healthcare | 1 | 4.2% |
+
+### Composite Score Formula
+
+```
+Quantitative (40%):
+  - Revenue Growth (0-30%)    → 10%
+  - Gross Margin (30-80%)     → 8%
+  - ROE (10-40%)              → 8%
+  - ROIC (10-35%)             → 8%
+  - Low Debt (inverse D/E)    → 6%
+
+Qualitative (40%):
+  - Moat Score                → 15%
+  - Tailwind Score            → 10%
+  - Management Score          → 10%
+  - Low Disruption Risk       → 5%
+
+Momentum (20%):
+  - 12-month momentum         → 10%
+  - 6-month momentum          → 10%
+```
+
+### Key Insights
+
+1. **NVDA leads** with highest tailwind score (10) due to AI infrastructure buildout
+2. **Cybersecurity** (PANW, CRWD) emerged as top non-megacap opportunities
+3. **Payment networks** (V, MA) have exceptional moat scores (9/10) but lower growth
+4. **Healthcare** underrepresented - only LLY passed all filters
+5. **Industrials** provide diversification with solid moats (CAT, DE, GE, HON)
+
+### vs. Original Hand-Picked Universe
+
+| Metric | Original Universe | Generated Universe |
+|--------|------------------|-------------------|
+| Stocks | 26 | 24 |
+| Tech % | 58% | 62.5% |
+| Added | - | PANW, CRWD, AMAT, NOW, INTU, HON, GE |
+| Removed | TSLA, AMD, CRM, ORCL, SHOP, TXN, UNH, COST, HD | - |
+
+Key differences:
+- **Removed TSLA**: High disruption risk (7), margin compression
+- **Removed SHOP**: Failed gross margin filter (47% < threshold)
+- **Added cybersecurity**: PANW, CRWD have exceptional tailwinds
+- **Added semi equipment**: AMAT benefits from AI chip buildout
+
+---
+
 *Analysis Date: 2025-01-08*
 *Model: claude-opus-4-5-20251101*
+*Methodology: Systematic Quant + LLM Qual (docs/universe-generation-system.md)*

@@ -1,0 +1,276 @@
+{
+  "generated_date": "2025-01-08",
+  "methodology": "Quantitative + LLM Qualitative (Claude Opus 4.5)",
+  "total_candidates_screened": 37,
+  "passed_quant_filters": 24,
+  "passed_qual_filters": 24,
+  "final_universe_size": 24,
+  "tickers": [
+    "NVDA",
+    "PANW",
+    "MSFT",
+    "V",
+    "AVGO",
+    "LLY",
+    "ADBE",
+    "AMAT",
+    "META",
+    "CRWD",
+    "NOW",
+    "GOOGL",
+    "QCOM",
+    "CAT",
+    "INTU",
+    "DE",
+    "MA",
+    "AMZN",
+    "HON",
+    "GE",
+    "JPM",
+    "NFLX",
+    "AAPL",
+    "GS"
+  ],
+  "stocks": [
+    {
+      "ticker": "NVDA",
+      "sector": "Tech",
+      "composite_score": 0.834,
+      "moat": 9,
+      "tailwind": 10,
+      "management": 9,
+      "disruption_risk": 5,
+      "key_risk": "Customer concentration risk. AMD, Intel, and custom AI chips from hyperscalers threaten margins."
+    },
+    {
+      "ticker": "PANW",
+      "sector": "Tech",
+      "composite_score": 0.764,
+      "moat": 7,
+      "tailwind": 9,
+      "management": 8,
+      "disruption_risk": 5,
+      "key_risk": "Crowdstrike competition intensifying; commoditization risk in point solutions; valuation assumes flawless execution."
+    },
+    {
+      "ticker": "MSFT",
+      "sector": "Tech",
+      "composite_score": 0.76,
+      "moat": 9,
+      "tailwind": 9,
+      "management": 9,
+      "disruption_risk": 3,
+      "key_risk": "Antitrust scrutiny, AWS/Google cloud competition, AI commoditization potential."
+    },
+    {
+      "ticker": "V",
+      "sector": "Financials",
+      "composite_score": 0.754,
+      "moat": 9,
+      "tailwind": 8,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "Regulatory interchange pressure, real-time payment rails, and potential big tech competition."
+    },
+    {
+      "ticker": "AVGO",
+      "sector": "Tech",
+      "composite_score": 0.752,
+      "moat": 8,
+      "tailwind": 8,
+      "management": 9,
+      "disruption_risk": 4,
+      "key_risk": "Customer concentration risk; hyperscalers developing in-house chips; VMware integration execution."
+    },
+    {
+      "ticker": "LLY",
+      "sector": "Healthcare",
+      "composite_score": 0.734,
+      "moat": 8,
+      "tailwind": 9,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "Patent cliffs, GLP-1 competition from Novo Nordisk, potential Medicare pricing pressure."
+    },
+    {
+      "ticker": "ADBE",
+      "sector": "Tech",
+      "composite_score": 0.697,
+      "moat": 9,
+      "tailwind": 7,
+      "management": 7,
+      "disruption_risk": 6,
+      "key_risk": "Generative AI tools from startups threaten to democratize design, reducing Adobe's professional moat."
+    },
+    {
+      "ticker": "AMAT",
+      "sector": "Tech",
+      "composite_score": 0.69,
+      "moat": 8,
+      "tailwind": 9,
+      "management": 7,
+      "disruption_risk": 4,
+      "key_risk": "China export restrictions, cyclical semiconductor capex swings, ASML competition in leading-edge nodes."
+    },
+    {
+      "ticker": "META",
+      "sector": "Tech",
+      "composite_score": 0.673,
+      "moat": 8,
+      "tailwind": 7,
+      "management": 7,
+      "disruption_risk": 6,
+      "key_risk": "TikTok competition, regulatory privacy changes, Apple ATT impact, metaverse capital destruction."
+    },
+    {
+      "ticker": "CRWD",
+      "sector": "Tech",
+      "composite_score": 0.668,
+      "moat": 8,
+      "tailwind": 9,
+      "management": 8,
+      "disruption_risk": 5,
+      "key_risk": "Intense competition from Microsoft, SentinelOne; platform consolidation may commoditize endpoint security."
+    },
+    {
+      "ticker": "NOW",
+      "sector": "Tech",
+      "composite_score": 0.646,
+      "moat": 8,
+      "tailwind": 8,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "Microsoft and Salesforce expanding into workflow automation; AI could commoditize some features."
+    },
+    {
+      "ticker": "GOOGL",
+      "sector": "Tech",
+      "composite_score": 0.634,
+      "moat": 9,
+      "tailwind": 8,
+      "management": 7,
+      "disruption_risk": 6,
+      "key_risk": "AI search disruption from ChatGPT/Perplexity, antitrust breakup risk, ad market cyclicality."
+    },
+    {
+      "ticker": "QCOM",
+      "sector": "Tech",
+      "composite_score": 0.617,
+      "moat": 7,
+      "tailwind": 7,
+      "management": 6,
+      "disruption_risk": 6,
+      "key_risk": "Apple modem development, ARM competition, China revenue exposure, and antitrust regulatory pressure."
+    },
+    {
+      "ticker": "CAT",
+      "sector": "Industrials",
+      "composite_score": 0.611,
+      "moat": 8,
+      "tailwind": 6,
+      "management": 7,
+      "disruption_risk": 4,
+      "key_risk": "Electric/autonomous equipment transition; Chinese competitors gaining share in emerging markets."
+    },
+    {
+      "ticker": "INTU",
+      "sector": "Tech",
+      "composite_score": 0.606,
+      "moat": 8,
+      "tailwind": 7,
+      "management": 8,
+      "disruption_risk": 5,
+      "key_risk": "Free tax filing initiatives, AI commoditization of bookkeeping, fintech startups targeting SMBs."
+    },
+    {
+      "ticker": "DE",
+      "sector": "Industrials",
+      "composite_score": 0.602,
+      "moat": 8,
+      "tailwind": 6,
+      "management": 8,
+      "disruption_risk": 3,
+      "key_risk": "Ag cycle downturns, trade wars, and emerging EV/autonomous competitors like AGCO and CNH."
+    },
+    {
+      "ticker": "MA",
+      "sector": "Financials",
+      "composite_score": 0.6,
+      "moat": 9,
+      "tailwind": 8,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "Regulatory interchange pressure, real-time payments rails, BNPL, and central bank digital currencies."
+    },
+    {
+      "ticker": "AMZN",
+      "sector": "Tech",
+      "composite_score": 0.591,
+      "moat": 9,
+      "tailwind": 9,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "Antitrust scrutiny, AWS margin pressure from competition, union organizing momentum."
+    },
+    {
+      "ticker": "HON",
+      "sector": "Industrials",
+      "composite_score": 0.564,
+      "moat": 7,
+      "tailwind": 6,
+      "management": 7,
+      "disruption_risk": 4,
+      "key_risk": "Conglomerate structure may lag pure-play specialists; aerospace competition intensifying from new entrants."
+    },
+    {
+      "ticker": "GE",
+      "sector": "Industrials",
+      "composite_score": 0.529,
+      "moat": 8,
+      "tailwind": 8,
+      "management": 8,
+      "disruption_risk": 3,
+      "key_risk": "Long certification cycles for new entrants, but sustainable aviation fuel transition poses uncertainty."
+    },
+    {
+      "ticker": "JPM",
+      "sector": "Financials",
+      "composite_score": 0.522,
+      "moat": 8,
+      "tailwind": 5,
+      "management": 9,
+      "disruption_risk": 4,
+      "key_risk": "Fintech/neobank disruption in payments and retail banking; regulatory capital requirements."
+    },
+    {
+      "ticker": "NFLX",
+      "sector": "Tech",
+      "composite_score": 0.516,
+      "moat": 6,
+      "tailwind": 5,
+      "management": 7,
+      "disruption_risk": 7,
+      "key_risk": "Intense competition from Disney, Amazon, Apple with deeper pockets and bundling advantages."
+    },
+    {
+      "ticker": "AAPL",
+      "sector": "Tech",
+      "composite_score": 0.507,
+      "moat": 9,
+      "tailwind": 6,
+      "management": 8,
+      "disruption_risk": 4,
+      "key_risk": "China revenue exposure, regulatory App Store threats, AI assistant gap versus competitors."
+    },
+    {
+      "ticker": "GS",
+      "sector": "Financials",
+      "composite_score": 0.394,
+      "moat": 7,
+      "tailwind": 5,
+      "management": 6,
+      "disruption_risk": 5,
+      "key_risk": "Fintech competition in wealth, regulatory capital requirements, cyclical deal flow dependency."
+    }
+  ]
+}
