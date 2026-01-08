@@ -1,0 +1,9 @@
+{
+  "symbols": [
+    "SPY",
+    "EFA",
+    "BND"
+  ],
+  "lookback_days": 252,
+  "rebalance": "monthly"
+}

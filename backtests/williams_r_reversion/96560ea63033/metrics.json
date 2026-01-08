@@ -1,0 +1,22 @@
+{
+  "strategy_name": "williams_r_reversion",
+  "universe": "single_instrument",
+  "backtest_id": "96560ea63033b1bef5d399e106747fd0",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 140727.35,
+  "cagr": 3.473,
+  "sharpe": 0.067,
+  "max_drawdown": 29.0,
+  "total_trades": 41,
+  "win_rate": 78.04878048780488,
+  "avg_win_pct": 2.1468240642351297,
+  "avg_loss_pct": -3.3056586482003865,
+  "risk_reward": 0.649439126270303,
+  "profit_factor": 0.65,
+  "avg_bars_held": 16,
+  "time_in_market": 0.0,
+  "total_fees": -160.8,
+  "net_profit": 40458.68
+}

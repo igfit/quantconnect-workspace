@@ -1,0 +1,22 @@
+{
+  "strategy_name": "sector_rotation",
+  "universe": "sector_spdrs",
+  "backtest_id": "f199199252f7a84316a6a2cf33a8b8ef",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 181709.44,
+  "cagr": 6.15,
+  "sharpe": 0.243,
+  "max_drawdown": 19.7,
+  "total_trades": 207,
+  "win_rate": 61.83574879227053,
+  "avg_win_pct": 7.907416967922944,
+  "avg_loss_pct": -3.594544669517806,
+  "risk_reward": 2.199838281320814,
+  "profit_factor": 0.96,
+  "avg_bars_held": 62,
+  "time_in_market": 0.0,
+  "total_fees": -1519.47,
+  "net_profit": 72657.83
+}

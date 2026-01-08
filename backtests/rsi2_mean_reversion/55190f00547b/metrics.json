@@ -1,0 +1,22 @@
+{
+  "strategy_name": "rsi2_mean_reversion",
+  "universe": "single_instrument",
+  "backtest_id": "55190f00547b008db39434c587dd83ff",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 146370.56,
+  "cagr": 3.88,
+  "sharpe": 0.098,
+  "max_drawdown": 29.0,
+  "total_trades": 61,
+  "win_rate": 75.40983606557377,
+  "avg_win_pct": 1.9744800115053074,
+  "avg_loss_pct": -3.134102210773251,
+  "risk_reward": 0.6299986020615966,
+  "profit_factor": 0.63,
+  "avg_bars_held": 18,
+  "time_in_market": 0.0,
+  "total_fees": -244.52,
+  "net_profit": 46091.37
+}

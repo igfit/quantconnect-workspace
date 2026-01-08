@@ -1,0 +1,7 @@
+{
+  "symbol": "SPY",
+  "rsi_period": 2,
+  "oversold": 10,
+  "overbought": 90,
+  "regime_filter": true
+}

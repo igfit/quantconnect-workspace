@@ -1,0 +1,22 @@
+{
+  "strategy_name": "dual_momentum_gem",
+  "universe": "etf_core",
+  "backtest_id": "0651f9ce20f6514197b8075672c07a29",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 197695.96,
+  "cagr": 7.048,
+  "sharpe": 0.27,
+  "max_drawdown": 33.4,
+  "total_trades": 15,
+  "win_rate": 53.333333333333336,
+  "avg_win_pct": 10.235205275890493,
+  "avg_loss_pct": -4.034093899622516,
+  "risk_reward": 2.5371757650084037,
+  "profit_factor": 2.53,
+  "avg_bars_held": 217,
+  "time_in_market": 0.0,
+  "total_fees": -182.62,
+  "net_profit": 51984.09
+}

@@ -1,0 +1,16 @@
+{
+  "symbols": [
+    "XLK",
+    "XLF",
+    "XLV",
+    "XLE",
+    "XLI",
+    "XLP",
+    "XLY",
+    "XLB",
+    "XLU"
+  ],
+  "top_n": 3,
+  "lookback_days": 63,
+  "rebalance": "monthly"
+}

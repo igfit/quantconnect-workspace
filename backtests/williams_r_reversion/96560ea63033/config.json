@@ -1,0 +1,7 @@
+{
+  "symbol": "SPY",
+  "williams_period": 10,
+  "oversold": -90,
+  "overbought": -10,
+  "regime_filter": true
+}
