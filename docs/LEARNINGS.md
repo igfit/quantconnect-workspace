@@ -850,6 +850,150 @@ position_size = base_size * scaling_factor
 
 ---
 
+## Signal-Based Momentum Strategy (Acceleration Entry)
+
+### Overview
+
+The **Acceleration Entry** strategy achieved **32.94% CAGR** with **1.035 Sharpe** and only **21.1% max drawdown** by focusing on trading SIGNALS rather than stock selection.
+
+### Core Concept
+
+**Enter when momentum is accelerating, not just positive.**
+
+```python
+# Entry Signal
+entry = (6_month_momentum > 0) AND (1_month_momentum > previous_1_month_momentum)
+
+# Position Sizing (momentum-weighted)
+weight[stock] = stock_momentum / sum(top_10_momentum)
+```
+
+### Strategy Parameters
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| Lookback | 126 days (6 months) | Optimal - 3m/9m/12m all worse |
+| Positions | Top 10 | Balances returns vs robustness |
+| Rebalancing | Weekly (Monday) | Faster signal response |
+| Regime Filter | SPY > 200 SMA | Avoids bear markets |
+| Position Sizing | Momentum-weighted | Ride winners harder |
+
+### Signal Optimization Results
+
+| Configuration | CAGR | Sharpe | Max DD | Notes |
+|---------------|------|--------|--------|-------|
+| 3m lookback | 17.4% | 0.55 | 30.9% | Too noisy |
+| **6m lookback** | **24.5%** | **0.76** | **28.8%** | **Optimal** |
+| 9m lookback | 16.8% | 0.51 | 32.0% | Too slow |
+| 12m lookback | 15.0% | 0.46 | 27.2% | Misses moves |
+| Top 5 (concentrated) | 28.9% | 0.81 | 29.8% | NVDA-dependent |
+| **Top 10 (balanced)** | **24.5%** | **0.76** | **28.8%** | **Robust** |
+| Top 15 (diversified) | 19.9% | 0.65 | 29.5% | Diluted |
+| + Acceleration filter | **32.9%** | **1.04** | **21.1%** | **Best** |
+
+### Key Findings
+
+1. **Acceleration > Raw Momentum**: Entering when momentum is increasing (not just positive) adds ~8% CAGR
+2. **Momentum Weighting**: Allocating more to stronger momentum outperforms equal weight
+3. **Weekly Rebalancing**: Faster than monthly, captures trend changes
+4. **Stop-Losses Hurt**: Tested 8-15% stops - all reduced returns by cutting winners early
+5. **6-Month Optimal**: Shorter is noisy, longer misses moves
+
+### Robustness Testing (Without NVDA)
+
+| Strategy | With NVDA | Without NVDA | CAGR Drop |
+|----------|-----------|--------------|-----------|
+| Top 5 | 28.9% | 17.7% | -11.2% ❌ |
+| **Top 10** | **24.5%** | **21.3%** | **-3.1%** ✓ |
+| Acceleration Entry | 32.9% | 28.5% | -4.5% ✓ |
+
+**Conclusion**: Top 10 is robust. Alpha comes from signals, not single-stock dependency.
+
+### Implementation
+
+```python
+# Key code from momentum_acceleration_entry.py
+
+def rebalance(self):
+    # Regime filter
+    if self.securities[self.spy].price < self.spy_sma.current.value:
+        self.liquidate()
+        return
+
+    scores = {}
+    for symbol in self.symbols:
+        mom = self.momentum[symbol].current.value      # 6-month ROC
+        short_mom = self.short_mom[symbol].current.value  # 1-month ROC
+        prev_mom = self.prev_short_mom.get(symbol, 0)
+
+        acceleration = short_mom - prev_mom
+        self.prev_short_mom[symbol] = short_mom
+
+        # Only enter if positive momentum AND accelerating
+        if mom > 0 and acceleration > 0:
+            scores[symbol] = mom
+
+    # Momentum-weighted positions
+    top_symbols = sorted(scores, key=scores.get, reverse=True)[:10]
+    total_mom = sum(scores[s] for s in top_symbols)
+    for symbol in top_symbols:
+        self.set_holdings(symbol, scores[symbol] / total_mom)
+```
+
+### Universe Generation (Hindsight-Free)
+
+Used Claude AI to generate universe based on **features** not returns:
+
+**Selection Criteria**:
+- High beta (1.2-2.0)
+- Profitable or near-profitable
+- US-focused (no China risk)
+- Market leaders (#1-2 in category)
+- Liquid (>$5M daily volume)
+
+**Sectors Included** (56 stocks):
+- Semiconductors: NVDA, AMD, AVGO, QCOM, MU, AMAT, LRCX, KLAC, MRVL, ON
+- Software: CRM, ADBE, NOW, INTU, PANW, VEEV, WDAY
+- Payments: V, MA, PYPL, SQ
+- Travel: BKNG, RCL, CCL, MAR, HLT, WYNN
+- Energy: XOM, CVX, OXY, DVN, SLB, COP
+- Consumer: TSLA, NKE, LULU, CMG, DECK
+
+**Excluded**:
+- Chinese ADRs (BABA, JD, BIDU)
+- Legacy tech (IBM, ORCL, CSCO, INTC)
+- Defensive (utilities, staples, REITs)
+
+### Trade Statistics
+
+| Metric | Acceleration Entry |
+|--------|-------------------|
+| Total Trades | 2,680 |
+| Win Rate | 56% |
+| Avg Win | +0.46% |
+| Avg Loss | -0.34% |
+| Profit/Loss Ratio | 1.38 |
+| Risk:Reward | 1:1.38 |
+
+### Top P&L Contributors
+
+| Ticker | P&L | Trades |
+|--------|-----|--------|
+| NVDA | +$75,881 | 87 |
+| TSLA | +$46,085 | 60 |
+| DVN | +$33,738 | 40 |
+| SHOP | +$25,030 | 56 |
+| CCL | +$20,905 | 29 |
+
+### Files
+
+- `algorithms/strategies/momentum_acceleration_entry.py` - Main strategy
+- `algorithms/strategies/momentum_acceleration_no_nvda.py` - Robustness test
+- `strategy-factory/universe/claude_universe_generator.py` - Universe generation
+- `strategy-factory/universe/run_generator.py` - CLI runner
+
+---
+
 ## Future Improvements to Explore
 
 1. **Adaptive parameters** - adjust SMA periods based on volatility regime

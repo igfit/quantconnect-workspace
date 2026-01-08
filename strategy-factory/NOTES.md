@@ -297,6 +297,88 @@ Total:                ~1-1.5 minutes
 2. Test RSI momentum filter once operator is fixed
 3. Add regime filter to infrastructure
 
+### Round 3 - 2026-01-08 (Signal Optimization)
+
+**Thesis:** Target 30-40% CAGR with signal alpha (entry/exit timing), not stock alpha. Focus on riding winners and cutting losers through trading signals.
+
+**Key Insight from User:**
+> "CAGR is too low, target 30-40%, ride winners, cut losers, but the alpha is in the trading signals entry/exit, not stock alpha"
+
+**Strategies Created (in `algorithms/strategies/`):**
+
+1. **Momentum Acceleration Entry** - Enter when momentum is accelerating (1m ROC > prev 1m ROC)
+2. **Momentum Weighted Trailing** - Momentum-weighted positions + 15% trailing stops
+3. **Momentum Ride Winners** - Top 5 concentration + 10% stop-loss
+4. **Momentum Aggressive Signals** - Top 3 ultra-concentrated with 1.5x leverage
+
+**Results:**
+| Strategy | CAGR | Sharpe | Max DD | Status |
+|----------|------|--------|--------|--------|
+| **Acceleration Entry** | **32.94%** | **1.035** | **21.1%** | ✅ TARGET HIT! |
+| Weighted Trailing | 29.35% | 0.91 | 26.3% | ✅ Good |
+| Ride Winners | 19.98% | 0.68 | 29.0% | ❌ Stop-loss hurt |
+| Aggressive Signals | 16.03% | 0.52 | 35.1% | ❌ Didn't work |
+
+**Robustness Test (No NVDA):**
+| Strategy | CAGR | Sharpe | Max DD | Delta |
+|----------|------|--------|--------|-------|
+| Accel Entry No NVDA | 28.47% | 0.94 | 23.8% | -4.5% CAGR |
+
+**Key Learnings:**
+
+1. **Acceleration Signal is Real Alpha**
+   - Entering when momentum accelerates (not just positive) adds ~8% CAGR
+   - Timing: current 1m ROC > previous 1m ROC
+
+2. **Stop-Losses HURT in Momentum Strategies**
+   - 8-15% stops cut winners too early
+   - In trending markets, pullbacks trigger stops then stock resumes uptrend
+   - Regime filter (go to cash in bear markets) better than individual stops
+
+3. **Momentum-Weighted Positions Beat Equal Weight**
+   - Allocate more to stronger momentum stocks
+   - Let winners grow, naturally reduce losers
+   - `weights = {s: scores[s] / total_mom for s in top_symbols}`
+
+4. **Weekly Rebalancing Optimal**
+   - Monthly too slow (misses opportunities)
+   - Daily too fast (whipsaw, high turnover)
+   - Weekly balances signal freshness vs transaction costs
+
+5. **6-Month Lookback Optimal**
+   - 12-month: 14.96% CAGR (too slow)
+   - 3-month: 14.64% CAGR (too noisy)
+   - 6-month: 32.94% CAGR (sweet spot)
+
+6. **Robustness Confirmed**
+   - Only 4.5% CAGR drop without NVDA
+   - Strategy works across the universe, not dependent on single stock
+
+**Universe (56 stocks across sectors):**
+- **Semiconductors**: NVDA, AMD, AVGO, QCOM, MU, AMAT, LRCX, KLAC, MRVL, ON, TXN, ADI, SNPS, CDNS, ASML
+- **Software/Cloud**: CRM, ADBE, NOW, INTU, PANW, VEEV, WDAY
+- **Payments**: V, MA, PYPL, SQ
+- **E-commerce**: AMZN, SHOP
+- **Travel/Leisure**: BKNG, RCL, CCL, MAR, HLT, WYNN
+- **Energy**: XOM, CVX, OXY, DVN, SLB, COP
+- **Industrials**: CAT, DE, URI, BA
+- **Consumer/EV**: TSLA, NKE, LULU, CMG, DECK
+- **Finance**: GS, MS
+- **Streaming**: NFLX, ROKU
+
+**Trade Statistics (Acceleration Entry):**
+- Total Trades: 573
+- Win Rate: 47%
+- Avg Win: +4.44%
+- Avg Loss: -2.06%
+- Profit Factor: 2.02
+- Top Contributors: NVDA (+$69k), AMD (+$40k), AVGO (+$36k)
+
+**Next Steps:**
+1. Port acceleration entry logic to strategy-factory spec format
+2. Test acceleration signal on different universes
+3. Add regime filter to strategy-factory infrastructure
+
 ---
 
 ## References

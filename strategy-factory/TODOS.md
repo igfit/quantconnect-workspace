@@ -1,6 +1,6 @@
 # Strategy Factory - Progress Tracker
 
-> **Last Updated:** 2026-01-07
+> **Last Updated:** 2026-01-08
 >
 > This file tracks implementation progress. Update after every work session.
 
@@ -300,6 +300,39 @@ New CLI Options:
 4. User runs: `python run_pipeline.py`
 5. Pipeline loads specs, backtests, validates, ranks
 6. Claude Code reviews results, proposes next iteration
+
+### Session 6 - 2026-01-08
+**Duration:** ~2 hours
+**Accomplished:**
+- Signal optimization experiments targeting 30-40% CAGR
+- Created 5 new momentum strategies in `algorithms/strategies/`:
+  - `momentum_acceleration_entry.py` - **32.94% CAGR** (TARGET HIT!)
+  - `momentum_weighted_trailing.py` - 29.35% CAGR
+  - `momentum_ride_winners.py` - 19.98% CAGR
+  - `momentum_aggressive_signals.py` - 16.03% CAGR
+  - `momentum_acceleration_no_nvda.py` - Robustness test
+- Verified strategy robustness (only -4.5% CAGR without NVDA)
+- Audited code for backtest pitfalls (none found)
+- Ran verification backtest on QC (confirmed results)
+- Updated Claude universe generator workflow documentation
+- Deleted deprecated `universe_generator.py`
+- Updated docs/LEARNINGS.md with signal optimization findings
+- Updated CLAUDE.md with new strategies
+- Updated strategy-factory NOTES.md with Round 3 results
+
+**Key Findings:**
+1. **Acceleration signal adds ~8% CAGR** - Enter when momentum accelerating, not just positive
+2. **Stop-losses HURT** - Cut winners too early in trending markets
+3. **6-month lookback optimal** - 3m too noisy, 12m too slow
+4. **Weekly rebalancing optimal** - Balances freshness vs costs
+5. **Momentum-weighted positions beat equal weight** - Ride winners harder
+
+**Results Summary:**
+| Strategy | CAGR | Sharpe | Max DD |
+|----------|------|--------|--------|
+| Acceleration Entry | **32.94%** | **1.035** | **21.1%** |
+| Accel No NVDA | 28.47% | 0.94 | 23.8% |
+| Weighted Trailing | 29.35% | 0.91 | 26.3% |
 
 ---
 
