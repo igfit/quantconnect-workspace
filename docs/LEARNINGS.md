@@ -44,6 +44,48 @@ Timestamp: ${timestamp}
 | Project language | `"Python"` | `"Py"` |
 | Backtest name param | `name` | `backtestName` |
 | Base64 encoding | `base64` | `base64 -w 0` (no newlines) |
+| Orders batch size | `batch_size=100` | `batch_size=99` (API max 99!) |
+
+### Orders API Pagination Bug
+
+**CRITICAL**: The `/backtests/orders/read` API returns a **maximum of 99 orders per request**, not 100!
+
+```python
+# WRONG - Will miss orders after first 99
+batch_size = 100
+if len(orders) < batch_size:  # 99 < 100 = True, exits early!
+    break
+start += batch_size
+
+# CORRECT - Step by 99, use dict to dedupe
+all_orders = {}  # Dict to dedupe by order ID
+batch_size = 99
+
+while True:
+    response = requests.post(url, json={
+        "projectId": project_id,
+        "backtestId": backtest_id,
+        "start": start,
+        "end": start + batch_size
+    })
+    orders = response.json().get('orders', [])
+    if not orders:
+        break
+
+    for o in orders:
+        all_orders[o.get('id')] = o  # Dedupe by ID
+
+    if len(orders) < batch_size:
+        break
+
+    start += batch_size  # Step by 99
+
+return [all_orders[k] for k in sorted(all_orders.keys())]
+```
+
+**Symptoms**: All strategies show exactly 99 orders regardless of actual trade count.
+
+**Impact**: Incomplete order data leads to incorrect trade statistics, P&L calculations, and win rates.
 
 ### Weekly Consolidation
 

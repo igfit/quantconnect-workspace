@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Save Phase 4 Backtest Results"""
+"""
+Re-fetch all backtest results with fixed pagination.
+
+Bug fix: QC API returns max 99 orders per request, not 100.
+"""
 
 import os
 import sys
@@ -41,7 +45,7 @@ def fetch_orders(project_id: int, backtest_id: str) -> list:
     """Fetch orders with FIXED pagination.
 
     QC API quirks:
-    - Returns max 99 orders per request (not 100!)
+    - Returns max 99 orders per request
     - Uses 0-based indexing for start/end params
     - Step by 99 (not 100) to avoid gaps
     - Use dict to dedupe by order ID
@@ -49,7 +53,7 @@ def fetch_orders(project_id: int, backtest_id: str) -> list:
     url = "https://www.quantconnect.com/api/v2/backtests/orders/read"
     all_orders = {}  # Use dict to dedupe by ID
     start = 0
-    batch_size = 99  # FIXED: API returns max 99, not 100!
+    batch_size = 99
 
     while True:
         response = requests.post(url, headers=get_auth_headers(), json={
@@ -65,19 +69,53 @@ def fetch_orders(project_id: int, backtest_id: str) -> list:
         for o in orders:
             all_orders[o.get('id')] = o
 
+        print(f"    Batch {start}: {len(orders)} orders (unique total: {len(all_orders)})")
+
         if len(orders) < batch_size:
             break
 
         start += batch_size  # Step by 99 to avoid gaps
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     # Return as list sorted by ID
     return [all_orders[k] for k in sorted(all_orders.keys())]
 
 
 def main():
-    phase4_strategies = [
-        # Best performers
+    # All strategies to refetch
+    strategies = [
+        # Phase 3 - Large Cap
+        {
+            "name": "clenow_momentum",
+            "project_id": 27337816,
+            "backtest_id": "7de0da86d586febe3cb5d64f5f60b5f7",
+            "universe": "large_cap_liquid"
+        },
+        {
+            "name": "donchian_breakout",
+            "project_id": 27337815,
+            "backtest_id": "eea5f5363fc26d77ad9fab91ed36daf6",
+            "universe": "large_cap_liquid"
+        },
+        {
+            "name": "week52_high_breakout",
+            "project_id": 27337820,
+            "backtest_id": "f431e752813c4eaa15fc2bcb8b8e6fa3",
+            "universe": "large_cap_liquid"
+        },
+        {
+            "name": "elder_impulse",
+            "project_id": 27337817,
+            "backtest_id": "ce51ad167e72ac75dcf80b1a2d24b5a1",
+            "universe": "large_cap_liquid"
+        },
+        {
+            "name": "nr7_breakout",
+            "project_id": 27337818,
+            "backtest_id": "9e28aaada1e16f1c34df86cc3bd8bc4b",
+            "universe": "large_cap_liquid"
+        },
+        # Phase 4 - High Beta
         {
             "name": "clenow_controlled",
             "project_id": 27338318,
@@ -111,24 +149,25 @@ def main():
     ]
 
     print("=" * 60)
-    print("PHASE 4 RESULTS STORAGE")
+    print("RE-FETCHING ALL RESULTS (FIXED PAGINATION)")
     print("=" * 60)
 
-    for strategy in phase4_strategies:
+    for strategy in strategies:
         print(f"\n[{strategy['name']}]")
 
         try:
             print("  Fetching stats...", end=" ")
             stats = fetch_backtest_stats(strategy['project_id'], strategy['backtest_id'])
-            print(f"OK ({stats.get('status', 'unknown')})")
+            total_orders = stats.get('statistics', {}).get('Total Orders', 'N/A')
+            print(f"OK (Total Orders: {total_orders})")
 
             if stats.get('status') != 'Completed.':
                 print(f"  SKIPPED: Not completed")
                 continue
 
-            print("  Fetching orders...", end=" ")
+            print("  Fetching orders...")
             orders = fetch_orders(strategy['project_id'], strategy['backtest_id'])
-            print(f"OK ({len(orders)} orders)")
+            print(f"  Total orders fetched: {len(orders)}")
 
             print("  Saving results...", end=" ")
             result_dir = save_backtest_results(
@@ -150,9 +189,11 @@ def main():
 
         except Exception as e:
             print(f"  ERROR: {e}")
+            import traceback
+            traceback.print_exc()
 
     print("\n" + "=" * 60)
-    print("PHASE 4 COMPLETE")
+    print("REFETCH COMPLETE")
     print("=" * 60)
 
 
