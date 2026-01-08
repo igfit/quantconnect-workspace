@@ -486,6 +486,96 @@ Total:                ~1-1.5 minutes
 - `algorithms/strategies/momentum_accel_megacap.py`
 - `algorithms/strategies/momentum_decay_exit.py`
 
+### Round 6 - 2026-01-08 (Diversification Tests)
+
+**Thesis:** User wants strategies on larger basket of stocks (no mega-caps like NVDA/TSLA).
+
+**Experiments:**
+
+1. **Diversified Growth (80+ stocks)** - No FAANG, no top semis, mid-cap focus
+2. **Broad Universe (100+ stocks)** - Maximum diversification across sectors
+3. **No Top3 (53 stocks)** - Remove NVDA, TSLA, META from original universe
+
+**Results:**
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| Original (56 stocks) | 32.94% | 1.035 | 21.1% | BASELINE |
+| No Top3 (53 stocks) | 22.78% | 0.757 | 19.5% | ✅ Lowest DD |
+| Diversified (80 stocks) | 22.43% | 0.723 | 29.5% | ⚠️ Higher DD |
+| Broad (100+ stocks) | 18.07% | 0.598 | 28.7% | ❌ Too diversified |
+
+**Key Findings:**
+
+1. **Over-diversification hurts returns** - 100 stocks = 18% CAGR vs 56 stocks = 33%
+2. **No Top3 has lowest DD** - 19.5% vs 21.1% (removes concentration risk)
+3. **Momentum works by concentrating in winners** - forced diversification fights this
+4. **Trade-off:** Less mega-cap exposure = more stable but lower returns
+
+**No Top3 Universe (53 stocks) - Chosen for indicator testing:**
+```
+AMD, AVGO, QCOM, MU, AMAT, LRCX, KLAC, MRVL, ON, TXN, ADI, SNPS, CDNS, ASML,
+CRM, ADBE, NOW, INTU, PANW, VEEV, WDAY, V, MA, PYPL, SQ, AMZN, SHOP,
+BKNG, RCL, CCL, MAR, HLT, WYNN, XOM, CVX, OXY, DVN, SLB, COP,
+CAT, DE, URI, BA, NKE, LULU, CMG, DECK, GS, MS, NFLX, ROKU
+```
+
+### Round 7 - 2026-01-08 (Indicator Strategies)
+
+**Thesis:** Test various technical indicators on the No Top3 universe to see if indicators can beat simple momentum.
+
+**Experiments:**
+
+1. **RSI Momentum** - RSI > 50 + positive 6m ROC
+2. **MACD Signal** - MACD line above signal line
+3. **EMA Trend** - Price > EMA20 > EMA50 alignment
+4. **Mean Reversion** - Buy RSI < 35 oversold, sell RSI > 65
+5. **BB Breakout** - Price breaks above upper Bollinger Band
+6. **ADX Trend** - ADX > 25 + +DI > -DI + Price > EMA
+
+**Results:**
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| **No Top3 Momentum** | **22.78%** | **0.757** | **19.5%** | BASELINE |
+| MACD Signal | 14.71% | 0.51 | 21.7% | Best indicator |
+| RSI Momentum | 12.67% | 0.44 | 27.8% | Decent |
+| BB Breakout | 10.22% | 0.38 | 20.1% | Moderate |
+| EMA Trend | 8.67% | 0.28 | 22.9% | Poor |
+| Mean Reversion | 4.98% | 0.12 | 18.9% | ❌ Failed |
+| ADX Trend | 3.27% | 0.05 | 29.0% | ❌ Failed |
+
+**Key Findings:**
+
+1. **Simple momentum beats all indicators** - None of the indicator strategies even come close
+2. **MACD is best indicator** but still 8% CAGR below momentum, 0.25 Sharpe below
+3. **Mean reversion fails in trending markets** - 2020-2024 was a bull market
+4. **ADX trend-following too slow** - By time ADX confirms trend, move is over
+5. **Regime filter (SPY > 200 SMA) is the real edge** - Not individual stock indicators
+
+**Why Indicators Underperform:**
+
+1. **Indicators lag price** - Momentum catches winners earlier
+2. **Multiple indicator conditions = missed opportunities**
+3. **Mean reversion is regime-dependent** - Fails in trending markets
+4. **ADX/BB/EMA add complexity without edge**
+
+**Conclusion:** Stick with simple 6-month momentum + acceleration signal + market regime filter. Adding technical indicators only makes it worse.
+
+**Technical Note - QC API Indicator Signatures:**
+```python
+# RSI requires MovingAverageType
+self.rsi(symbol, period, MovingAverageType.WILDERS, Resolution.DAILY)
+
+# Bollinger Bands requires MovingAverageType
+self.bb(symbol, period, k, MovingAverageType.SIMPLE, Resolution.DAILY)
+
+# MACD already correct with MovingAverageType.EXPONENTIAL
+self.macd(symbol, fast, slow, signal, MovingAverageType.EXPONENTIAL, Resolution.DAILY)
+
+# EMA/SMA don't need MovingAverageType
+self.ema(symbol, period, Resolution.DAILY)  # Works
+self.sma(symbol, period, Resolution.DAILY)  # Works
+```
+
 ---
 
 ## References
