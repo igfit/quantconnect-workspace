@@ -449,6 +449,11 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | `quality_momentum_no_nvda.py` | No NVDA test | 24.97% | 0.861 | 32.1% |
 | `vix_filtered_no_nvda.py` | No NVDA test | 22.24% | 0.788 | 23.2% |
 | `regime_concentrated_no_nvda.py` | No NVDA test | 28.37% | 0.794 | 32.5% |
+| **`defensive_rotation.py`** | **BEST LOW-DD** - GLD/TLT included | **21.58%** | **1.024** | **23.3%** |
+| `broad_equal_weight_momentum.py` | 20 positions diversified | 17.99% | 0.778 | 17.2% |
+| `sector_balanced_momentum.py` | 2 per sector balanced | 18.28% | 0.809 | 16.6% |
+| `volatility_managed_momentum.py` | VIX-scaled exposure | 17.65% | 0.823 | 16.0% |
+| `risk_parity_momentum.py` | **LOWEST DD** - inv-vol weighted | 15.13% | 0.680 | **13.8%** |
 
 ---
 
@@ -492,6 +497,37 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 5. **Adaptive parameters (VIX-based lookback) provide real edge** beyond stock selection
 
 **Recommendation**: Use **Adaptive Lookback Momentum** as primary strategy - highest returns WITH AND without NVDA
+
+### 2026-01-08 (Session 7 - Round 7: Low-Drawdown Diversified Strategies)
+
+**Goal**: Create strategies with <30% max drawdown, more positions, steady gains, NO NVDA.
+
+| Strategy | CAGR | Sharpe | Max DD | # Positions | Notes |
+|----------|------|--------|--------|-------------|-------|
+| **Defensive Rotation** | **21.58%** | **1.024** | 23.3% | 12-14 | **BEST R7** - includes GLD/TLT |
+| Sector Balanced | 18.28% | 0.809 | 16.6% | 13-16 | 2 per sector |
+| Broad Equal Weight | 17.99% | 0.778 | 17.2% | 20 | Most diversified |
+| Volatility Managed | 17.65% | 0.823 | 16.0% | 15 | Scales by VIX |
+| Risk Parity | 15.13% | 0.680 | **13.8%** | 15 | **LOWEST DD** |
+
+**Top Contributors (Defensive Rotation):**
+1. TSLA +$19.7K (11.8%), META +$16.7K (10%), NFLX +$15.4K (9.3%)
+2. **GLD +$9.9K** - Defensive asset worked!
+3. **TLT -$15.5K** - Bonds hurt in 2022 (unusual year)
+
+**WHY Strategies Met DD Target:**
+1. **More positions** (15-20 vs 3-5) → no single stock > 17% of gains
+2. **Regime filter** (SPY > 200 SMA) → avoided 2022 bear
+3. **Sector diversification** → energy held up when tech fell
+4. **Vol scaling** → reduced exposure in high-VIX periods
+
+**Trade-off Observed:**
+- Concentrated (3 positions): 40-50% CAGR, 40-50% DD
+- Diversified (15-20 positions): 15-22% CAGR, 14-23% DD
+- **Halving DD roughly halves returns** - can't escape this trade-off
+
+**Key Insight**: Defensive Rotation with GLD/TLT achieves Sharpe >1.0 with only 23% DD.
+Gold worked (+$10K), bonds didn't (-$15K) in 2020-2024. Future may differ.
 
 ### 2026-01-08 (Session 5 - Round 5 Experiments)
 - **Dual Momentum Filter** - Best R5 (32.46% CAGR, 0.868 Sharpe, 38.3% DD)
