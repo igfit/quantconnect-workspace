@@ -47,7 +47,7 @@ class IndicatorSqueezeMomentum(QCAlgorithm):
             # Bollinger Bands (20, 2)
             self.bb_ind[ticker] = self.BB(symbol, 20, 2, MovingAverageType.SIMPLE, Resolution.DAILY)
             # Keltner Channel (20, 1.5) - using ATR
-            self.kc_ind[ticker] = self.KC(symbol, 20, 1.5, MovingAverageType.SIMPLE, Resolution.DAILY)
+            self.kc_ind[ticker] = self.KCH(symbol, 20, 1.5, MovingAverageType.SIMPLE, Resolution.DAILY)
             # Momentum - simple: price vs 20 SMA
             self.mom_ind[ticker] = self.sma(symbol, 20)
             self.in_squeeze[ticker] = False

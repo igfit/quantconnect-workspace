@@ -42,8 +42,8 @@ class IndicatorKeltnerBreakout(QCAlgorithm):
         for ticker in self.basket:
             symbol = self.add_equity(ticker, Resolution.DAILY).symbol
             self.symbols[ticker] = symbol
-            # Keltner Channel (20, 2)
-            self.kc_ind[ticker] = self.KC(symbol, 20, 2.0, MovingAverageType.EXPONENTIAL, Resolution.DAILY)
+            # Keltner Channel (20, 2) - use KCH helper method
+            self.kc_ind[ticker] = self.KCH(symbol, 20, 2.0, MovingAverageType.EXPONENTIAL, Resolution.DAILY)
             self.atr_ind[ticker] = self.atr(symbol, 14, MovingAverageType.SIMPLE, Resolution.DAILY)
             self.in_position[ticker] = False
             self.entry_price[ticker] = 0
