@@ -240,6 +240,11 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | Trend Strength | 27320219 | 33985e953e489740d795fd529d0382b6 |
 | Leveraged ETF | 27320208 | 29f7b0277f1661abd59ce0965399a17e |
 | Mean Reversion | 27320210 | bdfb719aba98388755616b8499189750 |
+| Sector Rotation Momentum | 27330868 | 9fdf8b115d6df7ef9a298d5f0cbcf63f |
+| Vol Weighted Momentum | 27330870 | 5792f871cbc127a9164c398a965d65f1 |
+| Dual Momentum Filter | 27330873 | c412b202ddb5f6f61ab63f9825768b02 |
+| Mean Reversion RSI | 27330874 | e3eecf9f2950047e037775e487bad4b2 |
+| Breakout with Volume | 27330876 | 123fba03655c65c47a365573a253d23d |
 
 ---
 
@@ -268,10 +273,23 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | `relative_strength_leaders.py` | RS vs SPY ranking | 45.78% | 1.162 | 42.5% |
 | `momentum_pullback_entry.py` | RSI<40 entries - FAILED | 4.41% | 0.08 | 14.6% |
 | `global_momentum_rotation.py` | Intl ETFs - Below target | 14.27% | 0.58 | 21.7% |
+| `sector_rotation_momentum.py` | Sector ETFs - FAILED | 5.35% | 0.14 | 34.7% |
+| `volatility_weighted_momentum.py` | Vol-weighted R5 | 29.57% | 0.81 | 36.1% |
+| `dual_momentum_filter.py` | Best R5 - dual filter | 32.46% | 0.87 | 38.3% |
+| `mean_reversion_rsi.py` | RSI oversold - FAILED | 5.80% | 0.28 | 8.6% |
+| `breakout_volume.py` | 52WH + volume | 19.94% | 0.69 | 24.5% |
 
 ---
 
 ## Progress Log
+
+### 2026-01-08 (Session 5 - Round 5 Experiments)
+- **Dual Momentum Filter** - Best R5 (32.46% CAGR, 0.868 Sharpe, 38.3% DD)
+- **Volatility Weighted Momentum** - Decent (29.57% CAGR, 0.807 Sharpe, 36.1% DD)
+- **Breakout with Volume** - Decent (19.94% CAGR, 0.687 Sharpe, 24.5% DD)
+- Sector Rotation Momentum - **FAILED** (5.35% CAGR - sector ETFs too diluted)
+- Mean Reversion RSI - **FAILED** (5.80% CAGR - not enough oversold opportunities)
+- Key insight: Without NVDA, strategies are harder to beat Sharpe > 1.0
 
 ### 2026-01-08 (Session 4 - Round 4 Experiments)
 - **Market Regime Momentum** - NEW BEST RISK-ADJUSTED (42.96% CAGR, 1.228 Sharpe, **25.7% DD**)
@@ -323,4 +341,4 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ---
 
-*Last Updated: 2026-01-07*
+*Last Updated: 2026-01-08*
