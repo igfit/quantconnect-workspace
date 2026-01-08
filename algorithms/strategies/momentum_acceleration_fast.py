@@ -1,11 +1,13 @@
 """
-Momentum Strategy: Acceleration Entry (ROBUSTNESS TEST - No NVDA)
+Momentum Strategy: Acceleration Entry - FAST (3-month lookback)
+
+Faster signals for potentially higher returns.
 """
 
 from AlgorithmImports import *
 
 
-class MomentumAccelerationNoNvda(QCAlgorithm):
+class MomentumAccelerationFast(QCAlgorithm):
 
     def initialize(self):
         self.set_start_date(2020, 1, 1)
@@ -17,17 +19,17 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
         ))
         self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE)
 
-        self.lookback_days = 126
-        self.accel_period = 21
+        # FASTER PARAMETERS
+        self.lookback_days = 63           # 3 months (faster)
+        self.accel_period = 21            # 1 month for acceleration
         self.top_n = 10
         self.use_regime_filter = True
         self.min_dollar_volume = 5_000_000
 
         self.prev_short_mom = {}
 
-        # NO NVDA
         self.universe_tickers = [
-            "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
+            "NVDA", "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
             "TXN", "ADI", "SNPS", "CDNS", "ASML",
             "CRM", "ADBE", "NOW", "INTU", "PANW", "VEEV", "WDAY",
             "V", "MA", "PYPL", "SQ",

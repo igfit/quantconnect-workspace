@@ -1,11 +1,16 @@
 """
-Momentum Strategy: Acceleration Entry (ROBUSTNESS TEST - No NVDA)
+Momentum Strategy: Weighted Positions + Trailing Stops
+
+SIGNAL ALPHA:
+1. Position sizing by momentum strength (ride winners)
+2. 15% trailing stop from highs (cut losers fast)
+3. Weekly rebalancing (faster signal response)
 """
 
 from AlgorithmImports import *
 
 
-class MomentumAccelerationNoNvda(QCAlgorithm):
+class MomentumWeightedTrailing(QCAlgorithm):
 
     def initialize(self):
         self.set_start_date(2020, 1, 1)
@@ -17,17 +22,19 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
         ))
         self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE)
 
-        self.lookback_days = 126
-        self.accel_period = 21
+        # PARAMETERS
+        self.lookback_days = 126          # 6 months
         self.top_n = 10
+        self.trailing_stop_pct = 0.15     # 15% trailing stop
         self.use_regime_filter = True
         self.min_dollar_volume = 5_000_000
 
-        self.prev_short_mom = {}
+        # Track high watermarks for trailing stops
+        self.high_watermark = {}
 
-        # NO NVDA
+        # CLAUDE V3 UNIVERSE
         self.universe_tickers = [
-            "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
+            "NVDA", "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
             "TXN", "ADI", "SNPS", "CDNS", "ASML",
             "CRM", "ADBE", "NOW", "INTU", "PANW", "VEEV", "WDAY",
             "V", "MA", "PYPL", "SQ",
@@ -52,21 +59,46 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
                 pass
 
         self.momentum = {}
-        self.short_mom = {}
         self.volume_sma = {}
         for symbol in self.symbols:
             self.momentum[symbol] = self.roc(symbol, self.lookback_days, Resolution.DAILY)
-            self.short_mom[symbol] = self.roc(symbol, self.accel_period, Resolution.DAILY)
             self.volume_sma[symbol] = self.sma(symbol, 20, Resolution.DAILY, Field.VOLUME)
 
         self.set_warm_up(self.lookback_days + 10, Resolution.DAILY)
 
+        # Weekly rebalancing for faster response
         self.schedule.on(
             self.date_rules.every(DayOfWeek.MONDAY),
             self.time_rules.after_market_open("SPY", 30),
             self.rebalance
         )
         self.set_benchmark("SPY")
+
+    def on_data(self, data):
+        """Check trailing stops daily"""
+        if self.is_warming_up:
+            return
+
+        for symbol in list(self.high_watermark.keys()):
+            if not self.portfolio[symbol].invested:
+                if symbol in self.high_watermark:
+                    del self.high_watermark[symbol]
+                continue
+
+            if symbol not in data or not data[symbol]:
+                continue
+
+            price = data[symbol].close
+
+            # Update high watermark
+            if price > self.high_watermark.get(symbol, 0):
+                self.high_watermark[symbol] = price
+
+            # Check trailing stop
+            hwm = self.high_watermark[symbol]
+            if hwm > 0 and price < hwm * (1 - self.trailing_stop_pct):
+                self.liquidate(symbol, f"Trailing stop: {price:.2f} < {hwm * (1 - self.trailing_stop_pct):.2f}")
+                del self.high_watermark[symbol]
 
     def rebalance(self):
         if self.is_warming_up:
@@ -77,63 +109,49 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
                 return
             if self.securities[self.spy].price < self.spy_sma.current.value:
                 self.liquidate()
+                self.high_watermark.clear()
                 return
 
         scores = {}
         for symbol in self.symbols:
             if not self.momentum[symbol].is_ready:
                 continue
-            if not self.short_mom[symbol].is_ready:
-                continue
             if not self.securities[symbol].has_data:
                 continue
-
             price = self.securities[symbol].price
             if price < 5:
                 continue
             if self.volume_sma[symbol].is_ready:
                 if self.volume_sma[symbol].current.value * price < self.min_dollar_volume:
                     continue
-
             mom = self.momentum[symbol].current.value
-            short_mom = self.short_mom[symbol].current.value
-            prev_mom = self.prev_short_mom.get(symbol, 0)
-            acceleration = short_mom - prev_mom
-            self.prev_short_mom[symbol] = short_mom
-
-            if mom > 0 and acceleration > 0:
+            if mom > 0:  # Only positive momentum
                 scores[symbol] = mom
 
         if len(scores) < self.top_n:
-            scores = {}
-            for symbol in self.symbols:
-                if not self.momentum[symbol].is_ready:
-                    continue
-                if not self.securities[symbol].has_data:
-                    continue
-                price = self.securities[symbol].price
-                if price < 5:
-                    continue
-                mom = self.momentum[symbol].current.value
-                if mom > 0:
-                    scores[symbol] = mom
-
-        if len(scores) < 5:
             return
 
-        actual_n = min(self.top_n, len(scores))
+        # Rank and select top N
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        top_symbols = [s for s, _ in ranked[:actual_n]]
+        top_symbols = [s for s, _ in ranked[:self.top_n]]
 
+        # MOMENTUM-WEIGHTED SIZING (ride winners)
         total_mom = sum(scores[s] for s in top_symbols)
-        weights = {s: scores[s] / total_mom for s in top_symbols}
+        weights = {}
+        for symbol in top_symbols:
+            # Weight proportional to momentum strength
+            weights[symbol] = scores[symbol] / total_mom
 
+        # Liquidate non-top positions
         for holding in self.portfolio.values():
             if holding.invested and holding.symbol not in top_symbols:
                 self.liquidate(holding.symbol)
+                if holding.symbol in self.high_watermark:
+                    del self.high_watermark[holding.symbol]
 
+        # Rebalance with momentum weights
         for symbol in top_symbols:
             self.set_holdings(symbol, weights[symbol])
-
-    def on_data(self, data):
-        pass
+            # Initialize high watermark for new positions
+            if symbol not in self.high_watermark:
+                self.high_watermark[symbol] = self.securities[symbol].price

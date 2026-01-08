@@ -1,11 +1,16 @@
 """
-Momentum Strategy: Acceleration Entry (ROBUSTNESS TEST - No NVDA)
+Momentum Strategy: Acceleration Entry Signal
+
+SIGNAL ALPHA:
+1. Only enter when momentum is ACCELERATING (1m ROC > previous 1m ROC)
+2. Exit when momentum decelerates
+3. Position size by acceleration strength
 """
 
 from AlgorithmImports import *
 
 
-class MomentumAccelerationNoNvda(QCAlgorithm):
+class MomentumAccelerationEntry(QCAlgorithm):
 
     def initialize(self):
         self.set_start_date(2020, 1, 1)
@@ -17,17 +22,19 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
         ))
         self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE)
 
-        self.lookback_days = 126
-        self.accel_period = 21
+        # PARAMETERS
+        self.lookback_days = 126          # 6 months for ranking
+        self.accel_period = 21            # 1 month for acceleration
         self.top_n = 10
         self.use_regime_filter = True
         self.min_dollar_volume = 5_000_000
 
+        # Track previous momentum for acceleration
         self.prev_short_mom = {}
 
-        # NO NVDA
+        # CLAUDE V3 UNIVERSE
         self.universe_tickers = [
-            "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
+            "NVDA", "AMD", "AVGO", "QCOM", "MU", "AMAT", "LRCX", "KLAC", "MRVL", "ON",
             "TXN", "ADI", "SNPS", "CDNS", "ASML",
             "CRM", "ADBE", "NOW", "INTU", "PANW", "VEEV", "WDAY",
             "V", "MA", "PYPL", "SQ",
@@ -61,6 +68,7 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
 
         self.set_warm_up(self.lookback_days + 10, Resolution.DAILY)
 
+        # Weekly for faster signals
         self.schedule.on(
             self.date_rules.every(DayOfWeek.MONDAY),
             self.time_rules.after_market_open("SPY", 30),
@@ -80,6 +88,8 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
                 return
 
         scores = {}
+        accelerating = {}
+
         for symbol in self.symbols:
             if not self.momentum[symbol].is_ready:
                 continue
@@ -98,13 +108,20 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
             mom = self.momentum[symbol].current.value
             short_mom = self.short_mom[symbol].current.value
             prev_mom = self.prev_short_mom.get(symbol, 0)
+
+            # Acceleration = current short momentum > previous
             acceleration = short_mom - prev_mom
+
+            # Store for next period
             self.prev_short_mom[symbol] = short_mom
 
+            # Only consider if positive momentum AND accelerating
             if mom > 0 and acceleration > 0:
                 scores[symbol] = mom
+                accelerating[symbol] = acceleration
 
         if len(scores) < self.top_n:
+            # Fallback: just use positive momentum
             scores = {}
             for symbol in self.symbols:
                 if not self.momentum[symbol].is_ready:
@@ -125,6 +142,7 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         top_symbols = [s for s, _ in ranked[:actual_n]]
 
+        # Weight by momentum (ride winners)
         total_mom = sum(scores[s] for s in top_symbols)
         weights = {s: scores[s] / total_mom for s in top_symbols}
 
@@ -134,6 +152,3 @@ class MomentumAccelerationNoNvda(QCAlgorithm):
 
         for symbol in top_symbols:
             self.set_holdings(symbol, weights[symbol])
-
-    def on_data(self, data):
-        pass
