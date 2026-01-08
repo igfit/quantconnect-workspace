@@ -1,0 +1,49 @@
+{
+  "id": "roc_sp500_broad",
+  "name": "ROC Momentum S&P 500 Broad",
+  "description": "ROC momentum across 30 diversified S&P 500 stocks",
+  "rationale": "Broad S&P 500 exposure across all major sectors. No single-name dependency - if one stock fails, others compensate. ROC(21) signal captures 1-month momentum which is proven academically. Diversification across Tech, Finance, Healthcare, Consumer, Industrial, Energy, Materials, Utilities. Target: systematic returns without concentration risk.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA",
+      "JPM", "BAC", "GS", "MS", "WFC",
+      "UNH", "JNJ", "PFE", "MRK", "ABBV",
+      "WMT", "HD", "COST", "NKE", "SBUX",
+      "CAT", "HON", "UNP", "GE", "BA",
+      "XOM", "CVX", "COP",
+      "PG", "KO"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "roc21", "type": "ROC", "params": {"period": 21}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_above", "right": 0}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_below", "right": 0}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 5000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 21, 42]}
+  ]
+}

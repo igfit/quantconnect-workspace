@@ -1,0 +1,50 @@
+{
+  "id": "ema_sp500_broad",
+  "name": "EMA Trend S&P 500 Broad",
+  "description": "EMA crossover across 30 diversified S&P 500 stocks",
+  "rationale": "12/26 EMA crossover on broad S&P 500. Same diversified universe as ROC strategy but with trend-following signal instead of pure momentum. EMA crossover is slower/smoother than ROC, may reduce whipsaws. Testing which signal works better on diversified universe.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA",
+      "JPM", "BAC", "GS", "MS", "WFC",
+      "UNH", "JNJ", "PFE", "MRK", "ABBV",
+      "WMT", "HD", "COST", "NKE", "SBUX",
+      "CAT", "HON", "UNP", "GE", "BA",
+      "XOM", "CVX", "COP",
+      "PG", "KO"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "ema_fast", "type": "EMA", "params": {"period": 12}},
+    {"name": "ema_slow", "type": "EMA", "params": {"period": 26}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_above", "right": "ema_slow"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_below", "right": "ema_slow"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 5000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [8, 12, 15]}
+  ]
+}

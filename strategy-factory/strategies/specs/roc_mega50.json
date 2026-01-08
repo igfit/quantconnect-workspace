@@ -1,0 +1,47 @@
+{
+  "id": "roc_mega50",
+  "name": "ROC Momentum Mega 50",
+  "description": "ROC momentum on 50 largest S&P 500 stocks",
+  "rationale": "The 50 largest S&P 500 stocks by market cap. Maximum liquidity, minimum execution risk. These are the most-traded stocks globally. ROC momentum on liquid mega-caps should be most replicable in live trading. Testing if pure scale + momentum works for systematic returns.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "BRK.B", "LLY", "TSM", "V",
+      "UNH", "XOM", "JPM", "JNJ", "WMT", "MA", "PG", "AVGO", "HD", "CVX",
+      "MRK", "ABBV", "COST", "PEP", "KO", "ORCL", "BAC", "CRM", "MCD", "CSCO",
+      "TMO", "ACN", "LIN", "ADBE", "ABT", "AMD", "DHR", "NKE", "CMCSA", "PFE",
+      "TXN", "VZ", "WFC", "PM", "COP", "NEE", "RTX", "INTC", "UNP", "HON"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "roc21", "type": "ROC", "params": {"period": 21}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_above", "right": 0}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_below", "right": 0}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 3000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 21, 42]}
+  ]
+}

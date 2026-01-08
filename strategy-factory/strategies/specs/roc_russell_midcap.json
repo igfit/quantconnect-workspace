@@ -1,0 +1,48 @@
+{
+  "id": "roc_russell_midcap",
+  "name": "ROC Momentum Russell Mid-Cap",
+  "description": "ROC momentum on Russell 2000/mid-cap growth stocks",
+  "rationale": "Mid-cap stocks often have better momentum characteristics than large caps - more room to grow, less analyst coverage means slower price discovery. This universe includes Russell 2000 and S&P 400 mid-cap leaders across sectors. Testing if momentum works better on mid-caps where information advantage is larger.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "SMCI", "DECK", "CELH", "AXON", "TOST",
+      "DUOL", "WING", "CAVA", "BROS", "SHAK",
+      "CROX", "FIVE", "BOOT", "DKS", "PLNT",
+      "RCL", "CCL", "MAR", "HLT", "WYNN",
+      "MTCH", "RBLX", "TTWO", "EA", "NFLX",
+      "PAYC", "PCTY", "WEX", "GPN", "FIS"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "roc21", "type": "ROC", "params": {"period": 21}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_above", "right": 0}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "roc21", "operator": "crosses_below", "right": 0}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 5000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [10, 21, 42]}
+  ]
+}

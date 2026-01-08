@@ -1,0 +1,50 @@
+{
+  "id": "sma_allcap_diversified",
+  "name": "SMA Trend All-Cap Diversified",
+  "description": "SMA trend following across large, mid, and small caps",
+  "rationale": "Combining large-cap stability with mid/small-cap growth potential. 50 SMA is the institutional standard for intermediate trend. Broad diversification across market caps and sectors. Simple trend rule: own when above 50 SMA, sell when below. No concentration in any single name or sector.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL", "MSFT", "GOOGL", "AMZN", "META",
+      "JPM", "V", "MA", "UNH", "JNJ",
+      "WMT", "PG", "KO", "PEP", "COST",
+      "CAT", "DE", "HON", "UNP", "RTX",
+      "XOM", "CVX", "NEE", "DUK", "SO",
+      "SMCI", "DECK", "AXON", "CROX", "FIVE",
+      "AMD", "AVGO", "QCOM", "TXN", "MU",
+      "CRM", "ADBE", "NOW", "SNOW", "PLTR"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "sma50", "type": "SMA", "params": {"period": 50}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_above", "right": "sma50"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "price", "operator": "crosses_below", "right": "sma50"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 4000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [20, 50, 100]}
+  ]
+}

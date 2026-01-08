@@ -1,0 +1,53 @@
+{
+  "id": "ema_sector_balanced",
+  "name": "EMA Trend Sector Balanced",
+  "description": "EMA crossover with equal sector representation",
+  "rationale": "Strictly balanced across 10 GICS sectors - 4 stocks per sector. Ensures no sector dominates returns. If tech crashes, other sectors provide buffer. If energy rallies, we capture it. True systematic diversification. 12/26 EMA for trend signals.",
+
+  "universe": {
+    "type": "static",
+    "symbols": [
+      "AAPL", "MSFT", "NVDA", "CRM",
+      "JPM", "GS", "V", "MA",
+      "UNH", "JNJ", "PFE", "ABBV",
+      "AMZN", "WMT", "HD", "COST",
+      "XOM", "CVX", "COP", "SLB",
+      "CAT", "HON", "UNP", "GE",
+      "NEE", "DUK", "SO", "AEP",
+      "PG", "KO", "PEP", "CL",
+      "AMT", "PLD", "EQIX", "SPG",
+      "LIN", "APD", "ECL", "SHW"
+    ]
+  },
+
+  "timeframe": "daily",
+
+  "indicators": [
+    {"name": "ema_fast", "type": "EMA", "params": {"period": 12}},
+    {"name": "ema_slow", "type": "EMA", "params": {"period": 26}}
+  ],
+
+  "entry_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_above", "right": "ema_slow"}
+    ]
+  },
+
+  "exit_conditions": {
+    "logic": "AND",
+    "conditions": [
+      {"left": "ema_fast", "operator": "crosses_below", "right": "ema_slow"}
+    ]
+  },
+
+  "risk_management": {
+    "position_size_dollars": 4000,
+    "stop_loss_pct": null,
+    "max_holding_days": null
+  },
+
+  "parameters": [
+    {"path": "indicators.0.params.period", "values": [8, 12, 15]}
+  ]
+}
