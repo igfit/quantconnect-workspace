@@ -1,0 +1,32 @@
+[
+  {
+    "name": "clenow_momentum",
+    "project_id": 27338834,
+    "backtest_id": "e497d76f63b454354e0a9cbd2b86a501",
+    "universe": "large_cap_liquid"
+  },
+  {
+    "name": "donchian_breakout",
+    "project_id": 27338840,
+    "backtest_id": "ed6a33c54d1b1170f30111cc7e0b66fd",
+    "universe": "large_cap_liquid"
+  },
+  {
+    "name": "elder_impulse",
+    "project_id": 27338849,
+    "backtest_id": "6d5b640adc34473b0751a987c5d1c835",
+    "universe": "large_cap_liquid"
+  },
+  {
+    "name": "nr7_breakout",
+    "project_id": 27338854,
+    "backtest_id": "aeeb1ea507cc28b4fb0af601981f6572",
+    "universe": "large_cap_liquid"
+  },
+  {
+    "name": "week52_high_breakout",
+    "project_id": 27338844,
+    "backtest_id": "ab1b82c4dc9e01710bab97e5cb70bb06",
+    "universe": "large_cap_liquid"
+  }
+]

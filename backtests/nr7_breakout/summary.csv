@@ -1,2 +1,3 @@
 timestamp,backtest_id,universe,period,sharpe,cagr,max_dd,win_rate,avg_win,avg_loss,rr,trades,net_profit
 2026-01-08T17:35:05.299961,9e28aaada1e1,large_cap_liquid,2015-01-01 00:00:00 to 2024-12-31 23:59:59,0.51,10.1%,19.1%,40.0%,7.7%,-5.8%,1.33,45,"$166,684"
+2026-01-08T18:15:17.165173,aeeb1ea507cc,large_cap_liquid,2015-01-01 00:00:00 to 2024-12-31 23:59:59,0.51,10.1%,19.1%,50.8%,7.5%,-5.5%,1.36,1011,"$166,663"

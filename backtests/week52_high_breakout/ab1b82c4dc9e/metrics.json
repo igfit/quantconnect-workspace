@@ -1,0 +1,22 @@
+{
+  "strategy_name": "week52_high_breakout",
+  "universe": "large_cap_liquid",
+  "backtest_id": "ab1b82c4dc9e01710bab97e5cb70bb06",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 148780.47,
+  "cagr": 4.05,
+  "sharpe": 0.113,
+  "max_drawdown": 13.1,
+  "total_trades": 416,
+  "win_rate": 42.30769230769231,
+  "avg_win_pct": 8.713492028923588,
+  "avg_loss_pct": -4.599492955291926,
+  "risk_reward": 1.8944462169244805,
+  "profit_factor": 1.83,
+  "avg_bars_held": 50,
+  "time_in_market": 0.0,
+  "total_fees": -978.65,
+  "net_profit": 44318.4
+}
