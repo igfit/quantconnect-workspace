@@ -1,0 +1,22 @@
+{
+  "strategy_name": "donchian_breakout",
+  "universe": "large_cap_liquid",
+  "backtest_id": "eea5f5363fc2d775ca22790f4c2cd798",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 244302.47,
+  "cagr": 9.336,
+  "sharpe": 0.475,
+  "max_drawdown": 19.9,
+  "total_trades": 46,
+  "win_rate": 34.78260869565217,
+  "avg_win_pct": 2.7799355196045568,
+  "avg_loss_pct": -3.6535509974236366,
+  "risk_reward": 0.7608859220973994,
+  "profit_factor": 1.91,
+  "avg_bars_held": 28,
+  "time_in_market": 0.0,
+  "total_fees": -1929.57,
+  "net_profit": 138308.69
+}

@@ -1,0 +1,22 @@
+{
+  "strategy_name": "elder_impulse",
+  "universe": "large_cap_liquid",
+  "backtest_id": "ce51ad167e7290c5c244c381d2662f65",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 167437.13,
+  "cagr": 5.286,
+  "sharpe": 0.195,
+  "max_drawdown": 16.6,
+  "total_trades": 45,
+  "win_rate": 20.0,
+  "avg_win_pct": 2.5379058366007445,
+  "avg_loss_pct": -2.489961143341552,
+  "risk_reward": 1.0192551973702089,
+  "profit_factor": 2.26,
+  "avg_bars_held": 10,
+  "time_in_market": 0.0,
+  "total_fees": -4417.02,
+  "net_profit": 65577.41
+}

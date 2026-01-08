@@ -1,0 +1,22 @@
+{
+  "strategy_name": "clenow_momentum",
+  "universe": "large_cap_liquid",
+  "backtest_id": "7de0da86d58665309e23a66d1b0130fc",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 401512.01,
+  "cagr": 14.902,
+  "sharpe": 0.705,
+  "max_drawdown": 16.8,
+  "total_trades": 59,
+  "win_rate": 64.40677966101694,
+  "avg_win_pct": 15.984675044887206,
+  "avg_loss_pct": -5.061320628652447,
+  "risk_reward": 3.158202417447529,
+  "profit_factor": 1.23,
+  "avg_bars_held": 60,
+  "time_in_market": 0.0,
+  "total_fees": -1687.1,
+  "net_profit": 293778.64
+}

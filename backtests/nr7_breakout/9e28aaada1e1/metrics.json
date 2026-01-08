@@ -1,0 +1,22 @@
+{
+  "strategy_name": "nr7_breakout",
+  "universe": "large_cap_liquid",
+  "backtest_id": "9e28aaada1e1dc70a130c25ba5dffbe7",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 262238.05,
+  "cagr": 10.113,
+  "sharpe": 0.506,
+  "max_drawdown": 19.1,
+  "total_trades": 45,
+  "win_rate": 40.0,
+  "avg_win_pct": 7.6670004232309905,
+  "avg_loss_pct": -5.756685391461555,
+  "risk_reward": 1.331842875173074,
+  "profit_factor": 1.33,
+  "avg_bars_held": 26,
+  "time_in_market": 0.0,
+  "total_fees": -2796.78,
+  "net_profit": 166683.82
+}
