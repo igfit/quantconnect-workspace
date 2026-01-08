@@ -138,18 +138,17 @@ def save_orders_csv(orders: list, filepath: str):
 
 def calculate_pnl(orders: list, holdings_value: float = None) -> dict:
     """
-    Calculate P&L per ticker using position-based accounting.
+    Calculate P&L per ticker using FIFO (First-In, First-Out) accounting.
 
-    Position-based means:
-    - Realized P&L: Only from fully closed positions (no shares remaining)
-    - Unrealized P&L: All gains on positions still held
+    FIFO means:
+    - When selling, match against oldest buy lots first
+    - Realized P&L: Profit from shares that were bought AND sold
+    - Unrealized P&L: Current value of remaining shares minus their cost basis
     """
     positions = defaultdict(lambda: {
-        'net_shares': 0,
-        'total_bought': 0,
-        'total_sold': 0,
+        'lots': [],  # List of {shares, cost_per_share} for FIFO
+        'realized_pnl': 0,
         'last_price': 0,
-        'trades': []
     })
 
     for order in orders:
@@ -157,29 +156,49 @@ def calculate_pnl(orders: list, holdings_value: float = None) -> dict:
         qty = order.get('quantity', 0)
         price = order.get('price', 0)
 
-        positions[ticker]['net_shares'] += qty
         positions[ticker]['last_price'] = price
-        positions[ticker]['trades'].append({'qty': qty, 'price': price})
 
         if qty > 0:
-            positions[ticker]['total_bought'] += qty * price
+            # BUY: Add new lot
+            positions[ticker]['lots'].append({
+                'shares': qty,
+                'cost_per_share': price
+            })
         else:
-            positions[ticker]['total_sold'] += abs(qty) * price
+            # SELL: Match against oldest lots (FIFO)
+            shares_to_sell = abs(qty)
+            sell_price = price
 
-    # Separate closed and open positions
+            while shares_to_sell > 0 and positions[ticker]['lots']:
+                lot = positions[ticker]['lots'][0]
+
+                if lot['shares'] <= shares_to_sell:
+                    # Sell entire lot
+                    realized = (sell_price - lot['cost_per_share']) * lot['shares']
+                    positions[ticker]['realized_pnl'] += realized
+                    shares_to_sell -= lot['shares']
+                    positions[ticker]['lots'].pop(0)
+                else:
+                    # Partial lot sale
+                    realized = (sell_price - lot['cost_per_share']) * shares_to_sell
+                    positions[ticker]['realized_pnl'] += realized
+                    lot['shares'] -= shares_to_sell
+                    shares_to_sell = 0
+
+    # Build results
     closed = []
     open_pos = []
 
     for ticker, pos in positions.items():
-        net_cost = pos['total_bought'] - pos['total_sold']
+        remaining_shares = sum(lot['shares'] for lot in pos['lots'])
+        cost_basis = sum(lot['shares'] * lot['cost_per_share'] for lot in pos['lots'])
 
-        if abs(pos['net_shares']) < 0.5:  # Closed position
-            pnl = pos['total_sold'] - pos['total_bought']
+        if abs(remaining_shares) < 0.5:  # Closed position
             closed.append({
                 'ticker': ticker,
-                'realized_pnl': pnl,
+                'realized_pnl': pos['realized_pnl'],
                 'unrealized_pnl': 0,
-                'total_pnl': pnl,
+                'total_pnl': pos['realized_pnl'],
                 'shares': 0,
                 'net_cost': 0,
                 'status': 'Closed'
@@ -187,16 +206,15 @@ def calculate_pnl(orders: list, holdings_value: float = None) -> dict:
         else:
             open_pos.append({
                 'ticker': ticker,
-                'shares': pos['net_shares'],
-                'net_cost': net_cost,
+                'shares': remaining_shares,
+                'net_cost': cost_basis,
                 'last_price': pos['last_price'],
-                'total_bought': pos['total_bought'],
-                'total_sold': pos['total_sold']
+                'realized_pnl': pos['realized_pnl'],
             })
 
     # Calculate unrealized P&L for open positions
     if holdings_value and open_pos:
-        # Use actual holdings value from backtest
+        # Use actual holdings value from backtest for accuracy
         last_price_value = sum(p['shares'] * p['last_price'] for p in open_pos)
         scale_factor = holdings_value / last_price_value if last_price_value > 0 else 1
 
@@ -205,8 +223,7 @@ def calculate_pnl(orders: list, holdings_value: float = None) -> dict:
             unrealized = current_val - p['net_cost']
             p['current_value'] = current_val
             p['unrealized_pnl'] = unrealized
-            p['realized_pnl'] = 0
-            p['total_pnl'] = unrealized
+            p['total_pnl'] = p['realized_pnl'] + unrealized
             p['status'] = f"Open ({int(p['shares'])} sh)"
     else:
         # Estimate using last trade price
@@ -215,14 +232,13 @@ def calculate_pnl(orders: list, holdings_value: float = None) -> dict:
             unrealized = current_val - p['net_cost']
             p['current_value'] = current_val
             p['unrealized_pnl'] = unrealized
-            p['realized_pnl'] = 0
-            p['total_pnl'] = unrealized
+            p['total_pnl'] = p['realized_pnl'] + unrealized
             p['status'] = f"Open ({int(p['shares'])} sh)"
 
     return {
         'closed': closed,
         'open': open_pos,
-        'total_realized': sum(p['realized_pnl'] for p in closed),
+        'total_realized': sum(p['realized_pnl'] for p in closed) + sum(p['realized_pnl'] for p in open_pos),
         'total_unrealized': sum(p.get('unrealized_pnl', 0) for p in open_pos),
     }
 
@@ -261,19 +277,24 @@ def print_pnl_report(pnl: dict, stats: dict = None):
 
     # Open positions
     if pnl['open']:
-        print("OPEN POSITIONS (Unrealized P&L)")
-        print("-" * 90)
-        print(f"{'Ticker':<10} {'Shares':>8} {'Net Cost':>14} {'Curr Value':>14} {'Realized':>14} {'Unrealized':>14}")
-        print("-" * 90)
+        print("OPEN POSITIONS (Realized from closed trades + Unrealized from current holdings)")
+        print("-" * 105)
+        print(f"{'Ticker':<10} {'Shares':>8} {'Cost Basis':>14} {'Curr Value':>14} {'Realized':>14} {'Unrealized':>14}")
+        print("-" * 105)
 
         for p in pnl['open']:
             curr_val = p.get('current_value', 0)
-            print(f"{p['ticker']:<10} {p['shares']:>8.0f} ${p['net_cost']:>13,.0f} ${curr_val:>13,.0f} {'$0':>14} +${p['unrealized_pnl']:>13,.0f}")
+            realized = p.get('realized_pnl', 0)
+            unrealized = p.get('unrealized_pnl', 0)
+            r_str = f"+${realized:,.0f}" if realized >= 0 else f"-${abs(realized):,.0f}"
+            u_str = f"+${unrealized:,.0f}" if unrealized >= 0 else f"-${abs(unrealized):,.0f}"
+            print(f"{p['ticker']:<10} {p['shares']:>8.0f} ${p['net_cost']:>13,.0f} ${curr_val:>13,.0f} {r_str:>14} {u_str:>14}")
 
-        print("-" * 90)
+        print("-" * 105)
         total_cost = sum(p['net_cost'] for p in pnl['open'])
         total_val = sum(p.get('current_value', 0) for p in pnl['open'])
-        print(f"{'SUBTOTAL':<10} {'':>8} ${total_cost:>13,.0f} ${total_val:>13,.0f} {'$0':>14} +${pnl['total_unrealized']:>13,.0f}")
+        total_realized_open = sum(p.get('realized_pnl', 0) for p in pnl['open'])
+        print(f"{'SUBTOTAL':<10} {'':>8} ${total_cost:>13,.0f} ${total_val:>13,.0f} +${total_realized_open:>13,.0f} +${pnl['total_unrealized']:>13,.0f}")
         print()
 
     # Combined summary
