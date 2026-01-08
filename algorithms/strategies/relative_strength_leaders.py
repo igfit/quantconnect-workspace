@@ -25,9 +25,9 @@ class RelativeStrengthLeaders(QCAlgorithm):
         self.set_end_date(2024, 12, 31)
         self.set_cash(100000)
 
-        # Mega-cap universe
+        # Mega-cap universe (19 stocks) - NVDA EXCLUDED for robustness test
         self.symbols = [
-            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK.B",
+            "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "BRK.B",
             "JPM", "JNJ", "V", "UNH", "HD", "PG", "MA", "LLY", "AVGO", "COST",
             "MRK", "ABBV"
         ]
