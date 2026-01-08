@@ -142,6 +142,37 @@ maintaining strong momentum signal. 8 positions, max 3 per sector, 35% sector ca
 
 **Progress:** Sharpe improved 0.898 → 0.967 (+7.7%). Still targeting > 1.0.
 
+### Round 9 - BREAKTHROUGH: Sharpe > 1.0 (2026-01-08)
+
+**Goal:** Break Sharpe 1.0 barrier while maintaining diversification.
+
+**Solutions Tested:**
+1. **CombinedAdaptiveAccel** - Merge VIX-sizing + multi-lookback momentum
+2. **BreadthMomentum** - Market breadth filter (% sectors > 200 SMA)
+3. **TrendStrengthMom** - ADX > 20 filter for strong trends only
+4. **VolRegimeStrategic** - Different allocation by volatility regime
+5. **MultiFactorRank** - Combine momentum + volatility factors
+
+**Results:**
+| Strategy | Sharpe | CAGR | Max DD | Top Stock % |
+|----------|--------|------|--------|-------------|
+| TrendStrengthMom | **1.321** | 32.7% | 22.8% | GE 22.7% |
+| CombinedAdaptiveAccel | **1.108** | 28.8% | 23.6% | NVDA 29.9% |
+| BreadthMomentum | **1.03** | 26.4% | 25.7% | - |
+| VolRegimeStrategic | 0.995 | 24.0% | 21.9% | - |
+| MultiFactorRank | 0.926 | 22.5% | 30.2% | - |
+
+**Key Insights:**
+1. **ADX is the breakthrough** - Trend strength filter eliminates false momentum signals
+2. **3 strategies > Sharpe 1.0** achieved!
+3. **Concentration acceptable**: Top stock 22-30% vs Round 6's 73%
+4. **Trade-off**: Higher drawdown (22-25%) vs Round 7's 18-19%
+
+**Best Strategy:** TrendStrengthMom - Sharpe 1.321, CAGR 32.7%
+
+**Bug Fixed:** Variable naming shadowing - `self.momp = {}` shadows `self.momp()` method.
+Use `self.momp_ind = {}` instead.
+
 ---
 
 ### What Works
