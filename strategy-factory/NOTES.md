@@ -379,6 +379,46 @@ Total:                ~1-1.5 minutes
 2. Test acceleration signal on different universes
 3. Add regime filter to strategy-factory infrastructure
 
+### Round 4 - 2026-01-08 (Iteration Experiments)
+
+**Thesis:** Test if alternative risk controls or filters can improve the Acceleration Entry strategy.
+
+**Iterations Tested:**
+
+1. **Volatility Adjusted** - Inverse-ATR position sizing (lower vol = larger position)
+2. **Sector Diversified** - Max 2 stocks per sector (forced diversification)
+3. **Volume Confirm** - Only enter when recent volume > 1.1x average
+4. **Fast Regime** - Use 50 SMA instead of 200 SMA for faster regime detection
+
+**Results:**
+| Strategy | CAGR | Sharpe | Max DD | Status |
+|----------|------|--------|--------|--------|
+| **Original (Accel Entry)** | **32.94%** | **1.035** | **21.1%** | BASELINE |
+| Volatility Adjusted | 30.42% | 1.015 | 20.4% | ✅ Lower DD |
+| Sector Diversified | 27.74% | 0.889 | 23.5% | ❌ Hurt returns |
+| Volume Confirm | 26.02% | 0.798 | 23.5% | ❌ Too restrictive |
+| Fast Regime (50 SMA) | 22.39% | 0.684 | 29.6% | ❌ Whipsaw |
+
+**Key Findings:**
+
+1. **Original is Optimal** - The Acceleration Entry with 200 SMA regime filter is already well-tuned
+2. **Volatility Adjusted Close Second** - Achieves 0.7% lower DD with only 2.5% CAGR sacrifice
+   - Could be preferred for more conservative investors
+3. **Sector Diversification Hurts** - Forcing max 2 per sector reduces returns without improving DD
+   - Momentum works by concentrating in winners - diversification fights this
+4. **Volume Filter Too Restrictive** - Misses good entry signals waiting for volume confirmation
+   - In bull markets, price moves first, volume confirms later
+5. **Faster Regime Filter Worse** - 50 SMA causes too many false exits (whipsaws)
+   - Missed the 2023 recovery rally, higher DD from re-entries
+
+**Conclusion:** The original Acceleration Entry strategy is already near-optimal. Minor improvements possible via volatility-adjusted sizing for lower DD preference, but CAGR sacrifice may not be worth it.
+
+**Files Created:**
+- `algorithms/strategies/momentum_volatility_adjusted.py`
+- `algorithms/strategies/momentum_sector_diversified.py`
+- `algorithms/strategies/momentum_volume_confirm.py`
+- `algorithms/strategies/momentum_fast_regime.py`
+
 ---
 
 ## References
