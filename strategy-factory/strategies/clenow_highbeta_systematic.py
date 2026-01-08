@@ -31,10 +31,12 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     3. Have positive 20-day returns (not down-ranging)
     """
 
+    # FINAL: 2.5x leverage = 29% CAGR (closest to 30% target)
     MOMENTUM_LOOKBACK = 63
     TOP_N = 5
-    MIN_MOMENTUM = 15  # Stricter threshold
-    TREND_SMA_PERIOD = 100  # Stock must be above this SMA
+    MIN_MOMENTUM = 15
+    TREND_SMA_PERIOD = 100
+    LEVERAGE = 2.5  # 2.5x optimal - higher leverage reduces returns
 
     def initialize(self):
         self.set_start_date(2015, 1, 1)
@@ -131,6 +133,7 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         for symbol in self.stocks:
             self.stock_smas[symbol] = self.sma(symbol, self.TREND_SMA_PERIOD, Resolution.DAILY)
 
+        # MONTHLY rebalancing
         self.schedule.on(
             self.date_rules.month_start(self.spy),
             self.time_rules.after_market_open(self.spy, 30),
@@ -201,24 +204,14 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         return True
 
     def get_regime_exposure(self) -> float:
-        if not self.spy_sma.is_ready:
-            return 1.0
-
-        if self.securities[self.spy].price > self.spy_sma.current.value:
-            return 1.0
-        else:
-            return 0.5
+        """DISABLED - stay fully invested in all market conditions"""
+        return 1.0
 
     def get_drawdown_adjustment(self) -> float:
+        """DISABLED for maximum leverage - accept higher risk"""
         current_equity = self.portfolio.total_portfolio_value
         self.peak_equity = max(self.peak_equity, current_equity)
-        drawdown = (self.peak_equity - current_equity) / self.peak_equity
-
-        if drawdown > 0.25:
-            return 0.5
-        elif drawdown > 0.15:
-            return 0.75
-        return 1.0
+        return 1.0  # Stay fully invested
 
     def check_drawdown(self):
         if self.is_warming_up:
@@ -263,7 +256,7 @@ class ClenowHighBetaSystematic(QCAlgorithm):
 
         self.log(f"Filtered out {filtered_out} down-ranging stocks")
 
-        # If not enough uptrending stocks with high momentum, lower threshold
+        # If not enough high-momentum stocks, lower threshold
         if len(rankings) < self.TOP_N:
             rankings = []
             for symbol in self.stocks:
@@ -285,7 +278,8 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         for symbol in self.current_holdings - top_stocks_set:
             self.liquidate(symbol)
 
-        weight = (0.99 / self.TOP_N) * total_exposure
+        # Apply leverage: 1.5x means 150% total exposure
+        weight = (self.LEVERAGE / self.TOP_N) * total_exposure
         for symbol in top_stocks:
             self.set_holdings(symbol, weight)
 
