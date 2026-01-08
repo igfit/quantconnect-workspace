@@ -108,6 +108,40 @@ Trade-off is lower absolute returns (22% vs 40%+) but much better risk-adjusted.
 **Best Approach:** MultiSectorBalanced - forces sector diversification while
 maintaining strong momentum signal. 8 positions, max 3 per sector, 35% sector cap.
 
+### Round 8 - Signal Enhancement (2026-01-08)
+
+**Goal:** Improve signal quality while maintaining diversification. Target Sharpe > 1.0.
+
+**Solutions Tested:**
+1. **AccelMomSectors** - Multi-lookback momentum (1m, 3m, 6m weighted average)
+2. **Near52WH** - Academic 52-week-high proximity filter
+3. **MomWeightedSectors** - Weight sectors by momentum strength
+4. **QualityMegaCap** - Tighter quality filter, remove volatile stocks
+5. **AdaptivePositions** - VIX-based position count (more positions in volatility)
+
+**Results:**
+| Strategy | Sharpe | CAGR | Max DD | Top Stock % |
+|----------|--------|------|--------|-------------|
+| AdaptivePositions | 0.967 | 24.4% | 16.9% | NVDA 26.6% |
+| AccelMomSectors | 0.934 | 22.5% | 18.1% | TSLA 21.8% |
+| MomWeightedSectors | 0.931 | 23.3% | 23.2% | - |
+| QualityMegaCap | 0.811 | 15.5% | 11.6% | - |
+| Near52WH | 0.763 | 16.0% | 15.6% | - |
+
+**Key Insights:**
+1. **Adaptive position sizing works** - VIX-based count nearly hit Sharpe 1.0
+2. **Multi-lookback momentum improves timing** - catches momentum earlier
+3. **Quality filter = lowest drawdown** - 11.6% MaxDD by removing NVDA/TSLA
+4. **52-week high filter didn't help** - no improvement over simple momentum
+5. **Concentration trade-off** - AdaptivePositions has 26.6% NVDA vs R7's 19.8%
+
+**Best By Use Case:**
+- Best Returns: AdaptivePositions (Sharpe 0.967, CAGR 24.4%)
+- Best Diversified: AccelMomSectors (TSLA 21.8%, better spread)
+- Lowest Risk: QualityMegaCap (11.6% MaxDD)
+
+**Progress:** Sharpe improved 0.898 → 0.967 (+7.7%). Still targeting > 1.0.
+
 ---
 
 ### What Works
