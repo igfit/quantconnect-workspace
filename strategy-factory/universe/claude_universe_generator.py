@@ -219,16 +219,38 @@ DEFENSIVE_SECTORS = ["Utilities", "Consumer Staples", "Healthcare", "Real Estate
 # PROMPTS
 # =============================================================================
 
-UNIVERSE_GENERATION_PROMPT = """You are a quantitative analyst selecting stocks for a momentum trading strategy.
+UNIVERSE_GENERATION_PROMPT = """Select stocks for a MOMENTUM strategy balancing HIGH-BETA with QUALITY.
 
 CRITICAL: Select stocks AS OF {selection_date}. Only use information available BEFORE this date.
 
-TASK: Generate {num_stocks} stocks matching these criteria:
+TASK: Generate {num_stocks} stocks - HIGH-BETA but also QUALITY companies.
 
 TYPE: {universe_type}
 
-REQUIREMENTS:
-{feature_requirements}
+STOCK PROFILE - "Quality Momentum":
+- HIGH BETA (1.2-2.0): Moves more than market, but not speculative
+- PROFITABLE or near-profitable: Real businesses, not cash-burning startups
+- US-FOCUSED: Primarily US revenue (avoid China/geopolitical risk)
+- MARKET LEADERS: #1-2 in category, strong competitive position
+- LIQUID: High volume, institutional ownership
+
+SECTORS TO FOCUS ON (in order of importance):
+1. SEMICONDUCTORS: NVDA, AMD, AVGO, QCOM, MU, AMAT, LRCX, KLAC, MRVL, ON
+2. SOFTWARE LEADERS: CRM, ADBE, NOW (proven, profitable)
+3. PAYMENTS/FINTECH: V, MA, PYPL, SQ (established leaders)
+4. E-COMMERCE: AMZN, SHOP (category leaders)
+5. TRAVEL/LEISURE: BKNG, RCL, CCL, MAR, HLT, WYNN (cyclical, high beta)
+6. ENERGY: XOM, CVX, OXY, DVN, SLB, COP (volatile, cyclical)
+7. INDUSTRIALS: CAT, DE, URI, BA (cyclical leaders)
+8. CONSUMER GROWTH: TSLA, NKE, LULU, CMG, DECK (brand leaders)
+9. INVESTMENT BANKS: GS, MS (high beta financials)
+10. STREAMING: NFLX, ROKU (growth but established)
+
+STOCKS TO AVOID:
+- Chinese ADRs: BABA, JD, BIDU, NIO, PDD (regulatory/geopolitical risk)
+- Speculative unprofitable: Cash-burning SaaS, SPACs
+- Legacy low-growth: IBM, ORCL, CSCO, HPQ, GE, MMM, F, GM, INTC
+- Defensive: Utilities, staples, telecom, REITs
 
 FILTERS:
 - Market cap > ${min_market_cap}B
@@ -236,19 +258,17 @@ FILTERS:
 - Listed > {min_years_listed} year(s) as of {selection_date}
 - Exclude: {exclude_sectors}
 
-DO NOT include stocks that:
-- IPO'd after {selection_date}
-- You only know about due to post-{selection_date} performance
+DO NOT include stocks that IPO'd after {selection_date} or Chinese ADRs.
 
-OUTPUT FORMAT (valid JSON only, no markdown):
+OUTPUT FORMAT (valid JSON only):
 {{
     "stocks": [
-        {{"symbol": "NVDA", "name": "NVIDIA", "sector": "Technology", "rationale": "GPU leader, high beta, liquid"}},
-        {{"symbol": "TSLA", "name": "Tesla", "sector": "Consumer Discretionary", "rationale": "EV leader, high volatility"}}
+        {{"symbol": "NVDA", "name": "NVIDIA", "sector": "Technology", "rationale": "GPU leader, data center growth"}},
+        {{"symbol": "TSLA", "name": "Tesla", "sector": "Consumer Discretionary", "rationale": "EV leader, high beta"}}
     ]
 }}
 
-Return ONLY the JSON object, no other text. Keep rationale brief (under 20 words each).
+Return ONLY JSON. Balance HIGH-BETA with QUALITY.
 """
 
 UNIVERSE_VALIDATION_PROMPT = """Validate this stock universe for hindsight bias.
@@ -430,12 +450,13 @@ class ClaudeUniverseGenerator:
 
         if feature_requirements is None:
             feature_requirements = """
-- High Beta (>1.0 vs SPY): Stocks that move more than the market
-- High Liquidity: Daily dollar volume > $10M, actively traded
-- Growth Characteristics: Revenue growth, market expansion
-- Cyclical Sector: Technology, Consumer Discretionary, Financials, Energy, Industrials
-- Market Leadership: Top 3 position in their industry/niche
-- Institutional Interest: Covered by multiple analysts
+- HIGH BETA (1.2-2.0): Amplifies market moves
+- PROFITABLE: Real earnings, not speculative
+- US-FOCUSED: No Chinese ADRs
+- MARKET LEADER: #1-2 position in category
+- LIQUID: >$20M daily dollar volume
+- FOCUS: Semiconductors, payments, travel, energy, cyclical industrials
+- AVOID: Chinese stocks, legacy tech, old industrials, defensive sectors
 """
 
         prompt = UNIVERSE_GENERATION_PROMPT.format(

@@ -9,59 +9,49 @@
     "AMD",
     "NFLX",
     "AMZN",
-    "GOOGL",
+    "CRM",
+    "ADBE",
+    "PYPL",
+    "SQ",
+    "SHOP",
+    "ROKU",
+    "OKTA",
+    "SPLK",
+    "WDAY",
+    "TWLO",
+    "ZS",
+    "MDB",
+    "NOW",
+    "VEEV",
+    "TEAM",
+    "UBER",
+    "LYFT",
+    "TWTR",
+    "SNAP",
     "FB",
-    "MSFT",
-    "AAPL",
+    "GOOGL",
     "BA",
     "CAT",
+    "GS",
+    "MS",
     "JPM",
     "BAC",
-    "GS",
-    "XOM",
-    "CVX",
-    "ADBE",
-    "CRM",
-    "PYPL",
-    "V",
-    "MA",
-    "INTC",
-    "CSCO",
-    "ORCL",
-    "IBM",
-    "QCOM",
+    "XLF",
+    "BABA",
+    "JD",
+    "BIDU",
+    "IQ",
     "MU",
     "AMAT",
     "LRCX",
     "KLAC",
+    "MRVL",
+    "QCOM",
     "AVGO",
     "TXN",
-    "HD",
-    "NKE",
-    "MCD",
-    "SBUX",
-    "DIS",
-    "CMCSA",
-    "LOW",
-    "TGT",
-    "COST",
-    "F",
-    "GM",
-    "BKNG",
-    "TRIP",
-    "MMM",
-    "GE",
-    "HON",
-    "LMT",
-    "UPS",
-    "FDX",
-    "DE",
-    "WFC",
-    "C",
-    "MS",
-    "AXP",
-    "BRK.B",
-    "COP"
+    "INTC",
+    "XLNX",
+    "ON"
   ],
   "candidates": [
     {
@@ -95,8 +85,116 @@
       "confidence_score": 0.5
     },
     {
-      "symbol": "GOOGL",
-      "name": "Alphabet",
+      "symbol": "CRM",
+      "name": "Salesforce",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "ADBE",
+      "name": "Adobe",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "PYPL",
+      "name": "PayPal",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "SQ",
+      "name": "Square",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "SHOP",
+      "name": "Shopify",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "ROKU",
+      "name": "Roku",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "OKTA",
+      "name": "Okta",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "SPLK",
+      "name": "Splunk",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "WDAY",
+      "name": "Workday",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TWLO",
+      "name": "Twilio",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "ZS",
+      "name": "Zscaler",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MDB",
+      "name": "MongoDB",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "NOW",
+      "name": "ServiceNow",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "VEEV",
+      "name": "Veeva Systems",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TEAM",
+      "name": "Atlassian",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "UBER",
+      "name": "Uber",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "LYFT",
+      "name": "Lyft",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TWTR",
+      "name": "Twitter",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "SNAP",
+      "name": "Snap Inc",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
@@ -107,14 +205,8 @@
       "confidence_score": 0.5
     },
     {
-      "symbol": "MSFT",
-      "name": "Microsoft",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "AAPL",
-      "name": "Apple",
+      "symbol": "GOOGL",
+      "name": "Alphabet",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
@@ -131,6 +223,18 @@
       "confidence_score": 0.5
     },
     {
+      "symbol": "GS",
+      "name": "Goldman Sachs",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MS",
+      "name": "Morgan Stanley",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
       "symbol": "JPM",
       "name": "JPMorgan Chase",
       "selection_rationale": "",
@@ -143,86 +247,38 @@
       "confidence_score": 0.5
     },
     {
-      "symbol": "GS",
-      "name": "Goldman Sachs",
+      "symbol": "XLF",
+      "name": "Financial Select Sector",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "XOM",
-      "name": "ExxonMobil",
+      "symbol": "BABA",
+      "name": "Alibaba",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "CVX",
-      "name": "Chevron",
+      "symbol": "JD",
+      "name": "JD.com",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "ADBE",
-      "name": "Adobe",
+      "symbol": "BIDU",
+      "name": "Baidu",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "CRM",
-      "name": "Salesforce",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "PYPL",
-      "name": "PayPal",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "V",
-      "name": "Visa",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "MA",
-      "name": "Mastercard",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "INTC",
-      "name": "Intel",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "CSCO",
-      "name": "Cisco",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "ORCL",
-      "name": "Oracle",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "IBM",
-      "name": "IBM",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "QCOM",
-      "name": "Qualcomm",
+      "symbol": "IQ",
+      "name": "iQIYI",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
       "symbol": "MU",
-      "name": "Micron",
+      "name": "Micron Technology",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
@@ -240,7 +296,19 @@
     },
     {
       "symbol": "KLAC",
-      "name": "KLA",
+      "name": "KLA Corporation",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MRVL",
+      "name": "Marvell Technology",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "QCOM",
+      "name": "Qualcomm",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
@@ -257,158 +325,20 @@
       "confidence_score": 0.5
     },
     {
-      "symbol": "HD",
-      "name": "Home Depot",
+      "symbol": "INTC",
+      "name": "Intel",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "NKE",
-      "name": "Nike",
+      "symbol": "XLNX",
+      "name": "Xilinx",
       "selection_rationale": "",
       "confidence_score": 0.5
     },
     {
-      "symbol": "MCD",
-      "name": "McDonald's",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "SBUX",
-      "name": "Starbucks",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "DIS",
-      "name": "Disney",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "CMCSA",
-      "name": "Comcast",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "LOW",
-      "name": "Lowe's",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "TGT",
-      "name": "Target",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "COST",
-      "name": "Costco",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "F",
-      "name": "Ford",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "GM",
-      "name": "General Motors",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "BKNG",
-      "name": "Booking Holdings",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "TRIP",
-      "name": "TripAdvisor",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "MMM",
-      "name": "3M",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "GE",
-      "name": "General Electric",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "HON",
-      "name": "Honeywell",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "LMT",
-      "name": "Lockheed Martin",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "UPS",
-      "name": "UPS",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "FDX",
-      "name": "FedEx",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "DE",
-      "name": "Deere",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "WFC",
-      "name": "Wells Fargo",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "C",
-      "name": "Citigroup",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "MS",
-      "name": "Morgan Stanley",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "AXP",
-      "name": "American Express",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "BRK.B",
-      "name": "Berkshire Hathaway",
-      "selection_rationale": "",
-      "confidence_score": 0.5
-    },
-    {
-      "symbol": "COP",
-      "name": "ConocoPhillips",
+      "symbol": "ON",
+      "name": "ON Semiconductor",
       "selection_rationale": "",
       "confidence_score": 0.5
     }
@@ -422,10 +352,22 @@
   },
   "excluded_symbols": {},
   "hindsight_flags": {
-    "UTX": "Failed validation",
-    "RTN": "Failed validation"
+    "ZOOM": "Failed validation",
+    "CRWD": "Failed validation",
+    "DDOG": "Failed validation",
+    "ZM": "Failed validation",
+    "DOCU": "Failed validation",
+    "BYND": "Failed validation",
+    "PTON": "Failed validation",
+    "TDOC": "Failed validation",
+    "NCLH": "Failed validation",
+    "CCL": "Failed validation",
+    "AAL": "Failed validation",
+    "DAL": "Failed validation",
+    "NIO": "Failed validation",
+    "BILI": "Failed validation"
   },
-  "generation_prompt": "You are a quantitative analyst selecting stocks for a momentum trading strategy.\n\nCRITICAL: Select stocks AS OF 2020-01-01. Only use information available BEFORE this date.\n\nTASK: Generate 60 stocks matching these criteria:\n\nTYPE: high_beta_momentum\n\nREQUIREMENTS:\n\n- High Beta (>1.0 vs SPY): Stocks that move more than the market\n- High Liquidity: Daily dollar volume > $10M, actively traded\n- Growth Characteristics: Revenue growth, market expansion\n- Cyclical Sector: Technology, Consumer Discretionary, Financials, Energy, Industrials\n- Market Leadership: Top 3 position in their industry/niche\n- Institutional Interest: Covered by multiple analysts\n\n\nFILTERS:\n- Market cap > $5B\n- Daily volume > $10M\n- Listed > 1 year(s) as of 2020-01-01\n- Exclude: Utilities, Real Estate, Consumer Staples\n\nDO NOT include stocks that:\n- IPO'd after 2020-01-01\n- You only know about due to post-2020-01-01 performance\n\nOUTPUT FORMAT (valid JSON only, no markdown):\n{\n    \"stocks\": [\n        {\"symbol\": \"NVDA\", \"name\": \"NVIDIA\", \"sector\": \"Technology\", \"rationale\": \"GPU leader, high beta, liquid\"},\n        {\"symbol\": \"TSLA\", \"name\": \"Tesla\", \"sector\": \"Consumer Discretionary\", \"rationale\": \"EV leader, high volatility\"}\n    ]\n}\n\nReturn ONLY the JSON object, no other text. Keep rationale brief (under 20 words each).\n",
-  "validation_prompt": "Validate this stock universe for hindsight bias.\n\nSELECTION DATE: 2020-01-01\nSTOCKS: NVDA, TSLA, AMD, NFLX, AMZN, GOOGL, FB, MSFT, AAPL, BA, CAT, JPM, BAC, GS, XOM, CVX, ADBE, CRM, PYPL, V, MA, INTC, CSCO, ORCL, IBM, QCOM, MU, AMAT, LRCX, KLAC, AVGO, TXN, HD, NKE, MCD, SBUX, DIS, CMCSA, LOW, TGT, COST, F, GM, BKNG, TRIP, MMM, GE, HON, UTX, LMT, RTN, UPS, FDX, DE, WFC, C, MS, AXP, BRK.B, COP\n\nFor each stock, check:\n1. Was it publicly traded as of 2020-01-01?\n2. Was it well-known at that time (not obscure)?\n3. Would it have been selected WITHOUT knowing future performance?\n\nOUTPUT FORMAT (valid JSON only):\n{\n    \"validated_stocks\": [\n        {\"symbol\": \"NVDA\", \"overall\": \"PASS\", \"reason\": \"Major GPU company, well-known\"},\n        {\"symbol\": \"UPST\", \"overall\": \"REJECT\", \"reason\": \"IPO'd Dec 2020\"}\n    ],\n    \"bias_score\": 0.1\n}\n\nReturn ONLY JSON. Mark \"PASS\" or \"REJECT\" for each stock.\n",
-  "created_at": "2026-01-08T14:25:58.458931"
+  "generation_prompt": "You are selecting stocks for an AGGRESSIVE momentum trading strategy.\n\nCRITICAL: Select stocks AS OF 2020-01-01. Only use information available BEFORE this date.\n\nTASK: Generate 60 HIGH-BETA, HIGH-GROWTH stocks.\n\nTYPE: high_beta_momentum\n\nSTOCK PROFILE WE WANT:\n- VOLATILE: Stocks that move 2-5% on typical days, not boring 0.5% movers\n- HIGH BETA: Beta > 1.3 vs S&P 500 (moves more than market)\n- GROWTH: Revenue growing >15% YoY, not mature slow-growth companies\n- MOMENTUM HISTORY: Stocks known for trending strongly (up or down)\n- LIQUID: High volume, widely traded\n\nSTOCKS TO INCLUDE (examples of the profile):\n- High-growth tech: Cloud, SaaS, semiconductors, e-commerce\n- Disruptors: Companies disrupting industries\n- Cyclical leaders: Best-in-class industrials, energy, travel\n- High-beta financials: Investment banks, fintech\n\nSTOCKS TO AVOID:\n- Slow-growth legacy: IBM, GE, MMM, F, GM (low beta, boring)\n- Defensive: Utilities, staples, telecom, REITs\n- Mature tech: CSCO, ORCL, INTC (low growth)\n- Conglomerates: Low beta, diversified away momentum\n\nFILTERS:\n- Market cap > $5B\n- Daily volume > $10M\n- Listed > 1 year(s) as of 2020-01-01\n- Exclude sectors: Utilities, Real Estate, Consumer Staples\n\nDO NOT include:\n- Stocks that IPO'd after 2020-01-01\n- Stocks you only know due to post-2020-01-01 performance\n- Low-beta, slow-growth \"safe\" stocks\n\nOUTPUT FORMAT (valid JSON only):\n{\n    \"stocks\": [\n        {\"symbol\": \"NVDA\", \"name\": \"NVIDIA\", \"sector\": \"Technology\", \"rationale\": \"GPU leader, 40% revenue growth, beta 1.5\"},\n        {\"symbol\": \"TSLA\", \"name\": \"Tesla\", \"sector\": \"Consumer Discretionary\", \"rationale\": \"EV disruptor, extreme volatility, beta 2.0\"}\n    ]\n}\n\nReturn ONLY JSON. Prioritize VOLATILE, HIGH-GROWTH stocks over safe blue chips.\n",
+  "validation_prompt": "Validate this stock universe for hindsight bias.\n\nSELECTION DATE: 2020-01-01\nSTOCKS: NVDA, TSLA, AMD, NFLX, AMZN, CRM, ADBE, PYPL, SQ, SHOP, ROKU, ZOOM, OKTA, SPLK, WDAY, TWLO, ZS, CRWD, MDB, DDOG, NOW, VEEV, TEAM, ZM, DOCU, UBER, LYFT, BYND, PTON, TDOC, TWTR, SNAP, FB, GOOGL, BA, CAT, NCLH, CCL, AAL, DAL, GS, MS, JPM, BAC, XLF, BABA, JD, BIDU, NIO, IQ, BILI, MU, AMAT, LRCX, KLAC, MRVL, QCOM, AVGO, TXN, INTC, XLNX, ON\n\nFor each stock, check:\n1. Was it publicly traded as of 2020-01-01?\n2. Was it well-known at that time (not obscure)?\n3. Would it have been selected WITHOUT knowing future performance?\n\nOUTPUT FORMAT (valid JSON only):\n{\n    \"validated_stocks\": [\n        {\"symbol\": \"NVDA\", \"overall\": \"PASS\", \"reason\": \"Major GPU company, well-known\"},\n        {\"symbol\": \"UPST\", \"overall\": \"REJECT\", \"reason\": \"IPO'd Dec 2020\"}\n    ],\n    \"bias_score\": 0.1\n}\n\nReturn ONLY JSON. Mark \"PASS\" or \"REJECT\" for each stock.\n",
+  "created_at": "2026-01-08T14:33:01.368626"
 }
