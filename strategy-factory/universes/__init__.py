@@ -16,6 +16,7 @@ from .etf_core import ETF_CORE_UNIVERSE, get_etf_core_symbols
 from .sector_spdrs import SECTOR_SPDR_UNIVERSE, get_sector_spdr_symbols
 from .single_instrument import SINGLE_INSTRUMENT_UNIVERSE, get_single_instrument_symbols
 from .large_cap_liquid import LARGE_CAP_UNIVERSE, get_large_cap_symbols
+from .high_beta_growth import HIGH_BETA_UNIVERSE, get_high_beta_symbols
 
 __all__ = [
     'ETF_CORE_UNIVERSE',
@@ -26,4 +27,6 @@ __all__ = [
     'get_single_instrument_symbols',
     'LARGE_CAP_UNIVERSE',
     'get_large_cap_symbols',
+    'HIGH_BETA_UNIVERSE',
+    'get_high_beta_symbols',
 ]

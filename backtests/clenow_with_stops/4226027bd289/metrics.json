@@ -1,0 +1,22 @@
+{
+  "strategy_name": "clenow_with_stops",
+  "universe": "high_beta_growth",
+  "backtest_id": "4226027bd28958b521fabf32ae43e05c",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1022367.93,
+  "cagr": 26.15,
+  "sharpe": 0.95,
+  "max_drawdown": 26.5,
+  "total_trades": 55,
+  "win_rate": 58.18181818181818,
+  "avg_win_pct": 11.486483237420396,
+  "avg_loss_pct": -4.451152584170791,
+  "risk_reward": 2.580563802343842,
+  "profit_factor": 1.34,
+  "avg_bars_held": 32,
+  "time_in_market": 0.0,
+  "total_fees": -7555.29,
+  "net_profit": 922367.93
+}

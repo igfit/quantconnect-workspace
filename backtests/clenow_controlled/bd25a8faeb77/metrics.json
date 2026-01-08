@@ -1,0 +1,22 @@
+{
+  "strategy_name": "clenow_controlled",
+  "universe": "high_beta_growth",
+  "backtest_id": "bd25a8faeb776cc883a4750b1aa2ee58",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 2814766.8,
+  "cagr": 39.585,
+  "sharpe": 1.243,
+  "max_drawdown": 26.4,
+  "total_trades": 59,
+  "win_rate": 69.49152542372882,
+  "avg_win_pct": 14.850522717311684,
+  "avg_loss_pct": -4.594607850264367,
+  "risk_reward": 3.2321632664378974,
+  "profit_factor": 1.28,
+  "avg_bars_held": 61,
+  "time_in_market": 0.0,
+  "total_fees": -8546.01,
+  "net_profit": 2348523.45
+}

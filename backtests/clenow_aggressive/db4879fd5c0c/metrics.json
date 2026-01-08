@@ -1,0 +1,22 @@
+{
+  "strategy_name": "clenow_aggressive",
+  "universe": "high_beta_growth",
+  "backtest_id": "db4879fd5c0c56fdd87e7b02873fd47e",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1709898.43,
+  "cagr": 32.803,
+  "sharpe": 1.054,
+  "max_drawdown": 36.4,
+  "total_trades": 61,
+  "win_rate": 72.1311475409836,
+  "avg_win_pct": 10.525052888578355,
+  "avg_loss_pct": -4.179325883360288,
+  "risk_reward": 2.5183613774851015,
+  "profit_factor": 1.08,
+  "avg_bars_held": 54,
+  "time_in_market": 0.0,
+  "total_fees": -5845.49,
+  "net_profit": 1495949.13
+}

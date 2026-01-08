@@ -1,0 +1,22 @@
+{
+  "strategy_name": "chandelier_trend",
+  "universe": "high_beta_growth",
+  "backtest_id": "2628c9d9778b7bc14151fd85d4bfec09",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 688073.31,
+  "cagr": 21.256,
+  "sharpe": 0.765,
+  "max_drawdown": 32.6,
+  "total_trades": 48,
+  "win_rate": 43.75,
+  "avg_win_pct": 11.816404003257722,
+  "avg_loss_pct": -7.29338624130149,
+  "risk_reward": 1.620153329648576,
+  "profit_factor": 2.4,
+  "avg_bars_held": 42,
+  "time_in_market": 0.0,
+  "total_fees": -3983.33,
+  "net_profit": 590389.41
+}

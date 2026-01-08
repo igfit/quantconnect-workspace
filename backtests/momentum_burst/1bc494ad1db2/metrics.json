@@ -1,0 +1,22 @@
+{
+  "strategy_name": "momentum_burst",
+  "universe": "high_beta_growth",
+  "backtest_id": "1bc494ad1db2145eefea10a4b64dc624",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1642038.16,
+  "cagr": 32.266,
+  "sharpe": 0.952,
+  "max_drawdown": 40.3,
+  "total_trades": 47,
+  "win_rate": 34.04255319148936,
+  "avg_win_pct": 11.938449675458989,
+  "avg_loss_pct": -8.712780365222155,
+  "risk_reward": 1.3702227274214764,
+  "profit_factor": 2.31,
+  "avg_bars_held": 36,
+  "time_in_market": 0.0,
+  "total_fees": -9783.6,
+  "net_profit": 1553265.1
+}
