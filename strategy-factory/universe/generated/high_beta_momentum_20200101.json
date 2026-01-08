@@ -1,0 +1,431 @@
+{
+  "id": "high_beta_momentum_20200101",
+  "name": "High Beta Momentum (2020-01-01)",
+  "selection_date": "2020-01-01",
+  "universe_type": "high_beta_momentum",
+  "final_symbols": [
+    "NVDA",
+    "TSLA",
+    "AMD",
+    "NFLX",
+    "AMZN",
+    "GOOGL",
+    "FB",
+    "MSFT",
+    "AAPL",
+    "BA",
+    "CAT",
+    "JPM",
+    "BAC",
+    "GS",
+    "XOM",
+    "CVX",
+    "ADBE",
+    "CRM",
+    "PYPL",
+    "V",
+    "MA",
+    "INTC",
+    "CSCO",
+    "ORCL",
+    "IBM",
+    "QCOM",
+    "MU",
+    "AMAT",
+    "LRCX",
+    "KLAC",
+    "AVGO",
+    "TXN",
+    "HD",
+    "NKE",
+    "MCD",
+    "SBUX",
+    "DIS",
+    "CMCSA",
+    "LOW",
+    "TGT",
+    "COST",
+    "F",
+    "GM",
+    "BKNG",
+    "TRIP",
+    "MMM",
+    "GE",
+    "HON",
+    "LMT",
+    "UPS",
+    "FDX",
+    "DE",
+    "WFC",
+    "C",
+    "MS",
+    "AXP",
+    "BRK.B",
+    "COP"
+  ],
+  "candidates": [
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AMD",
+      "name": "Advanced Micro Devices",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AMZN",
+      "name": "Amazon",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "FB",
+      "name": "Facebook",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "BA",
+      "name": "Boeing",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "CAT",
+      "name": "Caterpillar",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "JPM",
+      "name": "JPMorgan Chase",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "BAC",
+      "name": "Bank of America",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "GS",
+      "name": "Goldman Sachs",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "XOM",
+      "name": "ExxonMobil",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "CVX",
+      "name": "Chevron",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "ADBE",
+      "name": "Adobe",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "CRM",
+      "name": "Salesforce",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "PYPL",
+      "name": "PayPal",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "V",
+      "name": "Visa",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MA",
+      "name": "Mastercard",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "INTC",
+      "name": "Intel",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "CSCO",
+      "name": "Cisco",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "ORCL",
+      "name": "Oracle",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "IBM",
+      "name": "IBM",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "QCOM",
+      "name": "Qualcomm",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MU",
+      "name": "Micron",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AMAT",
+      "name": "Applied Materials",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "KLAC",
+      "name": "KLA",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AVGO",
+      "name": "Broadcom",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TXN",
+      "name": "Texas Instruments",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "HD",
+      "name": "Home Depot",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "NKE",
+      "name": "Nike",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MCD",
+      "name": "McDonald's",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "SBUX",
+      "name": "Starbucks",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "DIS",
+      "name": "Disney",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "CMCSA",
+      "name": "Comcast",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "LOW",
+      "name": "Lowe's",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TGT",
+      "name": "Target",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "COST",
+      "name": "Costco",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "F",
+      "name": "Ford",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "GM",
+      "name": "General Motors",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "BKNG",
+      "name": "Booking Holdings",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "TRIP",
+      "name": "TripAdvisor",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MMM",
+      "name": "3M",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "GE",
+      "name": "General Electric",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "HON",
+      "name": "Honeywell",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "LMT",
+      "name": "Lockheed Martin",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "UPS",
+      "name": "UPS",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "FDX",
+      "name": "FedEx",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "DE",
+      "name": "Deere",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "WFC",
+      "name": "Wells Fargo",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "C",
+      "name": "Citigroup",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "MS",
+      "name": "Morgan Stanley",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "AXP",
+      "name": "American Express",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "BRK.B",
+      "name": "Berkshire Hathaway",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    },
+    {
+      "symbol": "COP",
+      "name": "ConocoPhillips",
+      "selection_rationale": "",
+      "confidence_score": 0.5
+    }
+  ],
+  "feature_criteria": {},
+  "quantitative_filters": {
+    "min_market_cap_billions": 5,
+    "min_volume_millions": 10,
+    "min_years_listed": 1,
+    "exclude_sectors": []
+  },
+  "excluded_symbols": {},
+  "hindsight_flags": {
+    "UTX": "Failed validation",
+    "RTN": "Failed validation"
+  },
+  "generation_prompt": "You are a quantitative analyst selecting stocks for a momentum trading strategy.\n\nCRITICAL: Select stocks AS OF 2020-01-01. Only use information available BEFORE this date.\n\nTASK: Generate 60 stocks matching these criteria:\n\nTYPE: high_beta_momentum\n\nREQUIREMENTS:\n\n- High Beta (>1.0 vs SPY): Stocks that move more than the market\n- High Liquidity: Daily dollar volume > $10M, actively traded\n- Growth Characteristics: Revenue growth, market expansion\n- Cyclical Sector: Technology, Consumer Discretionary, Financials, Energy, Industrials\n- Market Leadership: Top 3 position in their industry/niche\n- Institutional Interest: Covered by multiple analysts\n\n\nFILTERS:\n- Market cap > $5B\n- Daily volume > $10M\n- Listed > 1 year(s) as of 2020-01-01\n- Exclude: Utilities, Real Estate, Consumer Staples\n\nDO NOT include stocks that:\n- IPO'd after 2020-01-01\n- You only know about due to post-2020-01-01 performance\n\nOUTPUT FORMAT (valid JSON only, no markdown):\n{\n    \"stocks\": [\n        {\"symbol\": \"NVDA\", \"name\": \"NVIDIA\", \"sector\": \"Technology\", \"rationale\": \"GPU leader, high beta, liquid\"},\n        {\"symbol\": \"TSLA\", \"name\": \"Tesla\", \"sector\": \"Consumer Discretionary\", \"rationale\": \"EV leader, high volatility\"}\n    ]\n}\n\nReturn ONLY the JSON object, no other text. Keep rationale brief (under 20 words each).\n",
+  "validation_prompt": "Validate this stock universe for hindsight bias.\n\nSELECTION DATE: 2020-01-01\nSTOCKS: NVDA, TSLA, AMD, NFLX, AMZN, GOOGL, FB, MSFT, AAPL, BA, CAT, JPM, BAC, GS, XOM, CVX, ADBE, CRM, PYPL, V, MA, INTC, CSCO, ORCL, IBM, QCOM, MU, AMAT, LRCX, KLAC, AVGO, TXN, HD, NKE, MCD, SBUX, DIS, CMCSA, LOW, TGT, COST, F, GM, BKNG, TRIP, MMM, GE, HON, UTX, LMT, RTN, UPS, FDX, DE, WFC, C, MS, AXP, BRK.B, COP\n\nFor each stock, check:\n1. Was it publicly traded as of 2020-01-01?\n2. Was it well-known at that time (not obscure)?\n3. Would it have been selected WITHOUT knowing future performance?\n\nOUTPUT FORMAT (valid JSON only):\n{\n    \"validated_stocks\": [\n        {\"symbol\": \"NVDA\", \"overall\": \"PASS\", \"reason\": \"Major GPU company, well-known\"},\n        {\"symbol\": \"UPST\", \"overall\": \"REJECT\", \"reason\": \"IPO'd Dec 2020\"}\n    ],\n    \"bias_score\": 0.1\n}\n\nReturn ONLY JSON. Mark \"PASS\" or \"REJECT\" for each stock.\n",
+  "created_at": "2026-01-08T14:25:58.458931"
+}

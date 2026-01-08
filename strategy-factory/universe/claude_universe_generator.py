@@ -221,109 +221,56 @@ DEFENSIVE_SECTORS = ["Utilities", "Consumer Staples", "Healthcare", "Real Estate
 
 UNIVERSE_GENERATION_PROMPT = """You are a quantitative analyst selecting stocks for a momentum trading strategy.
 
-CRITICAL CONSTRAINT: You are selecting stocks AS OF {selection_date}. You must ONLY use information that was publicly available before this date. Do NOT use any knowledge of how stocks performed AFTER this date.
+CRITICAL: Select stocks AS OF {selection_date}. Only use information available BEFORE this date.
 
-TASK: Generate a list of {num_stocks} stocks that match these criteria:
+TASK: Generate {num_stocks} stocks matching these criteria:
 
-UNIVERSE TYPE: {universe_type}
+TYPE: {universe_type}
 
-FEATURE REQUIREMENTS:
+REQUIREMENTS:
 {feature_requirements}
 
-QUANTITATIVE FILTERS:
-- Minimum market cap: ${min_market_cap}B
-- Minimum daily dollar volume: ${min_volume}M
-- Must have been publicly traded for at least {min_years_listed} years as of {selection_date}
-- Exclude sectors: {exclude_sectors}
+FILTERS:
+- Market cap > ${min_market_cap}B
+- Daily volume > ${min_volume}M
+- Listed > {min_years_listed} year(s) as of {selection_date}
+- Exclude: {exclude_sectors}
 
-SELECTION METHODOLOGY:
-Think about what stocks LOOKED LIKE good momentum candidates as of {selection_date}, based on:
+DO NOT include stocks that:
+- IPO'd after {selection_date}
+- You only know about due to post-{selection_date} performance
 
-1. BETA & VOLATILITY: Which stocks historically moved more than the market?
-2. LIQUIDITY: Which stocks had high trading volume and tight spreads?
-3. GROWTH CHARACTERISTICS: Which companies were growing revenues and had growth valuations?
-4. MARKET POSITION: Which companies were leaders in growing industries?
-5. INSTITUTIONAL INTEREST: Which stocks had high analyst coverage and fund ownership?
-6. SECTOR: Focus on cyclical sectors that exhibit momentum (tech, consumer disc, energy, industrials)
-
-DO NOT SELECT BASED ON:
-- How the stock performed after {selection_date}
-- Knowledge of events that happened after {selection_date}
-- Stocks that IPO'd after {selection_date}
-
-For each stock, explain WHY it would have been selected based on information available AS OF {selection_date}.
-
-OUTPUT FORMAT (JSON):
+OUTPUT FORMAT (valid JSON only, no markdown):
 {{
     "stocks": [
-        {{
-            "symbol": "NVDA",
-            "name": "NVIDIA Corporation",
-            "sector": "Technology",
-            "selection_rationale": "As of Jan 2020, NVIDIA was the dominant GPU maker with 80%+ market share in gaming and data center. High beta (~1.5), highly liquid ($5B+ daily volume), strong revenue growth from gaming and data center. Well-covered by analysts with mostly buy ratings.",
-            "features": {{
-                "high_beta": true,
-                "high_volatility": true,
-                "highly_liquid": true,
-                "revenue_growth": true,
-                "market_leader": true,
-                "growing_industry": true,
-                "is_cyclical": true
-            }},
-            "confidence_no_hindsight": 0.95
-        }},
-        ...
-    ],
-    "methodology_notes": "Explanation of overall selection approach",
-    "potential_biases": "Any concerns about hindsight that crept in"
+        {{"symbol": "NVDA", "name": "NVIDIA", "sector": "Technology", "rationale": "GPU leader, high beta, liquid"}},
+        {{"symbol": "TSLA", "name": "Tesla", "sector": "Consumer Discretionary", "rationale": "EV leader, high volatility"}}
+    ]
 }}
+
+Return ONLY the JSON object, no other text. Keep rationale brief (under 20 words each).
 """
 
-UNIVERSE_VALIDATION_PROMPT = """You are auditing a stock universe for hindsight bias.
+UNIVERSE_VALIDATION_PROMPT = """Validate this stock universe for hindsight bias.
 
 SELECTION DATE: {selection_date}
-UNIVERSE TO VALIDATE: {symbols}
+STOCKS: {symbols}
 
-For EACH stock, evaluate:
+For each stock, check:
+1. Was it publicly traded as of {selection_date}?
+2. Was it well-known at that time (not obscure)?
+3. Would it have been selected WITHOUT knowing future performance?
 
-1. IPO CHECK: Was this stock publicly traded as of {selection_date}?
-2. NOTORIETY CHECK: Was this stock well-known to institutional investors as of {selection_date}?
-3. HINDSIGHT CHECK: Does this selection seem influenced by knowledge of post-{selection_date} performance?
-4. FEATURE CHECK: Did this stock actually have the claimed features (high beta, liquid, etc.) as of {selection_date}?
-
-RED FLAGS to look for:
-- Stocks that IPO'd after {selection_date}
-- Obscure small-caps that only became known due to later performance
-- Stocks selected primarily because they "turned out to be good"
-- Missing obvious candidates that would have fit criteria but didn't perform well
-
-OUTPUT FORMAT (JSON):
+OUTPUT FORMAT (valid JSON only):
 {{
     "validated_stocks": [
-        {{
-            "symbol": "NVDA",
-            "ipo_check": "PASS - IPO'd 1999",
-            "notoriety_check": "PASS - Major semiconductor, widely covered",
-            "hindsight_check": "PASS - Would have been selected based on 2019 fundamentals",
-            "feature_check": "PASS - High beta, liquid, market leader confirmed",
-            "overall": "PASS",
-            "confidence": 0.95
-        }},
-        {{
-            "symbol": "UPST",
-            "ipo_check": "FAIL - IPO'd December 2020",
-            "notoriety_check": "FAIL - Unknown before IPO",
-            "hindsight_check": "FAIL - Only known due to 2021 performance",
-            "feature_check": "N/A",
-            "overall": "REJECT",
-            "confidence": 0.99
-        }},
-        ...
+        {{"symbol": "NVDA", "overall": "PASS", "reason": "Major GPU company, well-known"}},
+        {{"symbol": "UPST", "overall": "REJECT", "reason": "IPO'd Dec 2020"}}
     ],
-    "missing_candidates": ["Stocks that should have been included but weren't"],
-    "overall_bias_score": 0.15,
-    "recommendations": "Summary of changes needed"
+    "bias_score": 0.1
 }}
+
+Return ONLY JSON. Mark "PASS" or "REJECT" for each stock.
 """
 
 FEATURE_EXTRACTION_PROMPT = """You are analyzing what characteristics made certain stocks good momentum candidates.
@@ -407,15 +354,41 @@ class ClaudeUniverseGenerator:
 
     def _parse_json_response(self, response: str) -> Dict[str, Any]:
         """Extract JSON from Claude's response"""
-        # Try to find JSON block
+        # Try to find JSON block in markdown
         json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
         if json_match:
-            return json.loads(json_match.group(1))
+            try:
+                return json.loads(json_match.group(1))
+            except json.JSONDecodeError:
+                pass
 
-        # Try to find raw JSON
-        json_match = re.search(r'\{.*\}', response, re.DOTALL)
+        # Try to find raw JSON object
+        json_match = re.search(r'\{[\s\S]*\}', response)
         if json_match:
-            return json.loads(json_match.group(0))
+            try:
+                return json.loads(json_match.group(0))
+            except json.JSONDecodeError:
+                # Try to fix common issues
+                json_str = json_match.group(0)
+                # Remove trailing commas
+                json_str = re.sub(r',\s*}', '}', json_str)
+                json_str = re.sub(r',\s*]', ']', json_str)
+                try:
+                    return json.loads(json_str)
+                except json.JSONDecodeError:
+                    pass
+
+        # Last resort: try to extract just the stocks array
+        stocks_match = re.search(r'"stocks"\s*:\s*\[(.*?)\]', response, re.DOTALL)
+        if stocks_match:
+            try:
+                stocks_json = '[' + stocks_match.group(1) + ']'
+                # Clean up
+                stocks_json = re.sub(r',\s*]', ']', stocks_json)
+                stocks = json.loads(stocks_json)
+                return {"stocks": stocks}
+            except json.JSONDecodeError:
+                pass
 
         raise ValueError(f"Could not parse JSON from response: {response[:500]}")
 
@@ -477,7 +450,7 @@ class ClaudeUniverseGenerator:
         )
 
         print(f"Generating {universe_type.value} universe as of {selection_date}...")
-        response = self._call_claude(prompt, max_tokens=8192)
+        response = self._call_claude(prompt, max_tokens=16000)
 
         try:
             parsed = self._parse_json_response(response)
