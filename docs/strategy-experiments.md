@@ -444,6 +444,83 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ## Progress Log
 
+### 2026-01-08 (Session 9 - Round 18 Small/Mid-Cap Universe Test)
+
+**KEY FINDING: Signal transfers to small-caps with EXTREME volatility**
+
+Testing if residual momentum signal alpha transfers to different stock universes.
+
+#### Round 18 Results - Universe Comparison
+
+| Strategy | Universe | Sharpe | CAGR | MaxDD | Notes |
+|----------|----------|--------|------|-------|-------|
+| **ResidualSmallCapR18** | Russell 2000 / Speculative | **1.03** | **52.6%** | 53.7% | HIT TARGET |
+| **WeeklyKeltnerSmallCapR18** | Russell 2000 / Speculative | **1.097** | **56.3%** | 49.8% | **BEST R18** |
+| ResidualMidCapR18 | Established Mid-Caps | 0.045 | 2.2% | 36.1% | **FAILED** |
+
+**Small-Cap Universe** (26 stocks): SOFI, UPST, AFRM, HOOD, RIVN, LCID, PLUG, RIOT, MARA, COIN, DKNG, RBLX, U, NET, DDOG, MDB, CRWD, ZS, GTLB, PLTR, PATH, SNOW, etc.
+
+**Mid-Cap Universe** (25 stocks): TWLO, OKTA, ZM, DOCU, HUBS, TTD, VEEV, PAYC, SWKS, QRVO, MPWR, ETSY, W, CHWY, DASH, LYFT, TDOC, EXAS, INSP, ALGN, DXCM, etc.
+
+#### Key Findings
+
+1. **Small-cap high-beta WORKS** - Same residual momentum signal on speculative growth stocks delivers Sharpe > 1.0
+2. **Established mid-caps FAIL** - More mature companies don't show same signal alpha
+3. **EXTREME drawdowns** - 50%+ max DD is concerning for real trading
+4. **Low win rate + high R:R** - 34-36% win rate but 3.4-3.7 R:R ratio
+
+#### Why Small-Caps Work, Mid-Caps Don't
+
+**Hypothesis**: Small-cap speculative stocks have:
+- Higher volatility → More opportunity for alpha capture
+- Less analyst coverage → More inefficient pricing
+- Retail-driven → Momentum effects are stronger
+- Higher beta → Amplifies residual momentum signal
+
+**Established mid-caps** have:
+- Better institutional coverage → More efficient pricing
+- Lower volatility → Less opportunity for timing alpha
+- Fewer extreme moves → Residual momentum harder to capture
+
+#### Comparison to Large-Cap (R16)
+
+| Strategy | Universe | Sharpe | CAGR | MaxDD |
+|----------|----------|--------|------|-------|
+| ResidualHighBetaR16 | Large-cap + COIN/MSTR | **1.404** | 49.0% | 25.7% |
+| WeeklyKeltnerSmallCapR18 | Small-cap speculative | 1.097 | 56.3% | 49.8% |
+| ResidualSmallCapR18 | Small-cap speculative | 1.03 | 52.6% | 53.7% |
+
+**Conclusion**: Large-cap high-beta is the sweet spot - better Sharpe (1.4 vs 1.0) and much lower drawdown (26% vs 50%).
+
+---
+
+### 2026-01-08 (Session 9 - Round 17 Multi-Timeframe Analysis)
+
+**FINDING: Weekly + Daily MTF improves signal quality**
+
+Testing multi-timeframe combinations: Weekly trend filter + Daily entry signal.
+
+#### Round 17 Results
+
+| Strategy | Sharpe | CAGR | MaxDD | Notes |
+|----------|--------|------|-------|-------|
+| **WeeklyKeltnerDailyResidualR17** | **1.185** | **31.7%** | 24.7% | **BEST MTF** |
+| **WeeklyTrendDailyResidualR17** | **1.127** | **30.8%** | 26.2% | HIT TARGET |
+| WeeklyADXDailyPullbackR17 | 0.532 | 13.2% | 28.4% | Below target |
+| FourHourDailyMomentumR17 | ERROR | - | - | 4H consolidation needs minute data |
+| TripleTFConfluenceR17 | ERROR | - | - | Same 4H issue |
+
+#### MTF Approach That Works
+
+**Weekly Keltner + Daily Residual**:
+1. **Weekly Filter**: Price above weekly Keltner middle band (EMA + ATR channel)
+2. **Daily Signal**: Positive residual momentum (firm-specific alpha)
+3. **Exit**: Weekly drops below Keltner mid OR trailing stop
+
+**Why it works**: Weekly timeframe reduces noise and confirms trend, daily timeframe provides precise entry timing with residual momentum.
+
+---
+
 ### 2026-01-08 (Session 9 - Round 16 Non-Obvious Indicators)
 
 **BREAKTHROUGH: Residual Momentum HighBeta - Sharpe 1.404, CAGR 49%**
