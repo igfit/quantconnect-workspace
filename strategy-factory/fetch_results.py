@@ -28,6 +28,7 @@ import time
 import argparse
 import hashlib
 import base64
+import csv
 from typing import Dict, List, Optional
 
 try:
@@ -38,7 +39,11 @@ except ImportError:
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from runner.results_storage import save_backtest_results
+from runner.results_storage import (
+    save_backtest_results,
+    calculate_trades_from_orders,
+    calculate_pnl_by_ticker
+)
 
 # ============================================================================
 # QC API Authentication
@@ -207,12 +212,66 @@ def wait_for_backtest(project_id: int, backtest_id: str, timeout: int = 300) -> 
 # Main Functions
 # ============================================================================
 
+def format_currency(value: float) -> str:
+    """Format currency value with sign."""
+    if value >= 0:
+        return f"${value:,.0f}"
+    else:
+        return f"-${abs(value):,.0f}"
+
+
+def print_pnl_table(pnl_data: Dict[str, Dict], top_n: int = 15):
+    """Print P&L by ticker table."""
+    if not pnl_data:
+        print("  No P&L data available")
+        return
+
+    # Sort by total P&L descending
+    sorted_tickers = sorted(
+        pnl_data.items(),
+        key=lambda x: x[1].get('total_pnl', 0),
+        reverse=True
+    )
+
+    # Header
+    print()
+    print(f"  {'Ticker':<8} {'Trades':>7} {'Win%':>7} {'Realized':>12} {'Unreal':>10} {'Total':>12}")
+    print(f"  {'-'*8} {'-'*7} {'-'*7} {'-'*12} {'-'*10} {'-'*12}")
+
+    # Top performers
+    for ticker, data in sorted_tickers[:top_n]:
+        trades = data.get('total_trades', 0)
+        win_rate = data.get('wins', 0) / trades * 100 if trades > 0 else 0
+        realized = data.get('realized_pnl', 0)
+        unrealized = data.get('unrealized_pnl', 0)
+        total = data.get('total_pnl', 0)
+
+        print(f"  {ticker:<8} {trades:>7} {win_rate:>6.1f}% {format_currency(realized):>12} {format_currency(unrealized):>10} {format_currency(total):>12}")
+
+    # If there are more tickers, show count
+    if len(sorted_tickers) > top_n:
+        remaining = len(sorted_tickers) - top_n
+        print(f"  ... and {remaining} more tickers")
+
+    # Summary totals
+    total_realized = sum(d.get('realized_pnl', 0) for d in pnl_data.values())
+    total_unrealized = sum(d.get('unrealized_pnl', 0) for d in pnl_data.values())
+    total_pnl = sum(d.get('total_pnl', 0) for d in pnl_data.values())
+    total_trades = sum(d.get('total_trades', 0) for d in pnl_data.values())
+    total_wins = sum(d.get('wins', 0) for d in pnl_data.values())
+
+    print(f"  {'-'*8} {'-'*7} {'-'*7} {'-'*12} {'-'*10} {'-'*12}")
+    overall_win_rate = total_wins / total_trades * 100 if total_trades > 0 else 0
+    print(f"  {'TOTAL':<8} {total_trades:>7} {overall_win_rate:>6.1f}% {format_currency(total_realized):>12} {format_currency(total_unrealized):>10} {format_currency(total_pnl):>12}")
+
+
 def fetch_and_save(
     name: str,
     project_id: int,
     backtest_id: str,
     universe: str,
-    verbose: bool = True
+    verbose: bool = True,
+    show_pnl_table: bool = True
 ) -> str:
     """
     Fetch results for a single strategy and save to disk.
@@ -220,7 +279,9 @@ def fetch_and_save(
     Returns path to saved results directory.
     """
     if verbose:
-        print(f"\n[{name}]")
+        print(f"\n{'='*60}")
+        print(f"[{name}]")
+        print(f"{'='*60}")
 
     # Fetch stats
     if verbose:
@@ -240,6 +301,10 @@ def fetch_and_save(
     if verbose:
         print(f"  Total orders: {len(orders)}")
 
+    # Calculate trades and P&L
+    trades = calculate_trades_from_orders(orders)
+    pnl_data = calculate_pnl_by_ticker(trades)
+
     # Save results
     if verbose:
         print("  Saving results...", end=" ")
@@ -254,11 +319,47 @@ def fetch_and_save(
         print("OK")
         print(f"  Saved to: {result_dir}")
 
-        # Print key metrics
+    if verbose:
+        # Print comprehensive metrics
         statistics = stats.get('statistics', {})
-        print(f"  CAGR: {statistics.get('Compounding Annual Return', 'N/A')}")
-        print(f"  Sharpe: {statistics.get('Sharpe Ratio', 'N/A')}")
-        print(f"  MaxDD: {statistics.get('Drawdown', 'N/A')}")
+        runtime = stats.get('runtimeStatistics', {})
+
+        print()
+        print("  PERFORMANCE METRICS")
+        print("  " + "-" * 40)
+        print(f"  CAGR:           {statistics.get('Compounding Annual Return', 'N/A')}")
+        print(f"  Sharpe Ratio:   {statistics.get('Sharpe Ratio', 'N/A')}")
+        print(f"  Max Drawdown:   {statistics.get('Drawdown', 'N/A')}")
+        print(f"  Net Profit:     {runtime.get('Net Profit', 'N/A')}")
+
+        # Calculate trade statistics
+        total_trades_count = len(trades)
+        winners = [t for t in trades if t.pnl_dollars > 0]
+        losers = [t for t in trades if t.pnl_dollars <= 0]
+
+        win_rate = len(winners) / total_trades_count * 100 if total_trades_count > 0 else 0
+        avg_win = sum(t.pnl_pct for t in winners) / len(winners) * 100 if winners else 0
+        avg_loss = sum(t.pnl_pct for t in losers) / len(losers) * 100 if losers else 0
+        risk_reward = abs(avg_win / avg_loss) if avg_loss != 0 else 0
+        avg_hold = sum(t.bars_held for t in trades) / total_trades_count if total_trades_count > 0 else 0
+
+        print()
+        print("  TRADE STATISTICS")
+        print("  " + "-" * 40)
+        print(f"  Total Trades:   {total_trades_count}")
+        print(f"  Win Rate:       {win_rate:.1f}%")
+        print(f"  Avg Win:        {avg_win:.1f}%")
+        print(f"  Avg Loss:       {avg_loss:.1f}%")
+        print(f"  Risk/Reward:    {risk_reward:.2f}")
+        print(f"  Profit Factor:  {statistics.get('Profit-Loss Ratio', 'N/A')}")
+        print(f"  Avg Hold (days):{avg_hold:.0f}")
+
+        # P&L by ticker table
+        if show_pnl_table and pnl_data:
+            print()
+            print("  P&L BY TICKER (Top 15)")
+            print("  " + "-" * 40)
+            print_pnl_table(pnl_data, top_n=15)
 
     return result_dir
 
@@ -293,7 +394,7 @@ def run_and_fetch(
     return fetch_and_save(name, project_id, backtest_id, universe, verbose)
 
 
-def process_config(config_path: str, verbose: bool = True):
+def process_config(config_path: str, verbose: bool = True, show_pnl_table: bool = True):
     """Process strategies from a JSON config file."""
     with open(config_path, 'r') as f:
         strategies = json.load(f)
@@ -310,7 +411,8 @@ def process_config(config_path: str, verbose: bool = True):
                 project_id=strategy['project_id'],
                 backtest_id=strategy['backtest_id'],
                 universe=strategy.get('universe', 'unknown'),
-                verbose=verbose
+                verbose=verbose,
+                show_pnl_table=show_pnl_table
             )
             results.append({'name': strategy['name'], 'status': 'success', 'dir': result_dir})
             time.sleep(1)
@@ -351,9 +453,12 @@ def main():
 
     # Options
     parser.add_argument('--quiet', '-q', action='store_true', help='Minimal output')
+    parser.add_argument('--no-pnl-table', action='store_true', help='Skip P&L by ticker table')
+    parser.add_argument('--top-tickers', type=int, default=15, help='Number of top tickers to show (default: 15)')
 
     args = parser.parse_args()
     verbose = not args.quiet
+    show_pnl_table = not args.no_pnl_table
 
     try:
         if args.list_backtests:
@@ -365,7 +470,7 @@ def main():
                 print(f"  {bt.get('backtestId', 'N/A')[:12]} | {bt.get('name', 'Unnamed')} | {bt.get('status', 'Unknown')}")
 
         elif args.config:
-            process_config(args.config, verbose)
+            process_config(args.config, verbose, show_pnl_table)
 
         elif args.run:
             if not args.name or not args.project:
@@ -373,7 +478,7 @@ def main():
             run_and_fetch(args.name, args.project, args.universe, verbose)
 
         elif args.name and args.project and args.backtest:
-            fetch_and_save(args.name, args.project, args.backtest, args.universe, verbose)
+            fetch_and_save(args.name, args.project, args.backtest, args.universe, verbose, show_pnl_table)
 
         else:
             parser.print_help()
