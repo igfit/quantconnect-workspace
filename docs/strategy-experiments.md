@@ -444,6 +444,50 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ## Progress Log
 
+### 2026-01-08 (Session 8 - Round 14-15 Out-of-Sample Validation)
+
+**Key Finding: Trailing Stops Are More Robust Than Profit Targets**
+
+#### Round 14: OOS Validation
+- Tested TakeProfit8Pct (Sharpe 1.356 in-sample) on 2015-2020
+- **Result**: Sharpe dropped to 0.324 (76% degradation!)
+- Created RobustMomentum with VIX filter + trailing stops → Sharpe 1.384, MaxDD 9.4%
+
+#### Round 15: High-Return Strategies (Target: 30-50% CAGR)
+
+| Strategy | Sharpe | CAGR | MaxDD | Notes |
+|----------|--------|------|-------|-------|
+| Leveraged Momentum | **1.478** | **32.6%** | 16.3% | 1.5x leverage, HIT TARGET |
+| Let Winners Run | **1.074** | 28.7% | ~15% | No leverage, trailing stop |
+| Concentrated HighBeta | 0.956 | 24.8% | 38.8% | High-beta stocks only |
+
+**Let Winners Run Logic**:
+- 7% stop loss, 12% trailing stop (activates after 8% gain)
+- Trend reversal exit when -DI > +DI + 10
+- No profit target - let winners ride
+
+#### Round 15 OOS: Let Winners Run (2015-2020)
+
+| Metric | In-Sample (2020-2024) | Out-of-Sample (2015-2020) |
+|--------|----------------------|---------------------------|
+| Sharpe | 1.074 | 0.651 |
+| CAGR | 28.7% | 11.9% |
+| Total P&L | - | $77,085 (+77.1%) |
+| Realized | - | $53,757 (70%) |
+| Win Rate | - | 76% (22/29 tickers) |
+
+**Comparison: Let Winners Run vs TakeProfit8Pct OOS**:
+- Let Winners Run OOS: Sharpe 0.651, CAGR 11.9%
+- TakeProfit8Pct OOS: Sharpe 0.324, CAGR 5.6%
+- **Trailing stops show 2x better OOS robustness!**
+
+**Why Trailing Stops Are More Robust**:
+1. Captures extended trends (NVDA, NFLX multi-year runs)
+2. Avoids premature exits that leave gains on the table
+3. Only exits when trend actually reverses
+
+---
+
 ### 2026-01-08 (Session 6 - Round 6 Experiments) - BREAKTHROUGH!
 - **ALL 5 STRATEGIES BEAT SHARPE > 1.0!**
 - **Adaptive Lookback Momentum** - **HIGHEST RETURNS EVER** (51.34% CAGR, 1.23 Sharpe, 40.6% DD)
