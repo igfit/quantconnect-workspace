@@ -769,6 +769,19 @@ MRNA, VRTX, REGN
 - Higher win rate in OOS (67% vs 57%)
 - Strategy works across different market regimes
 
+**No-Leverage Variant (v12_nolev):**
+
+Testing showed that removing leverage improves risk-adjusted returns:
+
+| Version | CAGR | Sharpe | Max DD | Notes |
+|---------|------|--------|--------|-------|
+| v12 (1.15x leverage) | 35.9% | 0.95 | 29.9% | Original |
+| **v12 No Leverage** | **34.8%** | **0.99** | **26.8%** | **Recommended** |
+
+**Finding:** Leverage only added 1.1% CAGR but added 3.1% to drawdown. The no-leverage version has better Sharpe (0.99 vs 0.95) and lower DD (26.8% vs 29.9%).
+
+**Final Recommendation:** Use `highbeta_smallmid_v12_nolev.py` for production.
+
 ---
 
 ## References
