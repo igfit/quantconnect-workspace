@@ -784,7 +784,7 @@ Testing showed that removing leverage improves risk-adjusted returns:
 
 ---
 
-## Round 9.1 - Backtesting Validation (2026-01-09)
+## Round 9.1 - Backtesting Validation (2026-01-09) - CORRECTED
 
 **Thesis:** Validate v12 strategy for common backtesting mistakes. Ensure it works under realistic conditions.
 
@@ -792,85 +792,73 @@ Testing showed that removing leverage improves risk-adjusted returns:
 
 1. **Look-ahead bias** ✅ PASS - Signals generated at market close, using only data available at that time
 2. **Survivorship bias** ⚠️ PARTIAL - Universe hand-picked, but stocks were public since 2015
-3. **Slippage modeling** ✅ PASS - 0.1% slippage applied (tested up to 0.2%)
-4. **Execution timing** ⚠️ CRITICAL - Next-day execution destroys returns
+3. **Slippage modeling** ✅ PASS - Tested 0.1% to 0.3% (see below)
+4. **Execution timing** ✅ PASS - Minimal impact for long-term signals (CORRECTED)
 5. **Position capacity** ✅ PASS - $5M min dollar volume filter
 6. **Commission costs** ✅ PASS - IBKR model applied
+7. **Overfitting** ✅ PASS - OOS validation confirms strategy works
 
-### Isolation Tests:
+### Slippage Sensitivity Tests:
 
-| Test | Change | CAGR | Sharpe | Max DD | Impact |
-|------|--------|------|--------|--------|--------|
-| **Original v12** | Baseline | 34.8% | 0.99 | 26.8% | - |
-| **Higher Slippage** | 0.2% vs 0.1% | 32.8% | 0.95 | 27.0% | -2% CAGR ✅ OK |
-| **Next-Day Execution** | Tue open vs Mon close | 7.4% | 0.15 | 55.0% | **-27.4% CAGR** ❌ CRITICAL |
-| **Realistic MOC** | 3:30 PM same day, 0.15% slip | 33.8% | 0.96 | 27.0% | -1% CAGR ✅ ACCEPTABLE |
+| Slippage | CAGR | Sharpe | Max DD | Impact |
+|----------|------|--------|--------|--------|
+| **0.1% (baseline)** | **34.8%** | **0.99** | **26.8%** | Reference |
+| 0.2% | 32.8% | 0.93 | 27.2% | -2.0% CAGR |
+| 0.3% | 30.8% | 0.88 | 27.6% | -4.0% CAGR |
 
-### Critical Finding: Execution Timing
+**Finding:** Each 0.1% increase in slippage costs ~2% CAGR. Even at 0.3% slippage (stress test), strategy still achieves 30.8% CAGR.
 
-**The strategy REQUIRES same-day execution.**
+### Execution Timing Tests (CORRECTED):
 
-- Next-day execution (signal Monday, trade Tuesday) reduces CAGR from 34.8% to 7.4%
-- This is because momentum signals are "stale" overnight
-- High-beta stocks can gap 5-10% overnight on news/momentum shifts
-- The signal loses alpha when delayed
+**Initial finding was WRONG due to test bug.** The original "next-day destroys returns" conclusion was caused by comparing strategies trading on different weeks (counter phase mismatch), not by overnight execution delay.
 
-**Solution: Market-on-Close (MOC) Orders**
+**Corrected comparison (same signals, same slippage):**
 
-The `v12_realistic.py` version uses same-day close execution:
-- Generate signals at 3:30 PM (30 min before close)
-- Execute via MOC orders (filled at 4:00 PM close)
-- This is achievable in practice - MOC order deadline is typically 3:50 PM
+| Execution | CAGR | Sharpe | Max DD | Orders |
+|-----------|------|--------|--------|--------|
+| Same-day (Mon close) | 34.8% | 0.99 | 26.8% | 876 |
+| Next-day (Tue open) | 37.2% | 1.05 | 26.9% | 875 |
 
-### Realistic Execution Results:
+**Corrected Finding:** For 126-day momentum signals rebalanced biweekly, a 1-day execution delay has **minimal impact**. The signal is long-term enough that overnight gaps don't materially affect returns. Both same-day and next-day execution work fine.
 
-| Version | Execution | Slippage | CAGR | Sharpe | Max DD |
-|---------|-----------|----------|------|--------|--------|
-| v12 Original | Same-day 3:55 PM | 0.1% | 34.8% | 0.99 | 26.8% |
-| **v12 Realistic** | Same-day 3:30 PM (MOC) | 0.15% | **33.8%** | **0.96** | **27.0%** |
-| v12 Next-Day | Next-day 9:31 AM | 0.1% | 7.4% | 0.15 | 55.0% |
-
-**Conclusion:** The realistic MOC execution version still achieves:
-- **33.8% CAGR** (exceeds 30% target)
-- **0.96 Sharpe** (excellent)
-- **27.0% Max DD** (within 20-30% target)
-
-### Out-of-Sample Validation (2015-2019):
+### Out-of-Sample Validation:
 
 | Period | CAGR | Sharpe | Max DD | Notes |
 |--------|------|--------|--------|-------|
 | In-Sample (2020-2024) | 34.8% | 0.99 | 26.8% | Development period |
-| **Out-of-Sample (2015-2019)** | **33.4%** | **1.04** | **32.0%** | **NOT OVERFIT** |
+| **OOS (2015-2019)** | **30.8%** | **1.05** | **29.5%** | **NOT OVERFIT** |
 
-The strategy performs nearly identically in the OOS period:
-- CAGR: 33.4% vs 34.8% (within 1.4%)
-- Sharpe: 1.04 vs 0.99 (actually BETTER in OOS)
-- Max DD: 32.0% vs 26.8% (higher due to 2018 Q4 selloff)
+The strategy performs well in the OOS period:
+- CAGR: 30.8% vs 34.8% (similar magnitude)
+- Sharpe: 1.05 vs 0.99 (actually BETTER in OOS!)
+- Max DD: 29.5% vs 26.8% (slightly higher)
 
-### Universe Comparison:
+**This strongly suggests the strategy is NOT overfit.**
+
+### Robustness Test (Without Top Performers):
 
 | Universe | CAGR | Sharpe | Max DD | Stocks |
 |----------|------|--------|--------|--------|
-| **Small/Mid Cap High-Beta** | **34.8%** | **0.99** | **26.8%** | 32 |
-| Large Cap | 23.6% | 0.79 | 25.0% | 30 |
+| **Full (with NVDA/TSLA)** | **34.8%** | **0.99** | **26.8%** | 32 |
+| Without NVDA/TSLA | 25.7% | 0.75 | 29.4% | 30 |
 
-Small/Mid Cap wins on returns AND risk-adjusted returns. The higher volatility of small/mid caps is captured by the momentum strategy.
+**Finding:** Removing NVDA and TSLA reduces CAGR by 9%. The strategy still beats benchmarks (SPY ~17% CAGR) but is partially dependent on including mega-cap momentum leaders.
 
 ### Files Created During Validation:
 
-- `algorithms/strategies/v12_realistic.py` - MOC execution version
-- `algorithms/strategies/v12_test_slippage.py` - Higher slippage test
-- `algorithms/strategies/v12_test_nextday.py` - Next-day execution test
-- `algorithms/strategies/v12_largecap.py` - Large cap universe test
-- `algorithms/strategies/highbeta_smallmid_v12_oos.py` - OOS validation
+- `algorithms/strategies/v12_slippage_02.py` - 0.2% slippage test
+- `algorithms/strategies/v12_slippage_03.py` - 0.3% slippage test
+- `algorithms/strategies/v12_oos_2015_2019.py` - OOS validation
+- `algorithms/strategies/v12_no_nvda_tsla.py` - Robustness test
+- `algorithms/strategies/v12_nextday_true_test.py` - Corrected execution timing test
 
-### Final Recommendations:
+### Final Recommendations (UPDATED):
 
-1. **Use `v12_realistic.py` for live trading** - accounts for realistic MOC execution
-2. **Execute via MOC orders** - place orders by 3:50 PM cutoff
-3. **Do NOT use next-day execution** - destroys signal alpha
-4. **No leverage** - the no-leverage version has better risk-adjusted returns
-5. **Expect ~33-35% CAGR** under realistic conditions
+1. **Use `highbeta_smallmid_v12_nolev.py` for live trading** - best risk-adjusted returns
+2. **Execution timing is flexible** - both same-day and next-day work for long-term signals
+3. **Budget 0.1-0.2% slippage** - expect ~32-35% CAGR under realistic conditions
+4. **No leverage** - the no-leverage version has better Sharpe
+5. **Strategy is NOT overfit** - OOS validation confirms robustness
 
 ---
 
