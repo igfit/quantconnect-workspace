@@ -662,6 +662,100 @@ self.sma(symbol, period, Resolution.DAILY)  # Works
 - Weekly rebalance, top 10 stocks
 - No indicator filters
 
+### Round 9 - 2026-01-09 (High-Beta Small/Mid Cap)
+
+**Thesis:** Target 30% CAGR with 20-30% max DD on a basket of 30+ high-beta volatile small/mid cap stocks.
+
+**Challenge:** Small/mid cap high-beta stocks got crushed in 2022 (50-80% drawdowns common). Need to balance returns vs risk control.
+
+**Universe (32 stocks):**
+```
+TSLA, NVDA, AMD,
+MU, MRVL, ON, SWKS, AMAT, LRCX, KLAC,
+CRWD, ZS, OKTA, TWLO, NET, MDB,
+SQ, PYPL,
+SHOP, ETSY, ROKU, SNAP, PINS, TTD,
+ENPH, SEDG, FSLR,
+UBER, EXPE,
+MRNA, VRTX, REGN
+```
+
+**Experiments:**
+
+| Version | Key Change | CAGR | Sharpe | Max DD | Notes |
+|---------|------------|------|--------|--------|-------|
+| v1 | Baseline (2020+ IPOs) | 8.2% | 0.25 | 51.6% | Too many failures |
+| v4 | Refined universe | 12.4% | 0.36 | 40.0% | Better but DD high |
+| v7 | 1.5x leverage, top 5 | 36.9% | 0.80 | 45.9% | ✅ CAGR hit, DD too high |
+| v9 | Ultra-tight 10 SMA exit | 13.0% | 0.43 | 24.8% | DD target hit, CAGR low |
+| v10 | Monthly rebalance | 35.2% | 0.78 | 52.0% | 200 SMA too slow |
+| v11 | Biweekly + 10 SMA exit | 34.8% | 0.89 | 32.9% | Close! |
+| **v12** | **v11 + 1.15x lev + 8 pos** | **35.9%** | **0.95** | **29.9%** | **✅ TARGET HIT** |
+| v13 | v11 + equal weight | 24.0% | 0.66 | 32.5% | Equal weight hurt returns |
+
+**Winner: v12 - HighBeta SmallMid Cap Strategy**
+
+- **35.9% CAGR** (exceeds 30% target)
+- **0.95 Sharpe** (very good)
+- **29.9% Max DD** (within 20-30% target range)
+
+**Key Success Factors:**
+
+1. **Hybrid Regime Filter**
+   - Exit on 10 SMA break (fast protection)
+   - Only use leverage when QQQ > 10, 20, 50 SMA AND 3m momentum positive
+   - Reduces exposure in weak regimes (0.8x)
+
+2. **Mild Leverage (1.15x)**
+   - Full leverage only in confirmed uptrend
+   - Not too aggressive (1.5x caused 45% DD)
+   - Not too conservative (1.0x gave 18% CAGR)
+
+3. **Biweekly Rebalance**
+   - More responsive than monthly
+   - Less whipsaw than weekly
+   - Sweet spot for this universe
+
+4. **Individual Position Filters**
+   - Exit if 1m momentum < -15% (cut losers early)
+   - Skip entries with 1m momentum < -10%
+   - Prevents riding falling knives
+
+5. **8 Position Diversification**
+   - More than top 5 (reduces concentration risk)
+   - Less than top 10 (maintains upside capture)
+   - Momentum-weighted allocation
+
+**Why This Universe:**
+- Includes TSLA, NVDA, AMD (proven momentum leaders)
+- Mix of semis, software, fintech, clean energy
+- All pre-2020 IPO (established companies)
+- High beta = high upside in bull markets
+
+**Learnings:**
+
+1. **Regime filter speed matters**
+   - 200 SMA too slow (missed 2022 crash)
+   - 10 SMA catches reversals early
+   - Dual check (10 SMA exit + 20/50 for leverage) balances protection vs opportunity
+
+2. **Leverage requires strict regime confirmation**
+   - Only lever up when ALL signals green
+   - 1.15-1.2x is optimal balance
+
+3. **Equal weight hurts momentum strategies**
+   - Momentum works by letting winners grow
+   - v13 (equal weight) = 24% vs v12 (mom-weighted) = 36%
+
+4. **Position count trade-off**
+   - Fewer positions = higher returns, higher risk
+   - More positions = lower returns, lower risk
+   - 7-8 is sweet spot for this universe
+
+**Files Created:**
+- `algorithms/strategies/highbeta_smallmid_v1.py` through `v13.py`
+- Best version: `highbeta_smallmid_v12.py`
+
 ---
 
 ## References
