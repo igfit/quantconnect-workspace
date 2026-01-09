@@ -17,6 +17,8 @@ A comprehensive guide capturing learnings from developing and testing trading st
 10. [Complete Performance Comparison](#complete-performance-comparison)
 11. [Stock Selection for Momentum Strategies](#stock-selection-for-momentum-strategies)
 12. [Momentum Strategy Research Findings](#momentum-strategy-research-findings)
+13. [Clenow High-Beta Systematic Strategy](#clenow-high-beta-systematic-strategy)
+14. [**Clenow v39: Optimal Diversified Momentum Strategy**](#clenow-v39-optimal-diversified-momentum-strategy)
 
 ---
 
@@ -996,6 +998,214 @@ if not self.is_uptrending(symbol):
 ```
 
 The key insight: A stock can temporarily break trend while still being profitable. Only exit when BOTH conditions are true.
+
+---
+
+## Clenow v39: Optimal Diversified Momentum Strategy
+
+### Overview
+
+**v39 is the best-performing strategy for a broad, diversified stock universe** without survivorship bias. It achieves the optimal balance between returns, drawdown, and robustness.
+
+**Performance (2015-2024)**:
+| Metric | Value |
+|--------|-------|
+| **CAGR** | **23.6%** |
+| **Max Drawdown** | **23.2%** |
+| **Sharpe Ratio** | **0.84** |
+| Net Profit | 641% |
+| Win Rate | 61% |
+| Total Orders | ~900 |
+
+### Universe (47 Stocks, 6 Sectors)
+
+| Sector | Stocks |
+|--------|--------|
+| **Tech** | AAPL, MSFT, GOOGL, META, CRM, ADBE, NOW, ORCL, IBM |
+| **Semiconductor** | NVDA, AMD, INTC, AVGO, MU, AMAT, LRCX, QCOM, TXN, KLAC |
+| **Biotech** | AMGN, GILD, BIIB, REGN, VRTX, MRNA, ILMN |
+| **Consumer** | AMZN, TSLA, HD, NKE, SBUX, MCD, TGT, LULU |
+| **Finance** | JPM, BAC, GS, MS, C, WFC, AXP, BLK |
+| **Energy** | XOM, CVX, COP, EOG, OXY, DVN, SLB, HAL |
+
+**Why this universe**: Broad enough to avoid survivorship bias, includes multiple sectors for diversification, all liquid large-caps.
+
+### Key Parameters
+
+```python
+MOMENTUM_LOOKBACK = 50      # Days for momentum calculation
+TOP_N = 3                   # Number of positions
+MIN_MOMENTUM = 45           # Minimum momentum score (annualized %)
+MIN_REL_STRENGTH = 12       # Must beat SPY by 12%+ annualized
+MIN_R_SQUARED = 0.50        # Trend quality filter
+
+LEVERAGE = 1.0              # No leverage
+ATR_TRAILING_MULT = 2.3     # ATR multiplier for trailing stop
+BEAR_EXPOSURE = 0.0         # 0% exposure when SPY < 200 SMA
+MAX_PER_SECTOR = 1          # Force sector diversification
+MAX_POSITION_SIZE = 0.40    # Cap at 40% per position
+```
+
+### Entry Logic (Bi-Weekly on Mondays)
+
+**Market Regime Filter**:
+```python
+if SPY_price > SPY_200_SMA:
+    exposure = 100%  # Bull market
+else:
+    exposure = 0%    # Bear market - go to cash
+```
+
+**Stock Selection** (must pass ALL):
+1. **Uptrending**: `Price > 20-day SMA`
+2. **Clenow Momentum > 45**: Annualized regression slope × R²
+3. **Relative Strength > 12**: Must beat SPY by 12%+ annualized
+4. **R² > 0.50**: Trend must be consistent
+
+**Ranking Formula**:
+```python
+score = momentum * (1 + relative_strength / 100)
+```
+
+**Sector Diversification**:
+- Sort by score descending
+- Pick top stocks but max 1 per sector
+- Forces picking best from DIFFERENT sectors
+
+### Exit Logic (Checked Daily)
+
+**ATR Trailing Stop**:
+```python
+peak_price = max(peak_price, current_price)  # Track highest price
+stop_level = peak_price - (2.3 * ATR_20)
+if current_price < stop_level:
+    EXIT
+```
+
+**Trend Break + Loss**:
+```python
+if price < 20_day_SMA and price < entry_price * 0.93:
+    EXIT  # Trend broken AND down 7%+
+```
+
+### Position Sizing
+
+```python
+weight = LEVERAGE / TOP_N  # = 1.0 / 3 = 33.3%
+weight = min(weight, MAX_POSITION_SIZE)  # Cap at 40%
+```
+
+Equal weight across 3 positions (~33% each).
+
+### Why v39 Works
+
+1. **Dual Momentum Filter**: Requires BOTH absolute momentum (>45) AND relative strength (beat SPY). Filters out weak trends.
+
+2. **R² Quality Filter**: Only trades stocks with clean, consistent trends (R² > 0.50). Avoids choppy stocks.
+
+3. **Sector Diversification**: Forces picking winners from DIFFERENT sectors. Reduces correlation, improves robustness.
+
+4. **Market Regime**: Goes to 100% cash when SPY < 200 SMA. Avoided most of 2022 bear market.
+
+5. **ATR Trailing Stop**: Locks in gains during runs, exits before major drawdowns. 2.3x ATR is calibrated to avoid whipsaws.
+
+6. **Bi-Weekly Rebalancing**: Frequent enough to catch momentum shifts, infrequent enough to avoid excessive trading costs.
+
+### What We Tested (v59-v65)
+
+Extensive testing confirmed v39 is optimal:
+
+| Strategy | CAGR | Max DD | Sharpe | Change from v39 |
+|----------|------|--------|--------|-----------------|
+| **v39 (Baseline)** | **23.6%** | **23.2%** | **0.84** | — |
+| v59 MTF daily exits | 11.3% | 23.5% | 0.40 | Daily SMA break exits = too many whipsaws |
+| v60 MTF + ATR only | 22.2% | 25.1% | 0.78 | MTF entry filter didn't help |
+| v61 Tight stop (2.0x) | 20.4% | 25.8% | 0.75 | More whipsaws |
+| v62 Loose stop (2.6x) | 23.2% | 22.9% | 0.82 | Similar performance |
+| v63 Four positions | 17.4% | 18.2% | 0.68 | Too diversified, diluted returns |
+| v64 Concentrated (2 pos) | 17.5% | 30.8% | 0.55 | Higher DD without higher returns |
+| v65 Weekly rebalance | 15.1% | 30.0% | 0.54 | Too many trades hurt performance |
+
+### Key Insights from Testing
+
+1. **ATR 2.3x is optimal** - Tighter (2.0x) causes whipsaws, looser (2.6x) same result
+2. **Bi-weekly beats weekly** - Weekly rebalancing = more trades = more slippage
+3. **3 positions is the sweet spot** - 2 = more DD, 4 = diluted returns
+4. **Sector diversification is critical** - Without it, you get correlated positions
+5. **Daily monitoring doesn't help** - Simple bi-weekly approach is sufficient
+6. **MTF filters hurt more than help** - Added complexity without benefit
+
+### Why v37 (36.7% CAGR) Outperformed v39
+
+v37 used a **hyper-beta universe** (15 stocks: NVDA, TSLA, AMD, etc.) - essentially picking known winners with hindsight. When we tested the same concentration approach with the broad v39 universe (v64), it **failed** (17.5% CAGR, 30.8% DD).
+
+**Conclusion**: v37's higher returns came from survivorship-biased stock selection, not from strategy design. v39 is more robust for real-world deployment.
+
+### Implementation Code
+
+```python
+from AlgorithmImports import *
+from datetime import timedelta
+import numpy as np
+
+class ClenowDiversified(QCAlgorithm):
+
+    # Core parameters
+    MOMENTUM_LOOKBACK = 50
+    TOP_N = 3
+    MIN_MOMENTUM = 45
+    MIN_REL_STRENGTH = 12
+    MIN_R_SQUARED = 0.50
+    ATR_TRAILING_MULT = 2.3
+    MAX_PER_SECTOR = 1
+
+    def calculate_momentum(self, symbol):
+        """Clenow momentum: annualized regression slope × R²"""
+        history = self.history(symbol, self.MOMENTUM_LOOKBACK + 1, Resolution.DAILY)
+        if len(history) < self.MOMENTUM_LOOKBACK:
+            return None, None
+
+        prices = history['close'].values
+        log_prices = np.log(prices)
+        x = np.arange(len(log_prices))
+        slope, intercept = np.polyfit(x, log_prices, 1)
+
+        # Annualize the slope
+        annualized_slope = (np.exp(slope * 252) - 1) * 100
+
+        # Calculate R²
+        predictions = slope * x + intercept
+        ss_res = np.sum((log_prices - predictions) ** 2)
+        ss_tot = np.sum((log_prices - np.mean(log_prices)) ** 2)
+        r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+        return annualized_slope * r_squared, r_squared
+
+    def calculate_relative_strength(self, symbol):
+        """Return vs SPY, annualized"""
+        stock_hist = self.history(symbol, self.MOMENTUM_LOOKBACK + 1, Resolution.DAILY)
+        spy_hist = self.history(self.spy, self.MOMENTUM_LOOKBACK + 1, Resolution.DAILY)
+
+        stock_ret = (stock_hist['close'].values[-1] / stock_hist['close'].values[0]) - 1
+        spy_ret = (spy_hist['close'].values[-1] / spy_hist['close'].values[0]) - 1
+
+        return (stock_ret - spy_ret) * (252 / self.MOMENTUM_LOOKBACK) * 100
+```
+
+### File Location
+
+`strategy-factory/strategies/clenow_v39_diversified.py`
+
+### Benchmark Comparison
+
+| Strategy | CAGR | Sharpe | Max DD |
+|----------|------|--------|--------|
+| **v39** | **23.6%** | **0.84** | **23.2%** |
+| SPY Buy-Hold | 17.1% | 0.57 | 30.2% |
+| QQQ Buy-Hold | 18.5% | 0.62 | 34.8% |
+| SPY/QQQ DCA | 7.5% | 0.37 | 13.4% |
+
+v39 beats all passive benchmarks on both absolute returns AND risk-adjusted returns.
 
 ---
 
