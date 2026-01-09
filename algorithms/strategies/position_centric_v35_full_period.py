@@ -121,7 +121,25 @@ class PositionCentricV35FullPeriod(QCAlgorithm):
         if self.is_warming_up:
             return
 
+        # FIX: Update highest_price AND price_history for ALL positions
+        # This prevents stale data when a stock is temporarily filtered out of universe
+        for symbol in list(self.positions.keys()):
+            if symbol in data and data[symbol] is not None:
+                price = data[symbol].close
+                pos = self.positions[symbol]
+                pos["highest_price"] = max(pos["highest_price"], price)
+
+                # Also update price_history for positions (for momentum exit calc)
+                if symbol not in self.price_history:
+                    self.price_history[symbol] = []
+                self.price_history[symbol].append(price)
+                if len(self.price_history[symbol]) > 150:
+                    self.price_history[symbol] = self.price_history[symbol][-150:]
+
+        # Update price history for universe symbols (for entry momentum calculations)
         for symbol in self.universe_symbols:
+            if symbol in self.positions:
+                continue  # Already updated above
             if symbol in data and data[symbol] is not None:
                 price = data[symbol].close
                 if symbol not in self.price_history:
@@ -129,10 +147,6 @@ class PositionCentricV35FullPeriod(QCAlgorithm):
                 self.price_history[symbol].append(price)
                 if len(self.price_history[symbol]) > 150:
                     self.price_history[symbol] = self.price_history[symbol][-150:]
-
-                if symbol in self.positions:
-                    pos = self.positions[symbol]
-                    pos["highest_price"] = max(pos["highest_price"], price)
 
     def get_momentum(self, symbol, days):
         if symbol not in self.price_history:
