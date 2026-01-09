@@ -1,0 +1,2 @@
+timestamp,backtest_id,universe,period,sharpe,cagr,max_dd,win_rate,avg_win,avg_loss,rr,trades,net_profit
+2026-01-09T09:28:30.498343,75f821cfa841,high_beta_systematic,2026-01-09 09:28:10 to 2026-01-09 09:28:10,0.00,0.0%,0.0%,0.0%,0.0%,0.0%,0.00,0,$0

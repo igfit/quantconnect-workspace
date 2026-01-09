@@ -1,0 +1,22 @@
+{
+  "strategy_name": "mtf_volscale_v8",
+  "universe": "high_beta_systematic",
+  "backtest_id": "75f821cfa84139863ed131f549cd269d",
+  "period_start": "2026-01-09 09:28:10",
+  "period_end": "2026-01-09 09:28:10",
+  "starting_capital": 100000.0,
+  "ending_equity": 100000.0,
+  "cagr": 0.0,
+  "sharpe": 0.0,
+  "max_drawdown": 0.0,
+  "total_trades": 0,
+  "win_rate": 0,
+  "avg_win_pct": 0,
+  "avg_loss_pct": 0,
+  "risk_reward": 0,
+  "profit_factor": 0.0,
+  "avg_bars_held": 0,
+  "time_in_market": 0.0,
+  "total_fees": -0.0,
+  "net_profit": 0.0
+}
