@@ -1,0 +1,22 @@
+{
+  "strategy_name": "topn_5",
+  "universe": "unknown",
+  "backtest_id": "ff8f686cbec3476c9c7e942ef9216658",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 356883.35,
+  "cagr": 13.557,
+  "sharpe": 0.468,
+  "max_drawdown": 31.9,
+  "total_trades": 572,
+  "win_rate": 58.21678321678322,
+  "avg_win_pct": 16.203419896610097,
+  "avg_loss_pct": -7.298887513863191,
+  "risk_reward": 2.219984876576605,
+  "profit_factor": 1.05,
+  "avg_bars_held": 41,
+  "time_in_market": 0.0,
+  "total_fees": -4514.62,
+  "net_profit": 243866.5
+}

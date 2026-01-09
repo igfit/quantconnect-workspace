@@ -1,0 +1,22 @@
+{
+  "strategy_name": "topn_2",
+  "universe": "unknown",
+  "backtest_id": "8cc8f979c77ecb5e1eef36f3b4c72f1b",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 346366.31,
+  "cagr": 13.218,
+  "sharpe": 0.401,
+  "max_drawdown": 42.5,
+  "total_trades": 240,
+  "win_rate": 56.666666666666664,
+  "avg_win_pct": 16.49544680150224,
+  "avg_loss_pct": -8.193549770076515,
+  "risk_reward": 2.0132234824208797,
+  "profit_factor": 1.06,
+  "avg_bars_held": 36,
+  "time_in_market": 0.0,
+  "total_fees": -6995.29,
+  "net_profit": 246366.31
+}

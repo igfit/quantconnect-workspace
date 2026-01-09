@@ -34,7 +34,7 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     # CONCENTRATED - single position with trend break exit
     # Best results: 36.5% CAGR, 45.3% MaxDD, 0.81 Sharpe
     MOMENTUM_LOOKBACK = 63  # Standard momentum
-    TOP_N = 1  # Single concentrated position
+    TOP_N = 1  # Single concentrated position (best CAGR)
     MIN_MOMENTUM = 20  # Standard momentum threshold
     MIN_R_SQUARED = 0.7  # Higher R² for smoother trends only
     TREND_SMA_FAST = 50  # Fast SMA for trend
