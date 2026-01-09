@@ -65,7 +65,7 @@ class BollingerMeanReversion(QCAlgorithm):
             self.symbols.append(symbol)
 
             self.indicators[symbol] = {
-                "bb": self.bb(symbol, self.bb_period, self.bb_std, Resolution.DAILY),
+                "bb": self.bb(symbol, self.bb_period, self.bb_std, MovingAverageType.SIMPLE, Resolution.DAILY),
                 "rsi": self.rsi(symbol, self.rsi_period, MovingAverageType.WILDERS, Resolution.DAILY),
                 "sma": self.sma(symbol, self.sma_period, Resolution.DAILY),
             }
