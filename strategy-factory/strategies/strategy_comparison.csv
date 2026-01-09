@@ -1,0 +1,13 @@
+Version,CAGR,MaxDD,Sharpe,Notes
+v22,18.7%,25.3%,0.76,Dual momentum - broad universe
+v27,14.1%,22.3%,0.56,Ultra-concentrated - too narrow
+v28,17.0%,21.4%,0.75,Volume breakout
+v29,27.9%,37.3%,0.83,Hyper-beta bi-weekly - BEST CAGR before v37
+v30,21.5%,30.3%,0.83,Sector rotation
+v31,16.6%,26.9%,0.62,Tight controls - hurt CAGR
+v32,23.0%,36.9%,0.75,Monthly rebalance
+v33,0.9%,12.1%,-0.34,12% DD protection - too aggressive
+v34,-0.3%,21.7%,-0.43,18% DD protection - still too aggressive
+v35,15.6%,35.1%,N/A,Momentum decay - hurt returns
+v36,17.7%,16.7%,N/A,Hybrid dual momentum + hyper-beta - BEST DD
+v37,36.7%,27.7%,1.07,Balanced approach - TARGET ACHIEVED
