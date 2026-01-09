@@ -1,0 +1,22 @@
+{
+  "strategy_name": "trend_exit_3pct",
+  "universe": "unknown",
+  "backtest_id": "182e87bd9c611184af24d307806a6431",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 2118083.97,
+  "cagr": 35.674,
+  "sharpe": 0.797,
+  "max_drawdown": 47.1,
+  "total_trades": 95,
+  "win_rate": 57.89473684210527,
+  "avg_win_pct": 16.316646642086088,
+  "avg_loss_pct": -7.985681104226443,
+  "risk_reward": 2.0432379441561297,
+  "profit_factor": 1.86,
+  "avg_bars_held": 38,
+  "time_in_market": 0.0,
+  "total_fees": -18812.19,
+  "net_profit": 2018083.97
+}

@@ -1,0 +1,22 @@
+{
+  "strategy_name": "top1_mom30_regime",
+  "universe": "unknown",
+  "backtest_id": "786691b00db4c808c99db99161e86ebc",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1628809.98,
+  "cagr": 32.16,
+  "sharpe": 0.727,
+  "max_drawdown": 52.7,
+  "total_trades": 94,
+  "win_rate": 60.63829787234043,
+  "avg_win_pct": 16.153893596136644,
+  "avg_loss_pct": -9.058862607610397,
+  "risk_reward": 1.783214327874415,
+  "profit_factor": 1.57,
+  "avg_bars_held": 43,
+  "time_in_market": 0.0,
+  "total_fees": -11810.43,
+  "net_profit": 1667858.38
+}

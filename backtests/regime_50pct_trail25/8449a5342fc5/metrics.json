@@ -1,0 +1,22 @@
+{
+  "strategy_name": "regime_50pct_trail25",
+  "universe": "unknown",
+  "backtest_id": "8449a5342fc53121e915adc462848ed7",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 988583.77,
+  "cagr": 25.727,
+  "sharpe": 0.621,
+  "max_drawdown": 55.5,
+  "total_trades": 94,
+  "win_rate": 59.57446808510638,
+  "avg_win_pct": 13.98429296958495,
+  "avg_loss_pct": -9.189927751002108,
+  "risk_reward": 1.521697814007302,
+  "profit_factor": 1.47,
+  "avg_bars_held": 41,
+  "time_in_market": 0.0,
+  "total_fees": -9564.21,
+  "net_profit": 972974.52
+}

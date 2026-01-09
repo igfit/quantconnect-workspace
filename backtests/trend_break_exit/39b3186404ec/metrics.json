@@ -1,0 +1,22 @@
+{
+  "strategy_name": "trend_break_exit",
+  "universe": "unknown",
+  "backtest_id": "39b3186404ec49a4abf66019cd1184cc",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1022853.77,
+  "cagr": 26.156,
+  "sharpe": 0.638,
+  "max_drawdown": 44.2,
+  "total_trades": 97,
+  "win_rate": 52.57731958762887,
+  "avg_win_pct": 16.409620396672178,
+  "avg_loss_pct": -7.045337149459645,
+  "risk_reward": 2.3291462209059426,
+  "profit_factor": 1.86,
+  "avg_bars_held": 34,
+  "time_in_market": 0.0,
+  "total_fees": -10221.5,
+  "net_profit": 922853.77
+}

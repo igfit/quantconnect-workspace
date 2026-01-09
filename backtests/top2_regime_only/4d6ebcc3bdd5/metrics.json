@@ -1,0 +1,22 @@
+{
+  "strategy_name": "top2_regime_only",
+  "universe": "unknown",
+  "backtest_id": "4d6ebcc3bdd5ac1011fb85c1475bfd4c",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 290444.84,
+  "cagr": 11.243,
+  "sharpe": 0.348,
+  "max_drawdown": 51.6,
+  "total_trades": 238,
+  "win_rate": 58.40336134453782,
+  "avg_win_pct": 16.588150842893985,
+  "avg_loss_pct": -8.842834952414684,
+  "risk_reward": 1.8758860628021008,
+  "profit_factor": 0.99,
+  "avg_bars_held": 39,
+  "time_in_market": 0.0,
+  "total_fees": -5863.74,
+  "net_profit": 209677.47
+}

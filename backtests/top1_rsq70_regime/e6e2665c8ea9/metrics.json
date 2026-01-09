@@ -1,0 +1,22 @@
+{
+  "strategy_name": "top1_rsq70_regime",
+  "universe": "unknown",
+  "backtest_id": "e6e2665c8ea94f9e28b9c7a5dc381846",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1793501.84,
+  "cagr": 33.438,
+  "sharpe": 0.749,
+  "max_drawdown": 52.7,
+  "total_trades": 94,
+  "win_rate": 60.63829787234043,
+  "avg_win_pct": 15.946414454981067,
+  "avg_loss_pct": -8.970210331227603,
+  "risk_reward": 1.7777079763077024,
+  "profit_factor": 1.6,
+  "avg_bars_held": 42,
+  "time_in_market": 0.0,
+  "total_fees": -12914.77,
+  "net_profit": 1846611.44
+}

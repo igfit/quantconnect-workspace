@@ -1,0 +1,22 @@
+{
+  "strategy_name": "regime_0pct_bear",
+  "universe": "unknown",
+  "backtest_id": "c9e176a4ddb9aa0991c0ec654d486e80",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 1457918.2,
+  "cagr": 30.704,
+  "sharpe": 0.708,
+  "max_drawdown": 54.4,
+  "total_trades": 72,
+  "win_rate": 56.94444444444444,
+  "avg_win_pct": 15.687126610172456,
+  "avg_loss_pct": -7.852305989082166,
+  "risk_reward": 1.9977732187186557,
+  "profit_factor": 1.98,
+  "avg_bars_held": 41,
+  "time_in_market": 0.0,
+  "total_fees": -13271.69,
+  "net_profit": 1482376.34
+}
