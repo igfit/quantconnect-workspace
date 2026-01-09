@@ -108,7 +108,7 @@ class EMADynamicAnnualV58(QCAlgorithm):
 
         self.set_benchmark("SPY")
         self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE, AccountType.MARGIN)
-        self.set_warm_up(130, Resolution.DAILY)
+        self.set_warm_up(120, Resolution.DAILY)
 
     def get_current_regime(self):
         """Determine regime based on hardcoded date ranges"""
@@ -148,7 +148,7 @@ class EMADynamicAnnualV58(QCAlgorithm):
                    and x.dollar_volume > self.min_dollar_volume]
 
         sorted_by_volume = sorted(filtered, key=lambda x: x.dollar_volume, reverse=True)
-        return [x.symbol for x in sorted_by_volume[:500]]
+        return [x.symbol for x in sorted_by_volume[:400]]
 
     def fine_filter(self, fine):
         current_key = self.get_half_year_key()
