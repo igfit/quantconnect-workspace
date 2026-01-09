@@ -158,4 +158,105 @@ Parameters:
 
 ---
 
-*Study completed: January 2026*
+# Round 2: Advanced Indicator Study
+
+## Strategies Tested
+
+Following the RSI study, we explored 9 new strategies using first-principles reasoning:
+
+### 1. Volume-Based Strategies
+
+| Strategy | Theory | CAGR | Sharpe | DD | Trades | Verdict |
+|----------|--------|------|--------|-----|--------|---------|
+| Vol Exhaustion | Buy when price drops on declining volume (sellers exhausted) | -0.39% | -1.24 | 9.9% | 89 | **FAILED** |
+| MFI Divergence | Volume-weighted RSI divergence | 0% | 0 | 0% | 0 | No trades (too restrictive) |
+| OBV Divergence | On-Balance Volume divergence detection | 9.3% | 1.30 | 1.2% | 5 | Promising but too few trades |
+
+**Key Insight**: Volume exhaustion theory doesn't work on high-beta stocks. These stocks can drop on low volume and continue dropping.
+
+### 2. Custom Composite Indicators
+
+| Strategy | Components | CAGR | Sharpe | DD | Trades | Verdict |
+|----------|------------|------|--------|-----|--------|---------|
+| Composite Oversold | RSI + Stochastic + BB%B + SMA | 0.9% | -0.50 | 0.9% | 8 | **FAILED** |
+
+**Key Insight**: Combining oversold indicators didn't add value - multiple signals don't make the trade better.
+
+### 3. Multi-Timeframe Analysis
+
+| Strategy | Structure | CAGR | Sharpe | DD | Trades | Verdict |
+|----------|-----------|------|--------|-----|--------|---------|
+| MTF Train (2018-2020) | Weekly EMA trend + Daily RSI | **25.0%** | **1.53** | 3.4% | 14 | **EXCELLENT in-sample** |
+| MTF Test (2021-2024) | Same parameters | **-0.06%** | **0.04** | 8.0% | 39 | **FAILED out-of-sample** |
+
+**Key Insight**: MTF looked excellent in training but **completely failed walk-forward validation**. This is the clearest example of overfitting in our study.
+
+### 4. Volatility-Based Strategies
+
+| Strategy | Theory | CAGR | Sharpe | DD | Trades | Verdict |
+|----------|--------|------|--------|-----|--------|---------|
+| Vol Compression | Enter after low ATR/BB width | 0% | 0 | 0% | 0 | No trades |
+| Adaptive RSI | RSI Z-score relative to history | 1.28% | -0.31 | 11.9% | 381 | **FAILED** |
+| Keltner Reversion | ATR-based channel touch | -1.06% | -0.87 | 13.1% | 156 | **FAILED** |
+
+**Key Insight**: Volatility compression doesn't reliably predict direction - just that a move is coming.
+
+### 5. Price Structure Strategies
+
+| Strategy | Theory | CAGR | Sharpe | DD | Trades | Verdict |
+|----------|--------|------|--------|-----|--------|---------|
+| Swing Structure | Buy at swing low in uptrend | -1.79% | -0.87 | 1.8% | 12 | **FAILED** |
+
+**Key Insight**: Swing lows in high-beta stocks often break down further rather than bounce.
+
+---
+
+## Round 2 Key Learnings
+
+### 1. Walk-Forward Validation is Non-Negotiable
+
+MTF strategy had **1.53 Sharpe in training** but **0.04 Sharpe in test period**. Without walk-forward testing, we would have deployed a losing strategy.
+
+### 2. More Indicators ≠ Better Results
+
+Every attempt to add complexity (composite scores, multiple timeframes, divergence detection) underperformed simple RSI.
+
+### 3. First-Principles Can Mislead
+
+Logical theories ("volume exhaustion signals reversal") didn't survive backtesting on real data. Markets are not purely mechanical.
+
+### 4. High-Beta Stocks Require Different Approaches
+
+Traditional mean reversion signals often fail on TSLA/NVDA/AMD because:
+- Momentum is stronger than reversion
+- Stop losses get hit before mean reversion completes
+- Volatility makes entries/exits random
+
+### 5. The 2022 Bear Market Broke Everything
+
+All strategies that worked in 2018-2021 failed in 2022. Regime filters helped limit losses but couldn't generate positive returns.
+
+---
+
+## Strategies Summary (All Rounds)
+
+| Rank | Strategy | CAGR | Sharpe | DD | Walk-Forward | Notes |
+|------|----------|------|--------|-----|--------------|-------|
+| 1 | RSI(5) E<35 X>55 | 24.6% | 1.49 | 3.4% | ❌ FAILED | Best in-sample but failed test |
+| 2 | MTF Weekly-Daily | 25.0% | 1.53 | 3.4% | ❌ FAILED | Same pattern - great train, failed test |
+| 3 | OBV Divergence | 9.3% | 1.30 | 1.2% | ⚠️ Untested | Only 5 trades - insufficient sample |
+| 4 | RSI(7) E<35 X>65 | 16.4% | 1.43 | 1.7% | ❓ Unknown | Fewer trades, needs validation |
+| 5 | Adaptive RSI | 1.28% | -0.31 | 11.9% | ❌ FAILED | Many trades, negative alpha |
+
+---
+
+## Next Steps
+
+1. **Regime Detection**: Need more sophisticated regime classification beyond SPY > 200 SMA
+2. **Momentum Integration**: Test momentum strategies for trending markets, reserve mean reversion for ranging
+3. **Different Universe**: High-beta stocks may be fundamentally unsuitable for daily mean reversion
+4. **Lower Timeframe**: Consider intraday for faster mean reversion on these volatile stocks
+
+---
+
+*Study updated: January 2026 - Round 2 Complete*
