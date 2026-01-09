@@ -34,7 +34,7 @@ class QualityGrowthV6Hybrid(QCAlgorithm):
         "XOM", "CVX",
     ]
 
-    LEVERAGE = 1.3
+    LEVERAGE = 1.0
     TOP_N = 10  # Hold top 10 momentum stocks
     MOMENTUM_LOOKBACK = 63  # 3-month momentum
     MIN_MOMENTUM = -0.10  # Exclude stocks down >10%
