@@ -31,12 +31,12 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     3. Have positive 20-day returns (not down-ranging)
     """
 
-    # FINAL: 2.5x leverage = 29% CAGR (closest to 30% target)
-    MOMENTUM_LOOKBACK = 63
-    TOP_N = 5
-    MIN_MOMENTUM = 15
+    # NO LEVERAGE - single stock concentration
+    MOMENTUM_LOOKBACK = 63  # Standard momentum
+    TOP_N = 1  # ALL-IN on single best stock
+    MIN_MOMENTUM = 15  # Lower threshold to capture more opportunities
     TREND_SMA_PERIOD = 100
-    LEVERAGE = 2.5  # 2.5x optimal - higher leverage reduces returns
+    LEVERAGE = 1.0  # No leverage
 
     def initialize(self):
         self.set_start_date(2015, 1, 1)
