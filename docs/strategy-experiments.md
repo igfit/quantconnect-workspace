@@ -496,6 +496,30 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 | Moderate | WeeklyKeltnerDailyR17 | 1.185 | 31.7% | 24.7% |
 | Aggressive | ResidualHighBetaR16 | 1.404 | 49.0% | 25.7% |
 
+#### Cross-Universe Validation (Same Rules, Different Baskets)
+
+Testing if DD reduction is from rules or basket selection:
+
+| Universe | Original DD | Same Rules DD | Δ DD | Sharpe | CAGR |
+|----------|-------------|---------------|------|--------|------|
+| **Large-Cap** | 25.7% | **19.6%** | **-6.1%** | **1.046** | 26.2% |
+| **Small-Cap** | 53.7% | **39.3%** | **-14.4%** | 0.659 | 25.8% |
+| Mid-Cap | 36.1% | 28.3% | -7.8% | -0.291 | -3.3% |
+
+**Key Findings**:
+
+1. **DD reduction techniques ARE universal** - They reduce DD on ALL universes
+2. **Small-cap DD reduced by 14.4%** (53.7% → 39.3%) - Same rules work
+3. **BUT large-cap achieves lower absolute DD** (19.6% vs 39.3%)
+4. **Mid-cap still fails** - Universe lacks signal alpha, not a risk management issue
+
+**Conclusion**: DD reduction techniques work universally, but:
+- **Large-cap high-beta** = Best risk-adjusted (low DD + positive Sharpe)
+- **Small-cap speculative** = Higher returns but floor ~40% DD even with risk controls
+- **Established mid-cap** = No signal alpha regardless of risk management
+
+**The ~20% DD floor on large-cap is real, not basket luck.**
+
 ---
 
 ### 2026-01-08 (Session 9 - Round 18 Small/Mid-Cap Universe Test)
