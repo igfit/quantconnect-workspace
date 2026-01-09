@@ -576,6 +576,92 @@ self.ema(symbol, period, Resolution.DAILY)  # Works
 self.sma(symbol, period, Resolution.DAILY)  # Works
 ```
 
+### Round 8 - 2026-01-08 (Creative Indicator Combinations)
+
+**Thesis:** Test creative combinations of BX Trender, Wave-EWO, MACD with momentum.
+
+**Part 1 - Custom Indicator Combos:**
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| Wave Portfolio | 7.83% | 0.25 | 26.9% | EWO signals on portfolio |
+| MTF BX | 7.17% | 0.22 | 26.3% | Weekly + Daily BX filter |
+| Adaptive EWO | 6.51% | 0.19 | 25.4% | Vol-adjusted parameters |
+| Wave MACD | 3.80% | 0.08 | 29.8% | EWO + MACD fusion |
+| BX Momentum | -0.50% | -0.34 | 18.1% | ❌ BX timing failed |
+| Dual EWO | -0.38% | -0.10 | 32.8% | ❌ Fast(3/13)+Slow(5/34) |
+
+**Part 2 - Parameter Variations:**
+| Strategy | CAGR | Sharpe | Max DD | Notes |
+|----------|------|--------|--------|-------|
+| **Pure Mom EWO Exit** | **18.38%** | **0.61** | 24.2% | ✅ Best combo |
+| Mom EWO Filter | 17.15% | 0.60 | 23.5% | EWO > 0 as filter |
+| Fast EWO Mom | 14.82% | 0.51 | 21.2% | 3/21 EWO + accel |
+| Accel EWO | 14.31% | 0.49 | 21.7% | Acceleration + EWO filter |
+| Mom BX Filter | 6.32% | 0.19 | 26.7% | BX > 5 threshold |
+| Mom MACD Filter | 0.46% | -0.06 | 34.2% | ❌ MACD exit killed returns |
+
+**Baseline: No Top3 Momentum = 22.78% CAGR, 0.76 Sharpe, 19.5% DD**
+
+**Key Findings:**
+
+1. **EWO as EXIT filter works best** - Pure Mom EWO Exit (18.38%) uses EWO only for exits, not entries
+2. **Entry filters hurt performance** - Requiring EWO/BX > 0 for entry misses opportunities
+3. **MACD exit is too aggressive** - Histogram turning negative exits too early
+4. **BX Trender doesn't translate to portfolios** - Works on single stocks (TSLA), fails on diversified portfolios
+5. **Multi-timeframe adds complexity without edge** - Weekly + Daily BX underperforms simple momentum
+6. **Adaptive parameters don't help** - Vol-adjusted EWO parameters don't improve returns
+
+**Why Custom Indicators Underperform Momentum:**
+
+1. **Signal lag** - BX/EWO require multiple SMAs/EMAs to calculate, adding lag
+2. **Cross requirements miss entries** - Waiting for "zero cross" signals misses ongoing trends
+3. **Exit signals too early** - EWO/BX turning negative often catches temporary pullbacks
+4. **Complexity without edge** - More indicators = more parameters to overfit
+
+**Best Approach Found:**
+- Use pure 6-month momentum for ENTRY (simple, effective)
+- Use EWO < 0 for EARLY EXIT only (catches trend reversals)
+- Don't filter entries with indicators (too restrictive)
+
+**Files Created:**
+- `algorithms/strategies/combo_wave_portfolio.py`
+- `algorithms/strategies/combo_bx_momentum.py`
+- `algorithms/strategies/combo_dual_ewo.py`
+- `algorithms/strategies/combo_mtf_bx.py`
+- `algorithms/strategies/combo_wave_macd.py`
+- `algorithms/strategies/combo_adaptive_ewo.py`
+- `algorithms/strategies/combo_fast_ewo_mom.py`
+- `algorithms/strategies/combo_mom_ewo_filter.py`
+- `algorithms/strategies/combo_mom_bx_filter.py`
+- `algorithms/strategies/combo_accel_ewo.py`
+- `algorithms/strategies/combo_pure_mom_ewo_exit.py`
+- `algorithms/strategies/combo_mom_macd_filter.py`
+
+---
+
+## Overall Conclusions (Rounds 1-8)
+
+### What Works:
+1. **Simple 6-month momentum** - Consistently best signal
+2. **Market regime filter** (SPY > 200 SMA) - The REAL edge
+3. **Acceleration bonus** (1m ROC > prev 1m ROC) - Small improvement
+4. **Concentrated portfolios** - 10-15 stocks, not 50+
+5. **Weekly rebalancing** - Daily too noisy, monthly too slow
+
+### What Doesn't Work:
+1. **Technical indicators as entry filters** - RSI, MACD, BB, ADX all hurt returns
+2. **Mean reversion** - Fails in trending markets (2020-2024)
+3. **Multi-timeframe analysis** - Adds complexity, no edge
+4. **BX Trender on portfolios** - Works on single stocks only
+5. **Over-diversification** - More stocks = lower returns
+
+### Best Strategy: No Top3 Momentum
+- **22.78% CAGR, 0.76 Sharpe, 19.5% DD**
+- Simple 6m ROC > 0 + acceleration bonus
+- SPY > 200 SMA regime filter
+- Weekly rebalance, top 10 stocks
+- No indicator filters
+
 ---
 
 ## References
