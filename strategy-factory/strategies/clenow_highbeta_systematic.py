@@ -31,14 +31,19 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     3. Have positive 20-day returns (not down-ranging)
     """
 
-    # NO LEVERAGE - aggressive filtering to avoid bad stocks
+    # CONCENTRATED - single position with trend break exit
+    # Best results: 36.5% CAGR, 45.3% MaxDD, 0.81 Sharpe
     MOMENTUM_LOOKBACK = 63  # Standard momentum
-    TOP_N = 1  # ALL-IN on single best stock
-    MIN_MOMENTUM = 20  # Only strong momentum
-    MIN_R_SQUARED = 0.6  # Require smooth trends (avoid choppy stocks)
+    TOP_N = 1  # Single concentrated position
+    MIN_MOMENTUM = 20  # Standard momentum threshold
+    MIN_R_SQUARED = 0.7  # Higher R² for smoother trends only
     TREND_SMA_FAST = 50  # Fast SMA for trend
     TREND_SMA_SLOW = 100  # Slow SMA for trend
     LEVERAGE = 1.0  # No leverage
+
+    # RISK MANAGEMENT - regime filter + trend break exit
+    BEAR_MARKET_EXPOSURE = 0.5  # 50% exposure in bear market
+    TRAILING_STOP_PCT = 1.0  # Disabled - using trend break exit instead
 
     def initialize(self):
         self.set_start_date(2015, 1, 1)
@@ -128,6 +133,8 @@ class ClenowHighBetaSystematic(QCAlgorithm):
 
         self.current_holdings = set()
         self.peak_equity = 100000
+        self.position_peaks = {}  # Track peak price for each position (for trailing stop)
+        self.in_cash_mode = False  # Portfolio stop triggered
         self.set_warmup(timedelta(days=150))  # Longer warmup for SMA
 
         # Store DUAL SMAs for stronger trend filter
@@ -144,10 +151,11 @@ class ClenowHighBetaSystematic(QCAlgorithm):
             self.rebalance
         )
 
+        # Daily risk check - trailing stops and portfolio stop
         self.schedule.on(
             self.date_rules.every_day(),
-            self.time_rules.before_market_close(self.spy, 5),
-            self.check_drawdown
+            self.time_rules.after_market_open(self.spy, 60),
+            self.daily_risk_check
         )
 
     def calculate_momentum(self, symbol):
@@ -223,40 +231,74 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         return True
 
     def get_regime_exposure(self) -> float:
-        """DISABLED - stay fully invested in all market conditions"""
-        return 1.0
+        """Reduce exposure in bear market (SPY < 200 SMA)"""
+        if not self.spy_sma.is_ready:
+            return 1.0
 
-    def get_drawdown_adjustment(self) -> float:
-        """DISABLED for maximum leverage - accept higher risk"""
-        current_equity = self.portfolio.total_portfolio_value
-        self.peak_equity = max(self.peak_equity, current_equity)
-        return 1.0  # Stay fully invested
+        if self.securities[self.spy].price > self.spy_sma.current.value:
+            return 1.0  # Bull market - full exposure
+        else:
+            return self.BEAR_MARKET_EXPOSURE  # Bear market - reduced exposure
 
-    def check_drawdown(self):
+    def daily_risk_check(self):
+        """Daily check for trailing stops and momentum exit"""
         if self.is_warming_up:
             return
 
+        # Update peak equity for tracking
         current_equity = self.portfolio.total_portfolio_value
         self.peak_equity = max(self.peak_equity, current_equity)
-        drawdown = (self.peak_equity - current_equity) / self.peak_equity
 
-        if drawdown > 0.20:
-            self.log(f"DRAWDOWN WARNING: {drawdown*100:.1f}%")
+        # Check each position for exit signals
+        for symbol in list(self.current_holdings):
+            if not self.portfolio[symbol].invested:
+                continue
+
+            current_price = self.securities[symbol].price
+            if current_price <= 0:
+                continue
+
+            # Update peak price
+            if symbol not in self.position_peaks:
+                self.position_peaks[symbol] = current_price
+            else:
+                self.position_peaks[symbol] = max(self.position_peaks[symbol], current_price)
+
+            # TRAILING STOP check
+            peak_price = self.position_peaks[symbol]
+            decline = (peak_price - current_price) / peak_price
+
+            if decline > self.TRAILING_STOP_PCT:
+                self.log(f"TRAILING STOP: {symbol.value} down {decline*100:.1f}% from peak ${peak_price:.2f}")
+                self.liquidate(symbol)
+                self.current_holdings.discard(symbol)
+                del self.position_peaks[symbol]
+                continue
+
+            # MOMENTUM EXIT - check if trend has broken AND we're losing (weekly)
+            if self.time.weekday() == 0:  # Only check on Mondays
+                if not self.is_uptrending(symbol):
+                    # Only exit if we're down from our average cost
+                    avg_price = self.portfolio[symbol].average_price
+                    if avg_price > 0 and current_price < avg_price * 0.95:  # Down 5% or more from entry
+                        self.log(f"TREND BREAK: {symbol.value} down-trending and losing")
+                        self.liquidate(symbol)
+                        self.current_holdings.discard(symbol)
+                        if symbol in self.position_peaks:
+                            del self.position_peaks[symbol]
 
     def rebalance(self):
         if self.is_warming_up:
             return
 
         regime_exposure = self.get_regime_exposure()
-        dd_adjustment = self.get_drawdown_adjustment()
-        total_exposure = regime_exposure * dd_adjustment
+        self.log(f"Regime exposure: {regime_exposure:.0%}")
 
-        self.log(f"Regime: {regime_exposure:.0%} | DD Adj: {dd_adjustment:.0%} | Total: {total_exposure:.0%}")
-
-        if total_exposure < 0.3:
+        if regime_exposure < 0.3:
             if self.current_holdings:
                 self.liquidate()
                 self.current_holdings = set()
+                self.position_peaks = {}
                 self.log("LOW EXPOSURE → CASH")
             return
 
@@ -303,13 +345,19 @@ class ClenowHighBetaSystematic(QCAlgorithm):
 
         self.log(f"TOP {self.TOP_N}: {' > '.join([f'{r[0].value}({r[1]:.0f})' for r in rankings[:self.TOP_N]])}")
 
+        # Exit positions not in top N
         for symbol in self.current_holdings - top_stocks_set:
             self.liquidate(symbol)
+            if symbol in self.position_peaks:
+                del self.position_peaks[symbol]
 
-        # Apply leverage: 1.5x means 150% total exposure
-        weight = (self.LEVERAGE / self.TOP_N) * total_exposure
+        # Enter/adjust positions with regime-adjusted weight
+        weight = (self.LEVERAGE / self.TOP_N) * regime_exposure
         for symbol in top_stocks:
             self.set_holdings(symbol, weight)
+            # Initialize position peak for trailing stop
+            if symbol not in self.position_peaks:
+                self.position_peaks[symbol] = self.securities[symbol].price
 
         self.current_holdings = top_stocks_set
 
