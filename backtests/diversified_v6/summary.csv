@@ -1,0 +1,2 @@
+timestamp,backtest_id,universe,period,sharpe,cagr,max_dd,win_rate,avg_win,avg_loss,rr,trades,net_profit
+2026-01-09T09:17:22.835969,a6d5dfd33674,unknown,2015-01-01 00:00:00 to 2024-12-31 23:59:59,0.65,22.6%,41.3%,50.2%,15.2%,-5.9%,2.57,566,"$648,757"

@@ -1,0 +1,22 @@
+{
+  "strategy_name": "diversified_v3",
+  "universe": "unknown",
+  "backtest_id": "48dc4b3282424229e8608dbb195c354f",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 562026.44,
+  "cagr": 18.829,
+  "sharpe": 0.557,
+  "max_drawdown": 38.3,
+  "total_trades": 699,
+  "win_rate": 56.36623748211731,
+  "avg_win_pct": 13.607328678887168,
+  "avg_loss_pct": -5.8055921470644805,
+  "risk_reward": 2.343831315427063,
+  "profit_factor": 1.17,
+  "avg_bars_held": 31,
+  "time_in_market": 0.0,
+  "total_fees": -8376.16,
+  "net_profit": 477845.16
+}

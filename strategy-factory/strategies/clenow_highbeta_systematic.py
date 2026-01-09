@@ -31,19 +31,22 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     3. Have positive 20-day returns (not down-ranging)
     """
 
-    # CONCENTRATED - single position with trend break exit
-    # Best results: 36.5% CAGR, 45.3% MaxDD, 0.81 Sharpe
+    # BEST DIVERSIFIED CONFIG (5 positions)
+    # Results: 22.6% CAGR, 41.3% MaxDD, 0.65 Sharpe
     MOMENTUM_LOOKBACK = 63  # Standard momentum
-    TOP_N = 1  # Single concentrated position (best CAGR)
-    MIN_MOMENTUM = 20  # Standard momentum threshold
-    MIN_R_SQUARED = 0.7  # Higher R² for smoother trends only
-    TREND_SMA_FAST = 50  # Fast SMA for trend
-    TREND_SMA_SLOW = 100  # Slow SMA for trend
+    TOP_N = 5  # Five positions for diversification
+    MIN_MOMENTUM = 25  # Moderate threshold
+    MIN_R_SQUARED = 0.65  # Slightly relaxed
+    TREND_SMA_FAST = 50  # Standard fast SMA
+    TREND_SMA_SLOW = 100  # Standard slow SMA
     LEVERAGE = 1.0  # No leverage
+    MAX_POSITION_SIZE = 0.60  # Allow 60% in best performer
 
-    # RISK MANAGEMENT - regime filter + trend break exit
-    BEAR_MARKET_EXPOSURE = 0.5  # 50% exposure in bear market
-    TRAILING_STOP_PCT = 1.0  # Disabled - using trend break exit instead
+    # RISK MANAGEMENT - no bear filter, no trailing stop
+    BEAR_MARKET_EXPOSURE = 1.0  # Full exposure (rely on trend filter)
+    TRAILING_STOP_PCT = 1.0  # Disabled
+    USE_MOMENTUM_WEIGHTING = True  # Weight positions by SQUARED momentum
+    DAILY_TREND_CHECK = True  # Check trend daily
 
     def initialize(self):
         self.set_start_date(2015, 1, 1)
@@ -275,12 +278,14 @@ class ClenowHighBetaSystematic(QCAlgorithm):
                 del self.position_peaks[symbol]
                 continue
 
-            # MOMENTUM EXIT - check if trend has broken AND we're losing (weekly)
-            if self.time.weekday() == 0:  # Only check on Mondays
+            # MOMENTUM EXIT - check if trend has broken AND we're losing
+            check_today = self.DAILY_TREND_CHECK or self.time.weekday() == 0
+            if check_today:
                 if not self.is_uptrending(symbol):
                     # Only exit if we're down from our average cost
                     avg_price = self.portfolio[symbol].average_price
-                    if avg_price > 0 and current_price < avg_price * 0.95:  # Down 5% or more from entry
+                    loss_threshold = 0.97 if self.DAILY_TREND_CHECK else 0.95  # 3% for daily, 5% for weekly
+                    if avg_price > 0 and current_price < avg_price * loss_threshold:
                         self.log(f"TREND BREAK: {symbol.value} down-trending and losing")
                         self.liquidate(symbol)
                         self.current_holdings.discard(symbol)
@@ -351,13 +356,30 @@ class ClenowHighBetaSystematic(QCAlgorithm):
             if symbol in self.position_peaks:
                 del self.position_peaks[symbol]
 
-        # Enter/adjust positions with regime-adjusted weight
-        weight = (self.LEVERAGE / self.TOP_N) * regime_exposure
-        for symbol in top_stocks:
-            self.set_holdings(symbol, weight)
-            # Initialize position peak for trailing stop
-            if symbol not in self.position_peaks:
-                self.position_peaks[symbol] = self.securities[symbol].price
+        # Enter/adjust positions with AGGRESSIVE momentum-weighted sizing
+        if self.USE_MOMENTUM_WEIGHTING and len(rankings) >= self.TOP_N:
+            # Get momentum scores for top stocks
+            top_rankings = rankings[:self.TOP_N]
+
+            # Square the momentum to amplify differences (more aggressive weighting)
+            squared_mom = [(s, m**2) for s, m in top_rankings]
+            total_squared = sum(m for _, m in squared_mom)
+
+            for symbol, mom_sq in squared_mom:
+                # Weight by squared momentum strength (more concentrated)
+                weight = (mom_sq / total_squared) * self.LEVERAGE * regime_exposure
+                # Cap individual position
+                weight = min(weight, self.MAX_POSITION_SIZE)
+                self.set_holdings(symbol, weight)
+                if symbol not in self.position_peaks:
+                    self.position_peaks[symbol] = self.securities[symbol].price
+        else:
+            # Equal weight fallback
+            weight = (self.LEVERAGE / self.TOP_N) * regime_exposure
+            for symbol in top_stocks:
+                self.set_holdings(symbol, weight)
+                if symbol not in self.position_peaks:
+                    self.position_peaks[symbol] = self.securities[symbol].price
 
         self.current_holdings = top_stocks_set
 

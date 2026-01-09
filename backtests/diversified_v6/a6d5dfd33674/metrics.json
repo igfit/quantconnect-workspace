@@ -1,0 +1,22 @@
+{
+  "strategy_name": "diversified_v6",
+  "universe": "unknown",
+  "backtest_id": "a6d5dfd336748f5bdb682f56a2db2643",
+  "period_start": "2015-01-01 00:00:00",
+  "period_end": "2024-12-31 23:59:59",
+  "starting_capital": 100000.0,
+  "ending_equity": 770522.48,
+  "cagr": 22.635,
+  "sharpe": 0.653,
+  "max_drawdown": 41.3,
+  "total_trades": 566,
+  "win_rate": 50.17667844522968,
+  "avg_win_pct": 15.196219038067998,
+  "avg_loss_pct": -5.913416200448659,
+  "risk_reward": 2.5697868242243866,
+  "profit_factor": 1.99,
+  "avg_bars_held": 35,
+  "time_in_market": 0.0,
+  "total_fees": -6458.07,
+  "net_profit": 648756.67
+}
