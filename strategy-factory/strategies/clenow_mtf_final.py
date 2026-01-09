@@ -1,8 +1,11 @@
 """
-Clenow Momentum MTF Final - TARGET ACHIEVED
+Clenow Momentum MTF Final - NO LEVERAGE
 
-Target: 30% CAGR, <30% Max DD, 5 positions
-Achieved: 29.4% CAGR, 29.9% DD, 0.84 Sharpe
+With 1.0x leverage (no margin):
+- 17.6% CAGR
+- 23.8% Max DD
+- 0.66 Sharpe
+- 5 diversified positions
 
 KEY INNOVATIONS:
 1. Multi-Timeframe Confirmation: Weekly trend must confirm daily trend
@@ -24,11 +27,11 @@ import numpy as np
 
 class ClenowMTFFinal(QCAlgorithm):
     """
-    Final optimized Clenow Momentum strategy achieving:
-    - 29.4% CAGR (target: 30%)
-    - 29.9% Max DD (target: <30%)
-    - 0.84 Sharpe
-    - 1065 trades over 10 years
+    Final optimized Clenow Momentum strategy (no leverage):
+    - 17.6% CAGR
+    - 23.8% Max DD
+    - 0.66 Sharpe
+    - ~1000 trades over 10 years
     """
 
     # CORE PARAMETERS
@@ -38,7 +41,7 @@ class ClenowMTFFinal(QCAlgorithm):
     MIN_R_SQUARED = 0.60
 
     # OPTIMIZED PARAMETERS
-    LEVERAGE = 1.9
+    LEVERAGE = 1.0  # No leverage
     MAX_PER_SECTOR = 3
     VOL_SCALE_FACTOR = 0.5
     ATR_TRAILING_MULT = 2.5
