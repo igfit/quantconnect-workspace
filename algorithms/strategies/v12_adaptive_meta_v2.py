@@ -1,0 +1,295 @@
+"""
+v12 ADAPTIVE META-STRATEGY V2
+
+Improved regime detection with lower thresholds.
+Key insight: 2015-2019 QQQ averaged ~11% annual return, so 6-month
+ROC rarely exceeded 15%. Need more sensitive detection.
+
+REGIME DETECTION (adjusted):
+- HIGH Momentum: QQQ 6-month ROC > 8% AND QQQ > 50 SMA AND 3-month ROC > 3%
+- LOW Momentum: Otherwise
+
+Both regimes use similar trend momentum approach but with different:
+- Universe sizes and market caps
+- Number of positions
+- Rebalance frequency
+"""
+
+from AlgorithmImports import *
+
+
+class V12AdaptiveMetaV2(QCAlgorithm):
+
+    def initialize(self):
+        self.set_start_date(2015, 1, 1)
+        self.set_end_date(2019, 12, 31)
+        self.set_cash(100000)
+
+        self.set_security_initializer(lambda security: security.set_slippage_model(
+            ConstantSlippageModel(0.001)
+        ))
+        self.set_brokerage_model(BrokerageName.INTERACTIVE_BROKERS_BROKERAGE)
+
+        self.lookback_days = 126
+        self.min_dollar_volume = 10_000_000
+
+        # Different position counts by regime
+        self.high_mom_top_n = 8
+        self.low_mom_top_n = 12
+
+        self.universe_size = 75
+        self.last_universe_refresh = None
+        self.current_regime = None
+        self.prev_regime = None
+
+        self.rebalance_week = 0
+        self.active_symbols = []
+
+        self.momentum = {}
+        self.short_mom = {}
+        self.sma_50 = {}
+        self.sma_200 = {}
+        self.volume_sma = {}
+
+        self.prev_short_mom = {}
+
+        # Market regime indicators
+        self.qqq = self.add_equity("QQQ", Resolution.DAILY).symbol
+        self.spy = self.add_equity("SPY", Resolution.DAILY).symbol
+
+        self.qqq_mom_126 = self.roc(self.qqq, 126, Resolution.DAILY)
+        self.qqq_mom_63 = self.roc(self.qqq, 63, Resolution.DAILY)
+        self.qqq_sma_50 = self.sma(self.qqq, 50, Resolution.DAILY)
+        self.qqq_sma_200 = self.sma(self.qqq, 200, Resolution.DAILY)
+        self.spy_sma_200 = self.sma(self.spy, 200, Resolution.DAILY)
+
+        self.add_universe(self.coarse_filter, self.fine_filter)
+        self.set_warm_up(210, Resolution.DAILY)
+
+        self.schedule.on(
+            self.date_rules.every(DayOfWeek.MONDAY),
+            self.time_rules.after_market_open("SPY", 30),
+            self.weekly_check
+        )
+        self.set_benchmark("SPY")
+
+    def get_regime(self):
+        """
+        Adjusted regime detection with lower thresholds.
+        """
+        if not self.qqq_mom_126.is_ready or not self.qqq_sma_50.is_ready:
+            return "LOW_MOMENTUM"
+
+        qqq_price = self.securities[self.qqq].price
+        mom_126 = self.qqq_mom_126.current.value
+        mom_63 = self.qqq_mom_63.current.value if self.qqq_mom_63.is_ready else 0
+        above_50_sma = qqq_price > self.qqq_sma_50.current.value
+
+        # ADJUSTED THRESHOLDS:
+        # HIGH MOMENTUM: 6-month ROC > 8% (was 15%) AND above 50 SMA AND 3-month > 3%
+        if mom_126 > 8 and above_50_sma and mom_63 > 3:
+            return "HIGH_MOMENTUM"
+
+        return "LOW_MOMENTUM"
+
+    def should_refresh(self):
+        current_regime = self.get_regime()
+
+        if self.prev_regime is not None and current_regime != self.prev_regime:
+            self.log(f"REGIME CHANGE: {self.prev_regime} -> {current_regime}")
+            return True
+
+        if self.last_universe_refresh is None:
+            return True
+
+        return (self.time - self.last_universe_refresh).days >= 90
+
+    def coarse_filter(self, coarse):
+        if not self.should_refresh():
+            return Universe.UNCHANGED
+
+        self.current_regime = self.get_regime()
+
+        # Same filters for both regimes now
+        min_price = 10
+        min_dollar_vol = 20e6
+
+        filtered = [x for x in coarse
+                   if x.has_fundamental_data
+                   and x.price > min_price
+                   and x.dollar_volume > min_dollar_vol]
+
+        sorted_by_volume = sorted(filtered, key=lambda x: x.dollar_volume, reverse=True)
+        return [x.symbol for x in sorted_by_volume[:500]]
+
+    def fine_filter(self, fine):
+        if not self.should_refresh():
+            return Universe.UNCHANGED
+
+        regime = self.current_regime
+
+        if regime == "HIGH_MOMENTUM":
+            # Smaller, more aggressive growth stocks
+            filtered = [x for x in fine
+                       if x.market_cap > 5e9
+                       and x.market_cap < 300e9]
+
+            growth_sectors = [
+                MorningstarSectorCode.TECHNOLOGY,
+                MorningstarSectorCode.CONSUMER_CYCLICAL,
+                MorningstarSectorCode.HEALTHCARE,
+                MorningstarSectorCode.COMMUNICATION_SERVICES,
+            ]
+            sector_filtered = [x for x in filtered
+                             if x.asset_classification.morningstar_sector_code in growth_sectors]
+
+        else:  # LOW_MOMENTUM
+            # Wider market cap range, same as what worked in trend momentum
+            filtered = [x for x in fine
+                       if x.market_cap > 5e9
+                       and x.market_cap < 500e9]
+
+            # Still exclude defensive
+            excluded_sectors = [
+                MorningstarSectorCode.UTILITIES,
+                MorningstarSectorCode.REAL_ESTATE,
+            ]
+            sector_filtered = [x for x in filtered
+                             if x.asset_classification.morningstar_sector_code not in excluded_sectors]
+
+        sorted_stocks = sorted(sector_filtered, key=lambda x: x.dollar_volume, reverse=True)
+        selected = [x.symbol for x in sorted_stocks[:self.universe_size]]
+
+        self.prev_regime = regime
+        self.last_universe_refresh = self.time
+        self.log(f"Universe ({regime}): {len(selected)} stocks at {self.time.date()}")
+
+        return selected
+
+    def on_securities_changed(self, changes):
+        for security in changes.added_securities:
+            symbol = security.symbol
+            if symbol in [self.spy, self.qqq]:
+                continue
+            if symbol not in self.active_symbols:
+                self.active_symbols.append(symbol)
+
+            if symbol not in self.momentum:
+                self.momentum[symbol] = self.roc(symbol, self.lookback_days, Resolution.DAILY)
+                self.short_mom[symbol] = self.roc(symbol, 21, Resolution.DAILY)
+                self.sma_50[symbol] = self.sma(symbol, 50, Resolution.DAILY)
+                self.sma_200[symbol] = self.sma(symbol, 200, Resolution.DAILY)
+                self.volume_sma[symbol] = self.sma(symbol, 20, Resolution.DAILY, Field.VOLUME)
+
+        for security in changes.removed_securities:
+            symbol = security.symbol
+            if symbol in self.active_symbols:
+                self.active_symbols.remove(symbol)
+            if self.portfolio[symbol].invested:
+                self.liquidate(symbol)
+
+    def weekly_check(self):
+        self.rebalance_week += 1
+        regime = self.get_regime()
+
+        if regime == "HIGH_MOMENTUM":
+            if self.rebalance_week % 2 == 0:
+                self.rebalance(aggressive=True)
+        else:
+            # Monthly rebalance in low momentum
+            if self.rebalance_week % 4 == 0:
+                self.rebalance(aggressive=False)
+
+    def rebalance(self, aggressive=False):
+        """
+        Unified rebalance with regime-specific parameters.
+        """
+        if self.is_warming_up:
+            return
+        if len(self.active_symbols) == 0:
+            return
+
+        # Market regime check
+        if not self.spy_sma_200.is_ready:
+            return
+        spy_price = self.securities[self.spy].price
+        if spy_price < self.spy_sma_200.current.value:
+            self.liquidate()
+            return
+
+        # Exit weak positions
+        for holding in list(self.portfolio.values()):
+            if holding.invested and holding.symbol in self.active_symbols:
+                if holding.symbol in self.short_mom and self.short_mom[holding.symbol].is_ready:
+                    threshold = -15 if aggressive else -20
+                    if self.short_mom[holding.symbol].current.value < threshold:
+                        self.liquidate(holding.symbol)
+
+        scores = {}
+        for symbol in self.active_symbols:
+            if symbol not in self.momentum or not self.momentum[symbol].is_ready:
+                continue
+            if symbol not in self.sma_50 or not self.sma_50[symbol].is_ready:
+                continue
+            if symbol not in self.sma_200 or not self.sma_200[symbol].is_ready:
+                continue
+            if not self.securities[symbol].has_data:
+                continue
+
+            price = self.securities[symbol].price
+            if price < 5:
+                continue
+            if symbol in self.volume_sma and self.volume_sma[symbol].is_ready:
+                if self.volume_sma[symbol].current.value * price < self.min_dollar_volume:
+                    continue
+
+            sma50 = self.sma_50[symbol].current.value
+            sma200 = self.sma_200[symbol].current.value
+            mom = self.momentum[symbol].current.value
+
+            # TREND FILTER for both regimes
+            if price <= sma50:
+                continue
+            if sma50 <= sma200:
+                continue
+            if mom <= 0:
+                continue
+
+            if aggressive and symbol in self.short_mom and self.short_mom[symbol].is_ready:
+                short_mom = self.short_mom[symbol].current.value
+                if short_mom < -10:
+                    continue
+
+                # Acceleration bonus in aggressive mode
+                prev_mom = self.prev_short_mom.get(symbol, 0)
+                acceleration = short_mom - prev_mom
+                self.prev_short_mom[symbol] = short_mom
+
+                accel_bonus = 1.4 if acceleration > 0 else 1.0
+                scores[symbol] = mom * accel_bonus
+            else:
+                scores[symbol] = mom
+
+        if len(scores) < 3:
+            self.liquidate()
+            return
+
+        top_n = self.high_mom_top_n if aggressive else self.low_mom_top_n
+        actual_n = min(top_n, len(scores))
+        ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        top_symbols = [s for s, _ in ranked[:actual_n]]
+
+        if aggressive:
+            # Momentum-weighted allocation
+            total_score = sum(scores[s] for s in top_symbols)
+            weights = {s: (scores[s] / total_score) for s in top_symbols}
+        else:
+            # Equal weight allocation
+            weights = {s: 1.0 / actual_n for s in top_symbols}
+
+        for holding in self.portfolio.values():
+            if holding.invested and holding.symbol not in top_symbols:
+                self.liquidate(holding.symbol)
+
+        for symbol in top_symbols:
+            self.set_holdings(symbol, weights[symbol])
