@@ -444,6 +444,56 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ## Progress Log
 
+### 2026-01-09 (Session 10 - Further Iterations)
+
+**NEW: CombinedBestLowDD achieves lowest DD ever (13.5%)**
+
+#### Iteration Results
+
+| Strategy | Sharpe | CAGR | MaxDD | Key Feature |
+|----------|--------|------|-------|-------------|
+| **CombinedBestLowDD** | 0.844 | 18.3% | **13.5%** | **Lowest DD ever** |
+| DrawdownScaling | 0.867 | 19.7% | 15.0% | DD-based position scaling |
+| **MomentumAccelLowDD** | **1.03** | **26.0%** | **18.1%** | **Best balance** ✅ |
+| LargeCapLowDD | 1.046 | 26.2% | 19.6% | Baseline DD-reduced |
+
+#### Best Strategy by Goal
+
+| Goal | Strategy | Sharpe | CAGR | MaxDD |
+|------|----------|--------|------|-------|
+| **Lowest DD** | CombinedBestLowDD | 0.844 | 18.3% | **13.5%** |
+| **Sharpe > 1.0 + Low DD** | **MomentumAccelLowDD** | **1.03** | **26.0%** | **18.1%** |
+| **Highest Returns** | ResidualHighBetaR16 | 1.404 | 49.0% | 25.7% |
+
+#### New Techniques Tested
+
+1. **Momentum Acceleration Filter** (MomentumAccelLowDD)
+   - Only enter when short-term momentum > long-term momentum
+   - Avoids buying at momentum peaks
+   - Result: Improved DD (18.1%) with Sharpe > 1.0
+
+2. **Drawdown-Based Position Scaling** (DrawdownScaling)
+   - Reduce position sizes during drawdowns
+   - 0-5% DD: 100% size, 5-15% DD: scaled down, >15% DD: no new positions
+   - Result: Lowest DD among Sharpe-positive strategies
+
+3. **Combined Approach** (CombinedBestLowDD)
+   - Momentum acceleration + Drawdown scaling + All DD reduction rules
+   - More conservative parameters (VIX < 24, max 75% exposure)
+   - Result: Lowest DD ever (13.5%) but Sharpe < 1.0
+
+#### Key Insight: The DD-Return Frontier
+
+There's a clear efficient frontier:
+- **13.5% DD** → 18.3% CAGR, 0.84 Sharpe
+- **18.1% DD** → 26.0% CAGR, 1.03 Sharpe (sweet spot)
+- **19.6% DD** → 26.2% CAGR, 1.05 Sharpe
+- **25.7% DD** → 49.0% CAGR, 1.40 Sharpe
+
+**Recommendation**: MomentumAccelLowDD for most use cases.
+
+---
+
 ### 2026-01-09 (Session 10 - Drawdown Reduction)
 
 **SUCCESS: LargeCapLowDD achieves MaxDD < 20% with Sharpe > 1.0**
