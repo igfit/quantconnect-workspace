@@ -239,9 +239,8 @@ class PositionCentricV35FullPeriod(QCAlgorithm):
         if price < highest_price * (1 - self.trailing_stop_pct):
             return True
 
-        mom_1m = self.get_momentum(symbol, 21)
-        if mom_1m is not None and mom_1m < -0.10:
-            return True
+        # REMOVED: 1-month momentum exit (caused churning - exit then immediate re-entry)
+        # Let trailing stop and hard stop handle downside protection
 
         return False
 
