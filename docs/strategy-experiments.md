@@ -444,6 +444,60 @@ Key insight: Quality MegaCap breaks the pattern - high returns WITH low drawdown
 
 ## Progress Log
 
+### 2026-01-09 (Session 10 - Drawdown Reduction)
+
+**SUCCESS: LargeCapLowDD achieves MaxDD < 20% with Sharpe > 1.0**
+
+#### DD Reduction Strategy Results
+
+| Strategy | Sharpe | CAGR | MaxDD | Notes |
+|----------|--------|------|-------|-------|
+| **LargeCapLowDD** | **1.046** | **26.2%** | **19.6%** | **TARGET HIT** ✅ |
+| SmallCapLowDD_V2 | 1.027 | 47.2% | 43.0% | Best small-cap |
+| SmallCapLowDD_V1 | 0.821 | 38.6% | 52.7% | Tighter stops hurt |
+| SmallCapLowDD_V3 | 0.628 | 22.6% | 46.4% | Too conservative |
+| SmallCapLowDD_V4 | 0.508 | 15.3% | 28.4% | Too aggressive |
+
+#### Comparison: Original vs DD-Reduced
+
+| Strategy | Version | Sharpe | CAGR | MaxDD | Trade-off |
+|----------|---------|--------|------|-------|-----------|
+| ResidualHighBetaR16 | Original | 1.404 | 49.0% | 25.7% | Baseline |
+| **LargeCapLowDD** | **DD-Reduced** | **1.046** | **26.2%** | **19.6%** | -6% DD, -23% CAGR |
+| ResidualSmallCapR18 | Original | 1.03 | 52.6% | 53.7% | Baseline |
+| SmallCapLowDD_V2 | DD-Reduced | 1.027 | 47.2% | 43.0% | -10% DD, -5% CAGR |
+
+#### What Works for DD Reduction
+
+**LargeCapLowDD techniques** (reduced DD by 6%):
+1. **Volatility-scaled position sizing** - Inverse ATR%, target 2% risk per position
+2. **VIX scaling** - Reduce position size as VIX rises above 20
+3. **Max exposure cap** - 80% max portfolio exposure
+4. **ATR-based stops** - 2x ATR stop, 2.5x ATR trailing
+5. **VIX exit threshold** - Exit all positions if VIX > 32
+
+**What doesn't work**:
+- Tighter fixed stops → More whipsaws, worse returns
+- Cash buffers → Drag on returns without proportional DD reduction
+- Aggressive VIX filters → Miss good entries after volatility
+
+#### Key Insight: DD Reduction Trade-off
+
+**The trade-off is approximately**:
+- Each 1% reduction in MaxDD costs ~4% in CAGR
+- LargeCapLowDD: -6% MaxDD cost -23% CAGR
+- This is acceptable if risk tolerance is lower
+
+#### Best Strategy by Risk Profile
+
+| Risk Profile | Strategy | Sharpe | CAGR | MaxDD |
+|--------------|----------|--------|------|-------|
+| **Conservative** | **LargeCapLowDD** | 1.046 | 26.2% | **19.6%** |
+| Moderate | WeeklyKeltnerDailyR17 | 1.185 | 31.7% | 24.7% |
+| Aggressive | ResidualHighBetaR16 | 1.404 | 49.0% | 25.7% |
+
+---
+
 ### 2026-01-08 (Session 9 - Round 18 Small/Mid-Cap Universe Test)
 
 **KEY FINDING: Signal transfers to small-caps with EXTREME volatility**
