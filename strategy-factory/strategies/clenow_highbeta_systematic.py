@@ -31,11 +31,13 @@ class ClenowHighBetaSystematic(QCAlgorithm):
     3. Have positive 20-day returns (not down-ranging)
     """
 
-    # NO LEVERAGE - single stock concentration
+    # NO LEVERAGE - aggressive filtering to avoid bad stocks
     MOMENTUM_LOOKBACK = 63  # Standard momentum
     TOP_N = 1  # ALL-IN on single best stock
-    MIN_MOMENTUM = 15  # Lower threshold to capture more opportunities
-    TREND_SMA_PERIOD = 100
+    MIN_MOMENTUM = 20  # Only strong momentum
+    MIN_R_SQUARED = 0.6  # Require smooth trends (avoid choppy stocks)
+    TREND_SMA_FAST = 50  # Fast SMA for trend
+    TREND_SMA_SLOW = 100  # Slow SMA for trend
     LEVERAGE = 1.0  # No leverage
 
     def initialize(self):
@@ -128,10 +130,12 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         self.peak_equity = 100000
         self.set_warmup(timedelta(days=150))  # Longer warmup for SMA
 
-        # Store SMAs for trend filter
-        self.stock_smas = {}
+        # Store DUAL SMAs for stronger trend filter
+        self.stock_sma_fast = {}
+        self.stock_sma_slow = {}
         for symbol in self.stocks:
-            self.stock_smas[symbol] = self.sma(symbol, self.TREND_SMA_PERIOD, Resolution.DAILY)
+            self.stock_sma_fast[symbol] = self.sma(symbol, self.TREND_SMA_FAST, Resolution.DAILY)
+            self.stock_sma_slow[symbol] = self.sma(symbol, self.TREND_SMA_SLOW, Resolution.DAILY)
 
         # MONTHLY rebalancing
         self.schedule.on(
@@ -146,15 +150,16 @@ class ClenowHighBetaSystematic(QCAlgorithm):
             self.check_drawdown
         )
 
-    def calculate_momentum(self, symbol) -> float:
+    def calculate_momentum(self, symbol):
+        """Returns (momentum_score, r_squared) or (None, None)"""
         history = self.history(symbol, self.MOMENTUM_LOOKBACK + 1, Resolution.DAILY)
         if history.empty or len(history) < self.MOMENTUM_LOOKBACK:
-            return None
+            return None, None
 
         try:
             prices = history['close'].values
             if len(prices) < 20:
-                return None
+                return None, None
 
             log_prices = np.log(prices)
             x = np.arange(len(log_prices))
@@ -166,29 +171,41 @@ class ClenowHighBetaSystematic(QCAlgorithm):
             ss_tot = np.sum((log_prices - np.mean(log_prices)) ** 2)
             r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
-            return annualized_slope * r_squared
+            # Return both momentum score and R²
+            return annualized_slope * r_squared, r_squared
         except:
-            return None
+            return None, None
 
     def is_uptrending(self, symbol) -> bool:
         """
-        Check if stock is in uptrend (not down-ranging):
-        1. Price > 100-day SMA
-        2. 20-day return is positive
+        Filter to avoid down-ranging stocks:
+        1. Price > 50-day SMA (fast trend)
+        2. Price > 100-day SMA (slow trend)
+        3. 50-day SMA > 100-day SMA (trend alignment)
+        4. 20-day return > -5% (not crashing)
         """
-        # Check SMA filter
-        if symbol not in self.stock_smas:
+        # Check DUAL SMA filter
+        if symbol not in self.stock_sma_fast or symbol not in self.stock_sma_slow:
             return False
 
-        sma = self.stock_smas[symbol]
-        if not sma.is_ready:
+        sma_fast = self.stock_sma_fast[symbol]
+        sma_slow = self.stock_sma_slow[symbol]
+        if not sma_fast.is_ready or not sma_slow.is_ready:
             return False
 
         price = self.securities[symbol].price
-        if price <= 0 or price < sma.current.value:
-            return False  # Below SMA = downtrend
+        if price <= 0:
+            return False
 
-        # Check recent returns (20-day)
+        # Must be above BOTH SMAs
+        if price < sma_fast.current.value or price < sma_slow.current.value:
+            return False
+
+        # Fast SMA must be above slow SMA (trend alignment)
+        if sma_fast.current.value < sma_slow.current.value:
+            return False
+
+        # Check recent returns - not crashing
         history = self.history(symbol, 21, Resolution.DAILY)
         if history.empty or len(history) < 20:
             return False
@@ -196,7 +213,9 @@ class ClenowHighBetaSystematic(QCAlgorithm):
         try:
             prices = history['close'].values
             recent_return = (prices[-1] / prices[0]) - 1
-            if recent_return < -0.05:  # Down more than 5% in 20 days = avoid
+
+            # Not down more than 5% in 20 days
+            if recent_return < -0.05:
                 return False
         except:
             return False
@@ -241,28 +260,37 @@ class ClenowHighBetaSystematic(QCAlgorithm):
                 self.log("LOW EXPOSURE → CASH")
             return
 
-        # Rank stocks: must be uptrending AND have good momentum
+        # Rank stocks: must be uptrending AND have smooth strong momentum
         rankings = []
-        filtered_out = 0
+        filtered_trend = 0
+        filtered_rsq = 0
         for symbol in self.stocks:
             # TREND FILTER: Skip stocks that are down-ranging
             if not self.is_uptrending(symbol):
-                filtered_out += 1
+                filtered_trend += 1
                 continue
 
-            mom = self.calculate_momentum(symbol)
-            if mom is not None and mom > self.MIN_MOMENTUM:
+            mom, rsq = self.calculate_momentum(symbol)
+            if mom is None or rsq is None:
+                continue
+
+            # R² FILTER: Skip choppy/noisy trends
+            if rsq < self.MIN_R_SQUARED:
+                filtered_rsq += 1
+                continue
+
+            if mom > self.MIN_MOMENTUM:
                 rankings.append((symbol, mom))
 
-        self.log(f"Filtered out {filtered_out} down-ranging stocks")
+        self.log(f"Filtered: {filtered_trend} down-ranging, {filtered_rsq} low R²")
 
-        # If not enough high-momentum stocks, lower threshold
+        # If not enough, try without R² filter but keep trend filter
         if len(rankings) < self.TOP_N:
             rankings = []
             for symbol in self.stocks:
                 if not self.is_uptrending(symbol):
                     continue
-                mom = self.calculate_momentum(symbol)
+                mom, rsq = self.calculate_momentum(symbol)
                 if mom is not None and mom > 0:
                     rankings.append((symbol, mom))
 
