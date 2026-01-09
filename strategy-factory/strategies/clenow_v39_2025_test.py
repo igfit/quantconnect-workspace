@@ -48,7 +48,8 @@ class ClenowDiversified2025(QCAlgorithm):
 
     def initialize(self):
         # 2025 FORWARD TEST
-        self.set_start_date(2025, 1, 1)
+        # Start earlier to allow 210-day warmup to complete by Jan 2025
+        self.set_start_date(2024, 5, 1)  # ~245 days before Jan 2025
         self.set_end_date(2025, 12, 31)
         self.set_cash(100000)
 
