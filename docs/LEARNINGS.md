@@ -892,6 +892,113 @@ position_size = base_size * scaling_factor
 
 ---
 
+## Clenow High-Beta Systematic Strategy
+
+### Overview
+
+A **concentrated momentum strategy** that trades a single high-beta stock at a time, using Clenow's momentum scoring method (annualized regression slope × R²).
+
+**Key Innovation**: Weekly trend-break exit that cuts losers while letting winners run.
+
+### Best Configuration (2015-2024)
+
+| Parameter | Value |
+|-----------|-------|
+| TOP_N | 1 (concentrated) |
+| Momentum Lookback | 63 days |
+| MIN_R_SQUARED | 0.7 |
+| Trend SMAs | 50/100 day |
+| Bear Market Exposure | 50% |
+| Leverage | None (1.0x) |
+
+### Performance Results
+
+| Metric | Value |
+|--------|-------|
+| **CAGR** | **36.5%** |
+| **Max Drawdown** | **45.3%** |
+| **Sharpe Ratio** | **0.81** |
+| Win Rate | 58.9% |
+| Profit Factor | 1.78 |
+| Avg Hold | 39 days |
+
+### Entry Criteria
+
+1. **Systematic Universe**: 90+ high-beta stocks existing before 2015 (includes losers like GRPN, TRIP)
+2. **Dual SMA Trend**: Price > 50-day AND 100-day SMA, with 50 SMA > 100 SMA
+3. **R² Filter**: Require R² > 0.7 for smooth trends
+4. **Recent Performance**: 20-day return > -5% (not crashing)
+5. **Monthly Selection**: Pick TOP 1 by momentum score
+
+### Exit Criteria
+
+1. **Monthly Rebalance**: Switch to highest momentum stock
+2. **Trend Break Exit**: Exit if (trend broken) AND (down 5%+ from entry)
+3. **Regime Filter**: 50% exposure when SPY < 200 SMA
+
+### Risk Management Findings
+
+| Approach | CAGR | Max DD | Notes |
+|----------|------|--------|-------|
+| No risk mgmt | 30.6% | 60.6% | Baseline |
+| 50% regime filter only | 32.2% | 52.7% | Better |
+| 0% regime filter | 30.7% | 54.4% | Too aggressive |
+| 20% trailing stop | 25.2% | 49.4% | Hurts returns |
+| 25% trailing stop | 25.7% | 55.5% | Still hurts |
+| Trend break exit (any) | 26.2% | 44.2% | Cuts winners |
+| **Trend break + 5% loss** | **36.5%** | **45.3%** | **Best** |
+| Trend break + 3% loss | 35.7% | 47.1% | Too tight |
+| TOP 2 diversification | 11.2% | 51.6% | Destroys returns |
+
+### Key Learnings
+
+1. **Trailing stops hurt momentum strategies** - They cut winners during normal volatility. Trend-break exit is better because it only triggers when both trend is broken AND position is losing.
+
+2. **Concentration beats diversification** for momentum - TOP 1 dramatically outperformed TOP 2 (36.5% vs 11.2% CAGR)
+
+3. **Survivorship bias can be overcome** - Including "loser" stocks (GRPN, TRIP, BIDU) in the universe still works. GRPN actually generated the largest profit (+$1M) due to momentum spikes.
+
+4. **R² filter helps** - Requiring R² > 0.7 filters out choppy stocks that whipsaw
+
+5. **Regime filter is valuable** - 50% exposure during bear markets provides protection without killing returns
+
+### Top Performers
+
+| Ticker | Trades | Win% | P&L |
+|--------|--------|------|-----|
+| GRPN | 2 | 50% | +$1,049,419 |
+| NVDA | 9 | 78% | +$683,707 |
+| TSLA | 4 | 100% | +$673,109 |
+| GAP | 5 | 60% | +$544,846 |
+| JWN | 1 | 100% | +$183,907 |
+
+### Worst Performers
+
+| Ticker | Trades | Win% | P&L |
+|--------|--------|------|-----|
+| WFC | 2 | 0% | -$315,345 |
+| DVN | 3 | 33% | -$256,432 |
+| ILMN | 4 | 50% | -$251,958 |
+| IBM | 2 | 0% | -$237,087 |
+| SWKS | 3 | 33% | -$233,717 |
+
+### Why Trend-Break Exit Works
+
+```python
+# WRONG: Exit on any trend break (cuts winners)
+if not self.is_uptrending(symbol):
+    self.liquidate(symbol)
+
+# RIGHT: Exit only when losing AND trend broken
+if not self.is_uptrending(symbol):
+    if current_price < avg_price * 0.95:  # Down 5%+ from entry
+        self.liquidate(symbol)
+```
+
+The key insight: A stock can temporarily break trend while still being profitable. Only exit when BOTH conditions are true.
+
+---
+
 ## Future Improvements to Explore
 
 1. **Adaptive parameters** - adjust SMA periods based on volatility regime
