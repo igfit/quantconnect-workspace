@@ -70,8 +70,10 @@ class EMADynamicAnnualV58(QCAlgorithm):
         # ============================================
         self.regime_dates = [
             # (start_date, end_date, regime_name)
+            # IMPORTANT: End dates must extend PAST backtest end date to avoid
+            # falling back to default regime during final universe refresh
             (datetime(2015, 1, 1), datetime(2019, 12, 31), "QUALITY_BULL"),
-            (datetime(2020, 1, 1), datetime(2024, 12, 31), "SPECULATIVE_BULL"),
+            (datetime(2020, 1, 1), datetime(2029, 12, 31), "SPECULATIVE_BULL"),
         ]
         # ============================================
 
