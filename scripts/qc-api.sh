@@ -65,7 +65,7 @@ case "$1" in
     projects|list)
         # List all projects
         check_auth
-        qc_call GET "/projects/read" | pp '.projects[] | {id, name, modified, language}'
+        qc_call GET "/projects/read" | pp '.projects[] | {projectId, name, modified, language}'
         ;;
 
     project-create)

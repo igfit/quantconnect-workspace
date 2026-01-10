@@ -583,5 +583,81 @@ def calculate_position_size(symbol, price, atr_value):
 
 ---
 
-*Study completed: January 2026 - Final Best Strategy: Dual Momentum VolSize Expanded*
-*Walk-forward validated: 20.9% CAGR, 0.94 Sharpe, 13.4% Max DD*
+---
+
+# Round 6: Addressing Hindsight Bias in Universe Selection
+
+## The Problem
+
+The hand-picked universe (TSLA, NVDA, AMD, META, GOOGL, AMZN) was selected with **hindsight bias** - we knew these stocks would be winners. A truly robust strategy needs systematic universe selection.
+
+## Systematic Approaches Tested
+
+### 1. Broad Stock Universe (40+ stocks)
+
+Used a pre-defined universe of large-cap growth/tech stocks that existed in 2018, letting the dual momentum filter select winners dynamically.
+
+| Period | CAGR | Sharpe | Max DD | Trades |
+|--------|------|--------|--------|--------|
+| Full (2018-2024) | 17.4% | 0.80 | 19.2% | 550 |
+| Train (2018-2020) | 30.5% | 1.30 | 19.2% | 232 |
+| **Test (2021-2024)** | **11.5%** | **0.43** | 22.6% | 322 |
+
+### 2. Sector ETF Rotation (11 ETFs)
+
+Applied momentum to sector ETFs instead of individual stocks.
+
+| Period | CAGR | Sharpe | Max DD | Verdict |
+|--------|------|--------|--------|---------|
+| Full (2018-2024) | 4.4% | 0.08 | 11.1% | **FAILED** - ETFs too diversified |
+
+## Comparison: Systematic vs Hand-Picked
+
+| Strategy | Test CAGR | Test Sharpe | Test DD | Notes |
+|----------|-----------|-------------|---------|-------|
+| Hand-Picked (6 stocks) | **20.9%** | **0.94** | 13.4% | Hindsight bias |
+| Systematic (40 stocks) | 11.5% | 0.43 | 22.6% | No bias |
+| Sector ETFs | 4.4% | 0.08 | 11.1% | Failed |
+
+## Key Insights
+
+### Why Hand-Picked Outperformed
+
+1. **Hindsight Selection**: TSLA/NVDA/AMD/META/GOOGL/AMZN were the best momentum stocks 2018-2024
+2. **Dilution Effect**: Adding 34 other stocks diluted the momentum signal
+3. **Volatility Focus**: The 6 hand-picked stocks had higher beta = stronger momentum signals
+
+### Systematic Strategy Is Still Valid
+
+Despite lower returns, the systematic approach:
+- **Removes hindsight bias** - could be deployed forward
+- **11.5% CAGR** still beats risk-free rates
+- **More conservative** for real deployment
+- **Passed walk-forward** (positive returns in test period)
+
+### Sector ETFs Don't Work
+
+ETFs are too diversified within each sector, dampening momentum signals. Individual stocks required for momentum edge.
+
+## Recommendations
+
+For **research/backtesting**: Use systematic universe to avoid overfitting
+For **live trading**: Consider hybrid approach:
+- Start with broad universe (40+ stocks)
+- Let momentum filter select top N
+- Accept lower returns as cost of removing bias
+
+## Files Created
+
+| File | Purpose |
+|------|---------|
+| `dual_momentum_systematic_v2.py` | Broad 40-stock universe |
+| `dual_momentum_systematic_train.py` | Train period (2018-2020) |
+| `dual_momentum_systematic_test.py` | Test period (2021-2024) |
+| `dual_momentum_sector_etf.py` | Sector ETF rotation (failed) |
+
+---
+
+*Study completed: January 2026*
+*Final Best (with hindsight): Dual Momentum VolSize Expanded - 20.9% CAGR, 0.94 Sharpe*
+*Systematic (no hindsight): Dual Momentum Systematic - 11.5% CAGR, 0.43 Sharpe*
